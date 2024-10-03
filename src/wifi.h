@@ -17,4 +17,8 @@ void l4_event_handler(struct net_mgmt_event_callback *cb,uint32_t event,struct n
 
 int wifi_init();
 
+int wifi_enable_ps();
+
+int wifi_disable_ps();
+
 #endif

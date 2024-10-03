@@ -12,6 +12,9 @@ static struct net_mgmt_event_callback l4_cb;
 /* Variable used to indicate if network is connected. */
 static bool is_connected;
 
+// variable to store PS enabled
+bool nrf_wifi_ps_enabled;
+
 /* Mutex and conditional variable used to signal network connectivity. */
 K_MUTEX_DEFINE(network_connected_lock);
 K_CONDVAR_DEFINE(network_connected);
@@ -26,6 +29,62 @@ void wait_for_network(void)
 	}
 
 	k_mutex_unlock(&network_connected_lock);
+}
+
+int wifi_enable_ps()
+{
+	struct net_if *iface = net_if_get_first_wifi();
+
+	// Define the Wi-Fi power save parameters struct wifi_ps_params.
+	struct wifi_ps_params params = {0};
+
+	if (!nrf_wifi_ps_enabled) {
+		params.enabled = WIFI_PS_ENABLED;
+
+		// Send the power save request with net_mgmt. 
+		if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
+			LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
+				wifi_ps_get_config_err_code_str(params.fail_reason));
+			return -1;
+		}
+		LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
+
+		// Toggle the value of nrf_wifi_ps_enabled to indicate the new power save status.
+		nrf_wifi_ps_enabled = true;
+		return 0;
+
+	} else {
+		LOG_WRN("Power save already enabled !");
+		return -1;
+	}
+}
+
+int wifi_disable_ps()
+{
+	struct net_if *iface = net_if_get_first_wifi();
+
+	// Define the Wi-Fi power save parameters struct wifi_ps_params.
+	struct wifi_ps_params params = {0};
+
+	if (nrf_wifi_ps_enabled) {
+		params.enabled = WIFI_PS_DISABLED;
+
+		// Send the power save request with net_mgmt. 
+		if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
+			LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
+				wifi_ps_get_config_err_code_str(params.fail_reason));
+			return -1;
+		}
+		LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
+
+		// Toggle the value of nrf_wifi_ps_enabled to indicate the new power save status.
+		nrf_wifi_ps_enabled = false;
+		return 0;
+
+	} else {
+		LOG_WRN("Power save already disabled !");
+		return -1;
+	}
 }
 
 int wifi_args_to_params(struct wifi_connect_req_params *params)
@@ -105,5 +164,7 @@ int wifi_init(){
 		return ENOEXEC;
 	}
 
+	nrf_wifi_ps_enabled = true; //set default power safe mode
+	
 	return 0;
 }

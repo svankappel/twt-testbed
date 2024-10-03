@@ -97,6 +97,18 @@ int main(void)
 
 	wait_for_network();
 
+	//test code
+
+	while(true)
+	{
+		wifi_disable_ps();
+		k_sleep(K_SECONDS(10));
+		wifi_enable_ps();
+		k_sleep(K_SECONDS(10));
+	}
+	
+
+
 	coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
 
 	while(true)
