@@ -34,6 +34,7 @@
 
 #include "wifi.h"
 #include "coap.h"
+#include "profiler.h"
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
@@ -42,7 +43,6 @@ LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
 /* Zephyr NET management event callback structures. */
 static struct net_mgmt_event_callback conn_cb;
-
 
 
 /* Macro called upon a fatal error, reboots the device. */
@@ -67,7 +67,7 @@ int main(void)
 {
 	int err;
 
-	LOG_INF("The CoAP client sample started");
+	profiler_init();
 
 	wifi_init();
 
@@ -98,13 +98,13 @@ int main(void)
 	wait_for_network();
 
 	//test code
+	int i = 0;
 
 	while(true)
-	{
-		wifi_disable_ps();
-		k_sleep(K_SECONDS(10));
-		wifi_enable_ps();
-		k_sleep(K_SECONDS(10));
+	{	
+		profiler_output_binary(i);
+		k_sleep(K_SECONDS(1));
+		i++;
 	}
 	
 
