@@ -9,11 +9,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
 
-int wifi_args_to_params(struct wifi_connect_req_params *params);
-
 void wait_for_network(void);
-
-void l4_event_handler(struct net_mgmt_event_callback *cb,uint32_t event,struct net_if *iface);
 
 int wifi_init();
 

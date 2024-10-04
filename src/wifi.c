@@ -3,19 +3,19 @@
 LOG_MODULE_REGISTER(wifi,CONFIG_MY_WIFI_LOG_LEVEL);
 
 
-/* Macros used to subscribe to specific Zephyr NET management events. */
+// Macros used to subscribe to specific Zephyr NET management events. 
 #define L4_EVENT_MASK (NET_EVENT_L4_CONNECTED | NET_EVENT_L4_DISCONNECTED)
 
-/* Zephyr NET management event callback structures. */
+// Zephyr NET management event callback structures. 
 static struct net_mgmt_event_callback l4_cb;
 
-/* Variable used to indicate if network is connected. */
+// Variable used to indicate if network is connected. 
 static bool is_connected;
 
 // variable to store PS enabled
 bool nrf_wifi_ps_enabled;
 
-/* Mutex and conditional variable used to signal network connectivity. */
+// Mutex and conditional variable used to signal network connectivity.
 K_MUTEX_DEFINE(network_connected_lock);
 K_CONDVAR_DEFINE(network_connected);
 
@@ -87,7 +87,7 @@ int wifi_disable_ps()
 	}
 }
 
-int wifi_args_to_params(struct wifi_connect_req_params *params)
+static int wifi_args_to_params(struct wifi_connect_req_params *params)
 {
 	// Populate the SSID and password
 	params->ssid = CONFIG_WIFI_CREDENTIALS_STATIC_SSID;
@@ -109,7 +109,7 @@ int wifi_args_to_params(struct wifi_connect_req_params *params)
 	return 0;
 }
 
-void l4_event_handler(struct net_mgmt_event_callback *cb,
+static void l4_event_handler(struct net_mgmt_event_callback *cb,
 			     uint32_t event,
 			     struct net_if *iface)
 {
@@ -149,7 +149,7 @@ int wifi_init(){
 	k_sleep(K_SECONDS(1));
 
 
-	/* Setup handler for Zephyr NET Connection Manager events and Connectivity layer. */
+	// Setup handler for Zephyr NET Connection Manager events and Connectivity layer.
 	net_mgmt_init_event_callback(&l4_cb, l4_event_handler, L4_EVENT_MASK);
 	net_mgmt_add_event_callback(&l4_cb);
 
