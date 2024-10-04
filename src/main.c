@@ -21,7 +21,9 @@ LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 int main(void)
 {
 	int err;
+
 	profiler_init();
+
 	wifi_init();
 
 	err = conn_mgr_all_if_connect(true);
@@ -34,21 +36,15 @@ int main(void)
 
 	LOG_INF("Network connected");
 
-	k_sleep(K_FOREVER);
-
-	
 	coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
 
 	while(true)
 	{
+		// sensor usecase -> sends random sensor value to server every 5 seconds
 		uint8_t message[25];
-		sprintf(message,"{\"random-value\":%d}",sys_rand8_get());
-
+		sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());
 		coap_put(CONFIG_COAP_SAMPLE_PUT_RESOURCE,message,strlen(message));
-		k_sleep(K_SECONDS(3));
-
-		coap_get(CONFIG_COAP_SAMPLE_GET_RESOURCE);
-		k_sleep(K_SECONDS(3));
+		k_sleep(K_SECONDS(5));
 	}
 	
 
