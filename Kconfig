@@ -1,0 +1,94 @@
+#
+# Copyright (c) 2019 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+menu "CoAP client sample"
+
+config COAP_SAMPLE_PUT_RESOURCE
+	string "CoAP resource sample - PUT"
+	default "resource"
+
+  config COAP_SAMPLE_GET_RESOURCE
+	string "CoAP resource sample GET"
+	default "resource"
+
+config COAP_SAMPLE_SERVER_HOSTNAME
+	string "CoAP server hostname"
+	default "ServerAddress"
+
+config COAP_SAMPLE_SERVER_PORT
+	int "CoAP server port"
+	default 0000
+
+
+endmenu
+
+menu "Wi-Fi config"
+
+config WIFI_CREDENTIALS_STATIC_SSID
+	string "Wi-Fi SSID"
+	default "MySSID"
+
+config WIFI_CREDENTIALS_STATIC_PASSWORD
+	string "Wi-Fi SSID"
+	default "MyPassword"
+
+endmenu
+
+menu "Log Levels"
+config MY_MAIN_LOG_LEVEL
+    int "Main log level"
+    range 0 4
+    default 3
+    depends on LOG
+    help
+      Sets log level for modules which don't specify it explicitly. When
+      set to 0 it means log will not be activated for those modules.
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config MY_WIFI_LOG_LEVEL
+    int "Wi-Fi log level"
+    range 0 4
+    default 3
+    depends on LOG
+    help
+      Sets log level for modules which don't specify it explicitly. When
+      set to 0 it means log will not be activated for those modules.
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config MY_COAP_LOG_LEVEL
+    int "CoAP log level"
+    range 0 4
+    default 3
+    depends on LOG
+    help
+      Sets log level for modules which don't specify it explicitly. When
+      set to 0 it means log will not be activated for those modules.
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+endmenu
+
+
+
+menu "Zephyr Kernel"
+source "Kconfig.zephyr"
+endmenu

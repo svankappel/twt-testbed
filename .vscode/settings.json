@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "socket.h": "c",
+        "wifi.h": "c",
+        "coap.h": "c",
+        "gpio.h": "c",
+        "profiler.h": "c"
+    }
+}
