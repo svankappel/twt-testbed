@@ -69,7 +69,7 @@ int wifi_ps_wmm_dtim()
 	return 0;
 }
 
-int wifi_ps_legacy_listen_interval()
+int wifi_ps_legacy_listen_interval(int interval)
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -79,7 +79,9 @@ int wifi_ps_legacy_listen_interval()
 	params.enabled = WIFI_PS_ENABLED;
 	params.mode = WIFI_PS_MODE_LEGACY;
 	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_LISTEN_INTERVAL;
-	params.listen_interval = 10;
+	params.listen_interval = interval;
+	
+	
 	// Send the power save request with net_mgmt. 
 	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
 		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
@@ -91,7 +93,7 @@ int wifi_ps_legacy_listen_interval()
 	return 0;
 }
 
-int wifi_ps_wmm_listen_interval()
+int wifi_ps_wmm_listen_interval(int interval)
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -101,7 +103,8 @@ int wifi_ps_wmm_listen_interval()
 	params.enabled = WIFI_PS_ENABLED;
 	params.mode = WIFI_PS_MODE_WMM;
 	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_LISTEN_INTERVAL;
-	params.listen_interval = 10;
+	params.listen_interval = interval;
+
 	// Send the power save request with net_mgmt. 
 	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
 		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
