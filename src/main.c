@@ -11,7 +11,8 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
 
-#include "wifi.h"
+#include "wifi_sta.h"
+#include "wifi_ps.h"
 #include "coap.h"
 #include "profiler.h"
 
@@ -26,12 +27,9 @@ int main(void)
 
 	wifi_init();
 
-	k_sleep(K_FOREVER);
 
 	LOG_INF("Network connected");
 
-
-/*
 	//coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
 
 	while(true)
@@ -85,7 +83,7 @@ int main(void)
 			}
 		}
 	}
-*/
+
 
 	return 0;
 }

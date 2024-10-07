@@ -1,7 +1,7 @@
-#ifndef WIFI_H
-#define WIFI_H
+#ifndef WIFI_UTILS_H
+#define WIFI_UTILS_H
 
-#include <zephyr/logging/log.h>
+
 #include <nrfx_clock.h>
 #include <zephyr/kernel.h>
 #include <stdio.h>
@@ -18,21 +18,9 @@
 #include <net/wifi_mgmt_ext.h>
 #include <net/wifi_ready.h>
 
-//#include <qspi_if.h>
 
-//#include "net_private.h"
+int cmd_wifi_status(void);
 
+void print_dhcp_ip(struct net_mgmt_event_callback *cb);
 
-int wifi_init(void);
-/*
-int wifi_ps_legacy_dtim(void);
-
-int wifi_ps_wmm_dtim(void);
-
-int wifi_ps_legacy_listen_interval(int interval);
-
-int wifi_ps_wmm_listen_interval(int interval);
-
-int wifi_ps_disable(void);
-*/
-#endif // WIFI_H
+#endif // WIFI_UTILS_H

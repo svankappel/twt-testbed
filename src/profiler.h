@@ -8,9 +8,6 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
-
 /**
  * @brief Initializes the profiler.
  *
