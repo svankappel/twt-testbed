@@ -18,9 +18,9 @@ int wifi_ps_legacy_dtim(void);
 
 int wifi_ps_wmm_dtim(void);
 
-int wifi_ps_legacy_listen_interval(void);
+int wifi_ps_legacy_listen_interval(int interval);
 
-int wifi_ps_wmm_listen_interval(void);
+int wifi_ps_wmm_listen_interval(int interval);
 
 int wifi_ps_disable(void);
 
