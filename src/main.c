@@ -26,16 +26,12 @@ int main(void)
 
 	wifi_init();
 
-	err = conn_mgr_all_if_connect(true);
-	if (err) {
-		LOG_ERR("conn_mgr_all_if_connect, error: %d", err);
-		return err;
-	}
-
-	wait_for_network();
+	k_sleep(K_FOREVER);
 
 	LOG_INF("Network connected");
 
+
+/*
 	//coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
 
 	while(true)
@@ -89,7 +85,7 @@ int main(void)
 			}
 		}
 	}
-	
+*/
 
 	return 0;
 }
