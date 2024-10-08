@@ -58,6 +58,12 @@ int cmd_wifi_status(void)
 		LOG_INF("Security: %s", wifi_security_txt(status.security));
 		LOG_INF("MFP: %s", wifi_mfp_txt(status.mfp));
 		LOG_INF("RSSI: %d", status.rssi);
+		if(status.link_mode < WIFI_6){
+			LOG_WRN("AP version lower than 802.11ax - Link mode: %s", wifi_link_mode_txt(status.link_mode));
+		}
+		if(!status.twt_capable){
+			LOG_WRN("AP does not support TWT");
+		}
 	}
 	return 0;
 }
