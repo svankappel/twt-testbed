@@ -27,7 +27,10 @@
  * - void profiler_all_set(): Set all GPIO channels.
  */
 #include "profiler.h"
+
 #include <stdio.h>
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 
 #define ZEPHYR_USER_NODE DT_PATH(zephyr_user)
 

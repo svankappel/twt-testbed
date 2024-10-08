@@ -4,6 +4,14 @@
         "wifi.h": "c",
         "coap.h": "c",
         "gpio.h": "c",
-        "profiler.h": "c"
+        "profiler.h": "c",
+        "log.h": "c",
+        "wifi_mgmt_ext.h": "c",
+        "net_core.h": "c",
+        "wifi_utils.h": "c",
+        "kernel.h": "c",
+        "net_event.h": "c",
+        "nrfx_clock.h": "c",
+        "wifi_ps.h": "c"
     }
 }
