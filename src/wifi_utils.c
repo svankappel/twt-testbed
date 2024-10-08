@@ -75,3 +75,21 @@ void print_dhcp_ip(struct net_mgmt_event_callback *cb)
 
 	LOG_INF("DHCP IP address: %s", dhcp_info); // Log the DHCP IP address
 }
+
+//wifi args to params
+void wifi_args_to_params(struct wifi_connect_req_params *params)
+{
+	// Populate the SSID and password
+	params->ssid = CONFIG_WIFI_CREDENTIALS_STATIC_SSID;
+	params->ssid_length = strlen(params->ssid);
+
+	params->psk = CONFIG_WIFI_CREDENTIALS_STATIC_PASSWORD;
+	params->psk_length = strlen(params->psk);
+
+	// Populate the rest of the relevant members
+	params->channel = WIFI_CHANNEL_ANY;
+	params->security = WIFI_SECURITY_TYPE_PSK;
+	params->mfp = WIFI_MFP_OPTIONAL;
+	params->timeout = SYS_FOREVER_MS;
+	params->band = WIFI_FREQ_BAND_UNKNOWN;
+}
