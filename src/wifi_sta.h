@@ -1,27 +1,23 @@
+/**
+ * @file wifi_sta.h
+ * @brief Header file for WiFi station initialization.
+ *
+ * This file contains the declaration for the WiFi station initialization function.
+ */
+
+
 #ifndef WIFI_STA_H
 #define WIFI_STA_H
 
-#include <nrfx_clock.h>
-#include <zephyr/kernel.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <zephyr/shell/shell.h>
-#include <zephyr/init.h>
-
-#include <zephyr/net/net_if.h>
-#include <zephyr/net/wifi_mgmt.h>
-#include <zephyr/net/net_event.h>
-
-#include <zephyr/net/net_core.h>
-
-#include <net/wifi_mgmt_ext.h>
-#include <net/wifi_ready.h>
-
-#include "wifi_utils.h"
-
-
+ /**
+ * @brief Initializes the WiFi station.
+ *
+ * This function sets up the WiFi station mode and connects to the network specified
+ * in the configuration.
+ *
+ * @return int Returns 0 on success, or a negative error code on failure.
+ */
 int wifi_init(void);
 
-int wait_for_connection(void);
 
 #endif // WIFI_STA_H

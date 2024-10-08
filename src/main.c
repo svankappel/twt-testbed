@@ -27,8 +27,6 @@ int main(void)
 
 	wifi_init();
 
-	k_sleep(K_SECONDS(20));
-
 	LOG_INF("Network connected");
 
 	//coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
