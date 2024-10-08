@@ -18,175 +18,42 @@
 
 LOG_MODULE_REGISTER(wifi_ps, CONFIG_MY_WIFI_LOG_LEVEL);
 
-
-int wifi_ps_legacy_dtim()
+int wifi_ps_mode_legacy()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
 	// Define the Wi-Fi power save parameters struct wifi_ps_params.
 	struct wifi_ps_params params = {0};
 
-	params.enabled = WIFI_PS_ENABLED;
 	params.mode = WIFI_PS_MODE_LEGACY;
-	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_DTIM;
+	params.type = WIFI_PS_PARAM_MODE;
+
 	// Send the power save request with net_mgmt. 
 	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
+		LOG_ERR("Power save legacy mode failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
+	LOG_INF("Set power save: enable | mode : legacy");
 
 	return 0;
 }
 
-int wifi_ps_wmm_dtim()
+int wifi_ps_mode_wmm()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
 	// Define the Wi-Fi power save parameters struct wifi_ps_params.
 	struct wifi_ps_params params = {0};
 
-	params.enabled = WIFI_PS_ENABLED;
 	params.mode = WIFI_PS_MODE_WMM;
-	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_DTIM;
-	// Send the power save request with net_mgmt. 
-	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
-		return -1;
-	}
-	LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
-
-	return 0;
-}
-
-int wifi_ps_legacy_listen_interval()
-{
-	struct net_if *iface = net_if_get_first_wifi();
-
-	// Define the Wi-Fi power save parameters struct wifi_ps_params.
-	struct wifi_ps_params params = {0};
-
-	params.enabled = WIFI_PS_ENABLED;
-	params.mode = WIFI_PS_MODE_LEGACY;
-	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_LISTEN_INTERVAL;
-	
-	
-	// Send the power save request with net_mgmt. 
-	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
-		return -1;
-	}
-	LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
-
-	return 0;
-}
-
-int wifi_ps_wmm_listen_interval()
-{
-	struct net_if *iface = net_if_get_first_wifi();
-
-	// Define the Wi-Fi power save parameters struct wifi_ps_params.
-	struct wifi_ps_params params = {0};
-
-	params.enabled = WIFI_PS_ENABLED;
-	params.mode = WIFI_PS_MODE_WMM;
-	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_LISTEN_INTERVAL;
+	params.type = WIFI_PS_PARAM_MODE;
 
 	// Send the power save request with net_mgmt. 
 	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
+		LOG_ERR("Power save WMM mode failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
-
-	return 0;
-}
-
-int wifi_ps_disable()
-{
-	struct net_if *iface = net_if_get_first_wifi();
-
-	// Define the Wi-Fi power save parameters struct wifi_ps_params.
-	struct wifi_ps_params params = {0};
-
-	params.enabled = WIFI_PS_DISABLED;
-
-	// Send the power save request with net_mgmt. 
-	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
-		return -1;
-	}
-	LOG_INF("Set power save: %s", params.enabled ? "enable" : "disable");
-
-	return 0;
-}
-
-
-
-
-
-
-
-
-int wifi_ps_set_listen_interval(int interval)
-{
-	struct net_if *iface = net_if_get_first_wifi();
-
-	// Define the Wi-Fi power save parameters struct wifi_ps_params.
-	struct wifi_ps_params params = {0};
-
-	params.listen_interval = interval;
-	
-	// Send the power save request with net_mgmt. 
-	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
-		return -1;
-	}
-	LOG_INF("Set listen interval: %d", interval);
-
-	return 0;
-}
-
-int wifi_ps_enable()
-{
-	struct net_if *iface = net_if_get_first_wifi();
-
-	// Define the Wi-Fi power save parameters struct wifi_ps_params.
-	struct wifi_ps_params params = {0};
-
-	params.enabled = WIFI_PS_ENABLED;
-	
-	// Send the power save request with net_mgmt. 
-	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
-		return -1;
-	}
-
-	return 0;
-}
-
-int wifi_ps_wakeup_listen_interval()
-{
-	struct net_if *iface = net_if_get_first_wifi();
-
-	// Define the Wi-Fi power save parameters struct wifi_ps_params.
-	struct wifi_ps_params params = {0};
-
-	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_LISTEN_INTERVAL;
-	
-	// Send the power save request with net_mgmt. 
-	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
-		return -1;
-	}
+	LOG_INF("Set power save: enable | mode : WMM");
 
 	return 0;
 }
@@ -199,13 +66,94 @@ int wifi_ps_wakeup_dtim()
 	struct wifi_ps_params params = {0};
 
 	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_DTIM;
+	params.type = WIFI_PS_PARAM_WAKEUP_MODE;
 	
 	// Send the power save request with net_mgmt. 
 	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
-		LOG_ERR("Power save %s failed. Reason %s", params.enabled ? "enable" : "disable",
-			wifi_ps_get_config_err_code_str(params.fail_reason));
+		LOG_ERR("Power save wakeup mode DTIM failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
+	LOG_INF("Set power save: enable | wakeup mode : DTIM");
+
+	return 0;
+}
+
+int wifi_ps_wakeup_listen_interval()
+{
+	struct net_if *iface = net_if_get_first_wifi();
+
+	// Define the Wi-Fi power save parameters struct wifi_ps_params.
+	struct wifi_ps_params params = {0};
+
+	params.wakeup_mode = WIFI_PS_WAKEUP_MODE_LISTEN_INTERVAL;
+	params.type = WIFI_PS_PARAM_WAKEUP_MODE;
+
+	// Send the power save request with net_mgmt. 
+	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
+		LOG_ERR("Power save wakeup mode listen interval failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
+		return -1;
+	}
+	LOG_INF("Set power save: enable | wakeup mode : listen interval");
+
+	return 0;
+}
+
+int wifi_ps_enable()
+{
+	struct net_if *iface = net_if_get_first_wifi();
+
+	// Define the Wi-Fi power save parameters struct wifi_ps_params.
+	struct wifi_ps_params params = {0};
+
+	params.enabled = WIFI_PS_ENABLED;
+	params.type = WIFI_PS_PARAM_STATE;
+
+	// Send the power save request with net_mgmt. 
+	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
+		LOG_ERR("Power save disable failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
+		return -1;
+	}
+	LOG_INF("Set power save: disable");
+
+	return 0;
+}
+
+int wifi_ps_disable()
+{
+	struct net_if *iface = net_if_get_first_wifi();
+
+	// Define the Wi-Fi power save parameters struct wifi_ps_params.
+	struct wifi_ps_params params = {0};
+
+	params.enabled = WIFI_PS_DISABLED;
+	params.type = WIFI_PS_PARAM_STATE;
+
+	// Send the power save request with net_mgmt. 
+	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
+		LOG_ERR("Power save disable failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
+		return -1;
+	}
+	LOG_INF("Set power save: disable");
+
+	return 0;
+}
+
+int wifi_ps_set_listen_interval(int interval)
+{
+	struct net_if *iface = net_if_get_first_wifi();
+
+	// Define the Wi-Fi power save parameters struct wifi_ps_params.
+	struct wifi_ps_params params = {0};
+
+	params.listen_interval = interval;
+	params.type = WIFI_PS_PARAM_LISTEN_INTERVAL;
+	
+	// Send the power save request with net_mgmt. 
+	if (net_mgmt(NET_REQUEST_WIFI_PS, iface, &params, sizeof(params))) {
+		LOG_ERR("Power save set listen interval failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
+		return -1;
+	}
+	LOG_INF("Set listen interval: %d", interval);
 
 	return 0;
 }
