@@ -34,20 +34,28 @@ int wifi_ps_wmm_dtim(void);
  *
  * This function enables the legacy listen interval power save mode.
  *
- * @param interval The listen interval to be set.
  * @return int Status of the operation.
  */
-int wifi_ps_legacy_listen_interval(int interval);
+int wifi_ps_legacy_listen_interval(void);
 
 /**
  * @brief Enable WMM listen interval power save mode.
  *
  * This function enables the WMM listen interval power save mode.
  *
+ * @return int Status of the operation.
+ */
+int wifi_ps_wmm_listen_interval(void);
+
+/**
+ * @brief Set listen interval for power save mode.
+ *
+ * This function sets the listen interval for power save mode.
+ *
  * @param interval The listen interval to be set.
  * @return int Status of the operation.
  */
-int wifi_ps_wmm_listen_interval(int interval);
+int wifi_ps_set_listen_interval(int interval);
 
 /**
  * @brief Disable power save mode.
@@ -57,5 +65,23 @@ int wifi_ps_wmm_listen_interval(int interval);
  * @return int Status of the operation.
  */
 int wifi_ps_disable(void);
+
+
+
+
+
+
+int wifi_ps_set_listen_interval(int interval);
+
+int wifi_ps_enable();
+
+int wifi_ps_wakeup_listen_interval();
+
+int wifi_ps_wakeup_dtim();
+
+
+
+
+
 
 #endif /* WIFI_PS_H */
