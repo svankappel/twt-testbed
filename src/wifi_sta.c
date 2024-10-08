@@ -225,6 +225,45 @@ int wifi_connect(void)
 	return 0;
 }
 
+/**
+ * @brief Initiate a WiFi disconnection
+ *
+ * @return 0 on success, negative error code on failure
+ */
+int wifi_disconnect(void)
+{
+	struct net_if *iface = net_if_get_first_wifi();
+	int ret;
+
+	context.disconnect_requested = true;
+
+	ret = net_mgmt(NET_REQUEST_WIFI_DISCONNECT, iface, NULL, 0);
+
+	if (ret) {
+		context.disconnect_requested = false;
+
+		if (ret == -EALREADY) {
+			LOG_INF("Already disconnected\n");
+		} else {
+			LOG_ERR("Disconnect request failed: %d\n", ret);
+			return -ENOEXEC;
+		}
+	} else {
+		LOG_INF("Disconnect requested\n");
+	}
+
+
+	// Poll the disconnection status until disconnected
+	while (context.disconnect_requested) {
+		cmd_wifi_status();
+		k_sleep(K_MSEC(STATUS_POLLING_MS));
+	}
+
+	LOG_INF("Disconnected\n");
+
+	return 0;
+}
+
 
 //init function
 int wifi_init()

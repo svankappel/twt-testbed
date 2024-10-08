@@ -26,4 +26,11 @@ int wifi_init(void);
  */
 int wifi_connect(void);
 
+/**
+ * @brief Initiate a WiFi disconnection
+ *
+ * @return 0 on success, negative error code on failure
+ */
+int wifi_disconnect(void);
+
 #endif // WIFI_STA_H
