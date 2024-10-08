@@ -80,7 +80,7 @@ static struct {
 	union {
 		struct {
 			uint8_t connected : 1;
-			uint8_t connect_result : 1;
+			uint8_t connect_requested : 1;
 			uint8_t disconnect_requested : 1;
 			uint8_t _unused : 5;
 		};
@@ -111,8 +111,7 @@ static void handle_wifi_connect_result(struct net_mgmt_event_callback *cb)
 		context.connected = true;
 	}
 
-	// Set the connection result flag
-	context.connect_result = true;
+	context.connect_requested = false;
 }
 
 /**
@@ -184,6 +183,24 @@ static void net_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 	}
 }
 
+static void wifi_args_to_params(struct wifi_connect_req_params *params)
+{
+
+	// Populate the SSID and password
+	params->ssid = CONFIG_WIFI_CREDENTIALS_STATIC_SSID;
+	params->ssid_length = strlen(params->ssid);
+
+	params->psk = CONFIG_WIFI_CREDENTIALS_STATIC_PASSWORD;
+	params->psk_length = strlen(params->psk);
+
+	// Populate the rest of the relevant members
+	params->channel = WIFI_CHANNEL_ANY;
+	params->security = WIFI_SECURITY_TYPE_PSK;
+	params->mfp = WIFI_MFP_OPTIONAL;
+	params->timeout = SYS_FOREVER_MS;
+	params->band = WIFI_FREQ_BAND_UNKNOWN;
+}
+
 /**
  * @brief Initiate a WiFi connection
  *
@@ -193,18 +210,23 @@ static int wifi_connect(void)
 {
 	// Get the WiFi network interface
 	struct net_if *iface = net_if_get_first_wifi();
+	struct wifi_connect_req_params cnx_params = { 0 };
+	int ret;
+
+	wifi_args_to_params(&cnx_params);
 
 	context.connected = false;
-	context.connect_result = false;
+	context.connect_requested = true;
 
-	// Request a connection to the stored network
-	if (net_mgmt(NET_REQUEST_WIFI_CONNECT_STORED, iface, NULL, 0)) {
-		LOG_ERR("Connection request failed");
-
+	ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, iface,
+		       &cnx_params, sizeof(struct wifi_connect_req_params));
+	if (ret) {
+		printk("Connection request failed with error: %d\n", ret);
+		context.connect_requested = false;
 		return -ENOEXEC;
 	}
 
-	LOG_INF("Connection requested");
+	LOG_INF("Connection requested\n");
 
 	return 0;
 }
@@ -238,8 +260,9 @@ int wifi_init()
 		return ret;
 	}
 
+	
 	// Poll the connection status until connected
-	while (!context.connect_result) {
+	while (context.connect_requested) {
 		cmd_wifi_status();
 		k_sleep(K_MSEC(STATUS_POLLING_MS));
 	}
