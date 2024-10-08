@@ -23,10 +23,14 @@ int main(void)
 {
 	profiler_init();
 
-	wifi_ps_set_listen_interval(20);
-
 	wifi_init();
 
+	wifi_ps_enable();
+	wifi_ps_mode_wmm();
+	wifi_ps_wakeup_listen_interval();
+
+
+	wifi_connect();
 	LOG_INF("Network connected");
 
 	//coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
@@ -34,6 +38,12 @@ int main(void)
 	
 	while(true)
 	{
+		wifi_ps_wakeup_dtim();
+		k_sleep(K_SECONDS(10));
+		wifi_ps_wakeup_listen_interval();
+		k_sleep(K_SECONDS(10));
+
+		/*
 		profiler_output_binary(0x1);
 		wifi_ps_disable();
 		k_sleep(K_SECONDS(10));
@@ -56,6 +66,7 @@ int main(void)
 		profiler_output_binary(0x5);
 		wifi_ps_mode_wmm();
 		k_sleep(K_SECONDS(10));
+		*/
 	}
 
 

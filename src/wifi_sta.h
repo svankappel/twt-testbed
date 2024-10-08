@@ -19,5 +19,11 @@
  */
 int wifi_init(void);
 
+/**
+ * @brief Initiate a WiFi connection
+ *
+ * @return 0 on success, negative error code on failure
+ */
+int wifi_connect(void);
 
 #endif // WIFI_STA_H

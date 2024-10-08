@@ -183,30 +183,13 @@ static void net_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 	}
 }
 
-static void wifi_args_to_params(struct wifi_connect_req_params *params)
-{
-
-	// Populate the SSID and password
-	params->ssid = CONFIG_WIFI_CREDENTIALS_STATIC_SSID;
-	params->ssid_length = strlen(params->ssid);
-
-	params->psk = CONFIG_WIFI_CREDENTIALS_STATIC_PASSWORD;
-	params->psk_length = strlen(params->psk);
-
-	// Populate the rest of the relevant members
-	params->channel = WIFI_CHANNEL_ANY;
-	params->security = WIFI_SECURITY_TYPE_PSK;
-	params->mfp = WIFI_MFP_OPTIONAL;
-	params->timeout = SYS_FOREVER_MS;
-	params->band = WIFI_FREQ_BAND_UNKNOWN;
-}
 
 /**
  * @brief Initiate a WiFi connection
  *
  * @return 0 on success, negative error code on failure
  */
-static int wifi_connect(void)
+int wifi_connect(void)
 {
 	// Get the WiFi network interface
 	struct net_if *iface = net_if_get_first_wifi();
@@ -227,6 +210,17 @@ static int wifi_connect(void)
 	}
 
 	LOG_INF("Connection requested\n");
+
+	// Poll the connection status until connected
+	while (context.connect_requested) {
+		cmd_wifi_status();
+		k_sleep(K_MSEC(STATUS_POLLING_MS));
+	}
+
+	// Print the connection status
+	if (context.connected) {
+		cmd_wifi_status();
+	}
 
 	return 0;
 }
@@ -252,25 +246,6 @@ int wifi_init()
 	net_mgmt_add_event_callback(&net_shell_mgmt_cb);
 
 	k_sleep(K_SECONDS(1));
-
-	// Start the connection process
-	int ret = wifi_connect();
-	if (ret) {
-		LOG_ERR("wifi_connect failed");
-		return ret;
-	}
-
 	
-	// Poll the connection status until connected
-	while (context.connect_requested) {
-		cmd_wifi_status();
-		k_sleep(K_MSEC(STATUS_POLLING_MS));
-	}
-
-	// Print the connection status
-	if (context.connected) {
-		cmd_wifi_status();
-	}
-
 	return 0;
 }

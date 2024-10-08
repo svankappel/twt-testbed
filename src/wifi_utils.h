@@ -11,6 +11,7 @@
 #define WIFI_UTILS_H
 
 #include <zephyr/net/net_if.h> // Include Zephyr network interface API
+#include <zephyr/net/wifi_mgmt.h>
 
 /**
  * @brief Command to get the WiFi status.
@@ -30,5 +31,16 @@ int cmd_wifi_status(void);
  * @param cb Pointer to the network management event callback structure.
  */
 void print_dhcp_ip(struct net_mgmt_event_callback *cb);
+
+/**
+ * @brief Convert WiFi arguments to connection parameters.
+ *
+ * This function converts the provided WiFi connection arguments into a 
+ * `wifi_connect_req_params` structure, which can then be used to initiate 
+ * a WiFi connection.
+ *
+ * @param params Pointer to the WiFi connection request parameters structure.
+ */
+void wifi_args_to_params(struct wifi_connect_req_params *params);
 
 #endif // WIFI_UTILS_H
