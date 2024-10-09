@@ -53,7 +53,6 @@ int server_resolve()
 		freeaddrinfo(result);
         LOG_DBG("Server resolved: %s", hostname);
         return 0;
-		*/
     } else {
         // inet_pton failed
         LOG_ERR("inet_pton failed, error: %d", errno);
