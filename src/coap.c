@@ -3,90 +3,89 @@
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
 static int sock;
-static struct sockaddr_storage server = { 0 };
-static struct coap_client coap_client = { 0 };
+
+
+static struct sockaddr_in server = { 0 };
 
 char * _host;
 
-int server_resolve(struct sockaddr_storage *server,const char * hostname,int port)
+
+int server_resolve()
 {
-    _host=k_malloc(strlen(hostname));
-    strcpy(_host,hostname);
-	int err;
-	struct addrinfo *result;
-	struct addrinfo hints = {
-		.ai_family = AF_INET,
-		.ai_socktype = SOCK_DGRAM
-	};
-	char ipv4_addr[NET_IPV4_ADDR_LEN];
+    int err;
 
-	err = getaddrinfo(hostname, NULL, &hints, &result);
-	if (err) {
-		LOG_ERR("getaddrinfo, error: %d", err);
-		return err;
-	}
+    LOG_DBG("Resolving server name: %s", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME);
 
-	if (result == NULL) {
-		LOG_ERR("Address not found");
-		return -ENOENT;
-	}
+    // Check if the hostname is an IP address
+    err = inet_pton(AF_INET, CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, &server.sin_addr);
+    if (err == 1) {
+        // Successfully converted IP address
+        server.sin_family = AF_INET;
+		server.sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
+        LOG_DBG("Server resolved: %s", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME);
+        return 0;
+    } else if (err == 0) {
+        // Not a valid IP address, proceed with DNS resolution
+		struct addrinfo hints = {
+			.ai_family = AF_INET,
+			.ai_socktype = SOCK_DGRAM
+		};
+		struct addrinfo *result;
+		struct addrinfo *res;
+		int addr_err;
 
-	/* IPv4 Address. */
-	struct sockaddr_in *server4 = ((struct sockaddr_in *)server);
+		addr_err = getaddrinfo(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, NULL, &hints, &result);
+		if (addr_err != 0) {
+			LOG_ERR("getaddrinfo failed, error: %d", addr_err);
+			return -EIO;
+		}
 
-	server4->sin_addr.s_addr = ((struct sockaddr_in *)result->ai_addr)->sin_addr.s_addr;
-	server4->sin_family = AF_INET;
-	server4->sin_port = htons(port);
+		for (res = result; res != NULL; res = res->ai_next) {
+			if (res->ai_family == AF_INET) {
+				struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
+				server.sin_family = AF_INET;
+				server.sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
+				server.sin_addr = addr->sin_addr;
+				break;
+			}
+		}
 
-	inet_ntop(AF_INET, &server4->sin_addr.s_addr, ipv4_addr, sizeof(ipv4_addr));
-
-	LOG_INF("IPv4 Address found %s", ipv4_addr);
-
-	/* Free the address. */
-	freeaddrinfo(result);
-
-	return 0;
+		freeaddrinfo(result);
+        LOG_DBG("Server resolved: %s", hostname);
+        return 0;
+		*/
+    } else {
+        // inet_pton failed
+        LOG_ERR("inet_pton failed, error: %d", errno);
+        return -errno;
+    }
 }
 
-
-void response_cb(int16_t code, size_t offset, const uint8_t *payload,
-			size_t len, bool last_block, void *user_data)
-{
-	if (code >= 0) {
-		LOG_INF("CoAP response: code: 0x%x, payload: %s", code, payload);
-	} else {
-		LOG_INF("Response received with error code: %d", code);
-	}
-}
 
 
 int coap_init(const char* host,int port)
 {
     int err;
 
-    err = server_resolve(&server,host,port);
-	if (err) {
-		LOG_ERR("Failed to resolve server name");
-		return err;
-	}
+	server_resolve();
 
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0) {
-		LOG_ERR("Failed to create CoAP socket: %d.", -errno);
+		LOG_ERR("Failed to create CoAP socket: %d.\n", errno);
 		return -errno;
 	}
 
-	LOG_INF("Initializing CoAP client");
-
-	err = coap_client_init(&coap_client, NULL);
-	if (err) {
-		LOG_ERR("Failed to initialize CoAP client: %d", err);
-		return err;
+	err = connect(sock, (struct sockaddr *)&server, sizeof(struct sockaddr));
+	if (err < 0) {
+		LOG_ERR("Connect failed : %d\n", errno);
+		return -errno;
 	}
+	LOG_INF("Successfully connected to server");
+
     return 0;
 }
 
-
+/*
 
 int coap_put(const char *resource,uint8_t *payload,size_t len)
 {
@@ -100,7 +99,7 @@ int coap_put(const char *resource,uint8_t *payload,size_t len)
 		.path = resource,
 	};
 
-    /* Send request */
+    // send request
     int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, &req, NULL);
     if (err) {
         LOG_ERR("Failed to send request: %d", err);
@@ -123,7 +122,7 @@ int coap_get(const char *resource)
 		.path = resource,
 	};
 
-    /* Send request */
+    //send request
     int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, &req, NULL);
     if (err) {
         LOG_ERR("Failed to send request: %d", err);
@@ -133,3 +132,5 @@ int coap_get(const char *resource)
     LOG_INF("CoAP GET request sent sent to %s, resource: %s",_host, resource);
     return 0;
 }
+
+*/

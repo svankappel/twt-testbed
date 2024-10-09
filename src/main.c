@@ -29,10 +29,11 @@ int main(void)
 
 	coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
 
-	
+	k_sleep(K_FOREVER);
+
 	while(true)
 	{
-		coap_get("misc/time");
+		//coap_get("misc/time");
 		k_sleep(K_SECONDS(5));
 	}
 
