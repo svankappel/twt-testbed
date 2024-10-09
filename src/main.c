@@ -24,52 +24,16 @@ int main(void)
 	profiler_init();
 
 	wifi_init();
+	wifi_connect();
 	
 
-	//coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
+	coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
 
 	
 	while(true)
 	{
-
-		wifi_ps_disable();
-		wifi_connect();
-		profiler_output_binary(0x1);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
-
-		wifi_ps_enable();
-		wifi_ps_mode_legacy();
-		wifi_ps_wakeup_dtim();
-		wifi_connect();
-		profiler_output_binary(0x2);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
-
-		wifi_ps_mode_wmm();
-		wifi_connect();
-		profiler_output_binary(0x3);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
-
-		wifi_ps_mode_legacy();
-		wifi_ps_wakeup_listen_interval();
-		wifi_connect();
-		profiler_output_binary(0x4);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
-
-		wifi_ps_mode_wmm();
-		wifi_ps_wakeup_listen_interval();
-		wifi_connect();
-		profiler_output_binary(0x5);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
+		coap_get("misc/time");
+		k_sleep(K_SECONDS(5));
 	}
 
 
