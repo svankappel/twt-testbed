@@ -10,6 +10,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
+#include <zephyr/random/random.h>
 
 #include "wifi_sta.h"
 #include "wifi_ps.h"
@@ -27,12 +28,15 @@ int main(void)
 	wifi_connect();
 	
 
-	coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
+	coap_init();
 
-	k_sleep(K_FOREVER);
 
 	while(true)
 	{
+		uint8_t message[25];
+		sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());
+		coap_put("validate",message,strlen(message));
+		k_sleep(K_SECONDS(5));
 		coap_get("obs");
 		k_sleep(K_SECONDS(5));
 	}
