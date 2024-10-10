@@ -30,15 +30,11 @@ int main(void)
 
 	coap_init();
 
+	coap_observe("obs", true);
 
 	while(true)
 	{
-		uint8_t message[25];
-		sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());
-		coap_put("validate",message,strlen(message));
-		k_sleep(K_SECONDS(5));
-		coap_get("validate");
-		k_sleep(K_SECONDS(5));
+		k_sleep(K_SECONDS(1));
 	}
 
 

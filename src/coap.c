@@ -74,7 +74,7 @@ int server_resolve()
 }
 
 
-void response_cb(int16_t code, size_t offset, const uint8_t *payload,
+static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
 	if (code >= 0) {
@@ -160,5 +160,36 @@ int coap_get(const char *resource)
     }
 
     LOG_INF("CoAP GET request sent sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, resource);
+    return 0;
+}
+
+int coap_observe(const char *resource, bool start_observe)
+{
+    struct coap_client_option observe_option = {
+        .code = COAP_OPTION_OBSERVE,            
+        .len = 1,             
+        .value = { start_observe ? 0 : 1 }, 
+    };
+
+    struct coap_client_request req = {
+        .method = COAP_METHOD_GET,
+        .confirmable = true,
+        .fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN,
+        .payload = NULL,
+        .len = 0,
+        .cb = response_cb,
+        .path = resource,
+        .options = &observe_option,
+        .num_options = 1,
+    };
+
+    int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, &req, NULL);
+    if (err) {
+        LOG_ERR("Failed to send CoAP Observe request: %d", err);
+        return err;
+    }
+
+    LOG_INF("CoAP Observe %s request sent to %s, resource: %s",
+            start_observe ? "start" : "stop", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, resource);
     return 0;
 }
