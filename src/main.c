@@ -33,7 +33,7 @@ int main(void)
 
 	while(true)
 	{
-		//coap_get("misc/time");
+		coap_get("obs");
 		k_sleep(K_SECONDS(5));
 	}
 
