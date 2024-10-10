@@ -37,7 +37,7 @@ int main(void)
 		sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());
 		coap_put("validate",message,strlen(message));
 		k_sleep(K_SECONDS(5));
-		coap_get("obs");
+		coap_get("validate");
 		k_sleep(K_SECONDS(5));
 	}
 

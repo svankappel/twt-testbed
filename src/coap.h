@@ -5,7 +5,7 @@
 
 int server_resolve();
 
-//void response_cb(int16_t code, size_t offset, const uint8_t *payload,size_t len, bool last_block, void *user_data);
+void response_cb(int16_t code, size_t offset, const uint8_t *payload,size_t len, bool last_block, void *user_data);
 
 int coap_init();
 
