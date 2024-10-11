@@ -47,7 +47,7 @@ int main(void)
 		{
 			uint8_t message[25];
 			sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());	
-			coap_put("validate", "message", strlen(message));
+			coap_put("validate", message, strlen(message));
 			k_sleep(K_SECONDS(4));
 		}
 
@@ -59,7 +59,7 @@ int main(void)
 		{
 			uint8_t message[25];
 			sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());	
-			coap_put("validate", "message", strlen(message));
+			coap_put("validate", message, strlen(message));
 			k_sleep(K_SECONDS(4));
 		}
 	}
@@ -67,8 +67,3 @@ int main(void)
 
 	return 0;
 }
-
-
-
-
-
