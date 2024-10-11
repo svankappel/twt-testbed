@@ -6,13 +6,6 @@
 
 menu "CoAP client sample"
 
-config COAP_SAMPLE_PUT_RESOURCE
-	string "CoAP resource sample - PUT"
-	default "resource"
-
-  config COAP_SAMPLE_GET_RESOURCE
-	string "CoAP resource sample GET"
-	default "resource"
 
 config COAP_SAMPLE_SERVER_HOSTNAME
 	string "CoAP server hostname"

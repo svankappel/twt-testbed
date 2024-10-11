@@ -10,6 +10,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
+#include <zephyr/random/random.h>
 
 #include "wifi_sta.h"
 #include "wifi_ps.h"
@@ -24,52 +25,43 @@ int main(void)
 	profiler_init();
 
 	wifi_init();
-	
 
-	//coap_init(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME,CONFIG_COAP_SAMPLE_SERVER_PORT);
+	wifi_ps_mode_legacy();
+	wifi_ps_set_listen_interval(10);
+	wifi_ps_wakeup_listen_interval();
+	wifi_ps_disable();
 
-	
+	wifi_connect();
+
+	coap_init();
+
+	coap_observe("obs", true);
+
 	while(true)
 	{
-
-		wifi_ps_disable();
-		wifi_connect();
-		profiler_output_binary(0x1);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
-
+		//power save
+		profiler_ch0_set();
 		wifi_ps_enable();
-		wifi_ps_mode_legacy();
-		wifi_ps_wakeup_dtim();
-		wifi_connect();
-		profiler_output_binary(0x2);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
 
-		wifi_ps_mode_wmm();
-		wifi_connect();
-		profiler_output_binary(0x3);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
+		for(int i = 0; i < 5; i++)
+		{
+			uint8_t message[25];
+			sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());	
+			coap_put("validate", "message", strlen(message));
+			k_sleep(K_SECONDS(4));
+		}
 
-		wifi_ps_mode_legacy();
-		wifi_ps_wakeup_listen_interval();
-		wifi_connect();
-		profiler_output_binary(0x4);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
+		//no power save
+		profiler_ch0_clear();
+		wifi_ps_disable();
 
-		wifi_ps_mode_wmm();
-		wifi_ps_wakeup_listen_interval();
-		wifi_connect();
-		profiler_output_binary(0x5);
-		k_sleep(K_SECONDS(10));
-		profiler_output_binary(0x0);
-		wifi_disconnect();
+		for(int i = 0; i < 5; i++)
+		{
+			uint8_t message[25];
+			sprintf(message,"{\"sensor-value\":%d}",sys_rand8_get());	
+			coap_put("validate", "message", strlen(message));
+			k_sleep(K_SECONDS(4));
+		}
 	}
 
 

@@ -12,6 +12,7 @@
         "kernel.h": "c",
         "net_event.h": "c",
         "nrfx_clock.h": "c",
-        "wifi_ps.h": "c"
+        "wifi_ps.h": "c",
+        "tls_credentials.h": "c"
     }
 }
