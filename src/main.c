@@ -29,13 +29,21 @@ int main(void)
 
 	wifi_twt_init();
 
+	wifi_ps_disable();
+
 	wifi_connect();
+
+	
 
 
 
 	while(true)
 	{
-		wifi_toggle_twt(50, 1000);
+		wifi_twt_setup(50, 1000);
+		k_sleep(K_SECONDS(20));
+		wifi_twt_setup(50, 2000);
+		k_sleep(K_SECONDS(20));
+		wifi_twt_teardown();
 		k_sleep(K_SECONDS(20));
 	}
 

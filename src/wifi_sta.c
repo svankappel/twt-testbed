@@ -222,6 +222,8 @@ int wifi_connect(void)
 		cmd_wifi_status();
 	}
 
+	k_sleep(K_SECONDS(1));
+
 	return 0;
 }
 

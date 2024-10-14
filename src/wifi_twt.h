@@ -3,6 +3,7 @@
 #include <zephyr/kernel.h>
 
 int wifi_twt_init();
-int wifi_toggle_twt(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
+int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
+int wifi_twt_teardown();
 
 #endif // WIFI_TWT_H
