@@ -24,7 +24,13 @@ LOG_MODULE_REGISTER(wifi_twt, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging
 #define TWT_MGMT_EVENTS (NET_EVENT_WIFI_TWT | NET_EVENT_WIFI_TWT_SLEEP_STATE)
 
 bool nrf_wifi_twt_enabled = 0;
-static uint32_t twt_flow_id = 1;
+static uint32_t twt_flow_id = 0;
+
+void (*twt_event_callback)(const int awake) = NULL;
+
+void twt_register_event_callback(void (*callback)(const int awake)) {
+	twt_event_callback = callback;
+}
 
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
@@ -69,17 +75,13 @@ static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 	case NET_EVENT_WIFI_TWT_SLEEP_STATE:
 		int *twt_state;
 		twt_state = (int *)(cb->info);
-
-		if ((*twt_state == WIFI_TWT_STATE_AWAKE)) {
-			//send_packet();
-			//receive_packet();
+		if (twt_event_callback) {
+			twt_event_callback(*twt_state);
 		}
 		break;
 	
 	}
 }
-
-
 
 int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 {
@@ -150,7 +152,7 @@ int twt_teardown()
 	LOG_INF("-------------------------------");
 
 	// Update flow ID and disable TWT.
-	twt_flow_id = twt_flow_id < WIFI_MAX_TWT_FLOWS ? twt_flow_id + 1 : 1;
+	twt_flow_id = twt_flow_id < WIFI_MAX_TWT_FLOWS-1 ? twt_flow_id + 1 : 0;
 
 	return 0;
 }

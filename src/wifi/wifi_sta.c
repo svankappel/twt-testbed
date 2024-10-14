@@ -307,6 +307,12 @@ int wifi_twt_teardown()
 	return(twt_teardown());
 }
 
+//register twt event callback
+void wifi_twt_register_event_callback(void (*callback)(const int awake))
+{
+	twt_register_event_callback(callback);
+}
+
 // Set legacy power save mode
 int wifi_ps_mode_legacy(void)
 {

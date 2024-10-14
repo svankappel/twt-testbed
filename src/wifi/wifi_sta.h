@@ -55,6 +55,16 @@ int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
  * @return int Returns 0 on success, or a negative error code on failure.
  */
 int wifi_twt_teardown(void);
+
+/**
+ * @brief Register a callback function for TWT events.
+ *
+ * This function registers a callback function that will be invoked when a TWT event occurs.
+ *
+ * @param callback The callback function to register.
+ */
+void wifi_twt_register_event_callback(void (*callback)(const int awake));
+
 /**
  * @brief Set Wi-Fi power save mode to legacy.
  *

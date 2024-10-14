@@ -40,4 +40,18 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
  */
 int twt_teardown();
 
+
+/**
+ * @brief Registers a callback function for TWT (Target Wake Time) event notifications.
+ *
+ * This function allows the user to register a callback that will be invoked
+ * whenever a TWT event occurs. The callback function should accept a single
+ * integer parameter that indicates whether the device is awake (1) or not (0).
+ *
+ * @param callback A pointer to the callback function that will handle TWT events.
+ *                 The callback function should have the following signature:
+ *                 void callback(const int awake);
+ */
+void twt_register_event_callback(void (*callback)(const int awake));
+
 #endif // WIFI_TWT_H

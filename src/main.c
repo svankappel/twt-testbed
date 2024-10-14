@@ -19,12 +19,23 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
+static void handle_twt_event(const int awake)
+{
+	if (awake) {
+		LOG_INF("TWT event: Awake");
+	} else {
+		LOG_INF("TWT event: Asleep");
+	}
+}
+
 
 int main(void)
 {
 	profiler_init();
 
 	wifi_init();
+
+	wifi_twt_register_event_callback(handle_twt_event);
 
 	wifi_ps_disable();
 
