@@ -22,14 +22,16 @@
 int wifi_init(void);
 
 /**
- * @brief Initiate a WiFi connection
+ * @brief Initiate a WiFi connection. This function will block until the    
+ * connection is complete.
  *
  * @return 0 on success, negative error code on failure
  */
 int wifi_connect(void);
 
 /**
- * @brief Initiate a WiFi disconnection
+ * @brief Initiate a WiFi disconnection. This function will block until the
+ * disconnection is complete.
  *
  * @return 0 on success, negative error code on failure
  */
@@ -37,24 +39,26 @@ int wifi_disconnect(void);
 
 
 /**
- * @brief Sets up TWT parameters.
+ * @brief Sets up a TWT session.
  *
- * This function configures the TWT wake interval and TWT interval.
+ * This function configures a TWT session with the specified wake interval
+ * and TWT interval. This function will block until the TWT session is set up
  *
- * @param twt_wake_interval_ms Wake interval in milliseconds.
- * @param twt_interval_ms TWT interval in milliseconds.
+ * @param twt_wake_interval_ms The wake interval in milliseconds.
+ * @param twt_interval_ms The TWT interval in milliseconds.
  * @return int Returns 0 on success, or a negative error code on failure.
  */
 int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
 
 /**
- * @brief Tears down the TWT setup.
+ * @brief Tears down the TWT session.
  *
- * This function disables the TWT configuration.
+ * This function terminates the current TWT session. This function will block
+ * until the TWT session is torn down.
  *
  * @return int Returns 0 on success, or a negative error code on failure.
  */
-int wifi_twt_teardown(void);
+int wifi_twt_teardown();
 
 /**
  * @brief Register a callback function for TWT events.

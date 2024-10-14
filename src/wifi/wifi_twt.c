@@ -18,12 +18,17 @@
 
 #include "wifi_utils.h"
 
+#define TWT_POLLING_MS 300
+
 LOG_MODULE_REGISTER(wifi_twt, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
 
 #define TWT_MGMT_EVENTS (NET_EVENT_WIFI_TWT | NET_EVENT_WIFI_TWT_SLEEP_STATE)
 
-bool nrf_wifi_twt_enabled = 0;
+bool twt_enabled = false;
+
+bool twt_request_pending = false;
+
 static uint32_t twt_flow_id = 0;
 
 void (*twt_event_callback)(const int awake) = NULL;
@@ -41,10 +46,11 @@ static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 	// Create a wifi_twt_params struct for the received TWT event and fill it with the event information.
 	const struct wifi_twt_params *resp = (const struct wifi_twt_params *)cb->info;
 
-	// If the event was a TWT teardown initiated by the AP, set change the value of nrf_wifi_twt_enabled and exit the function.
+	// If the event was a TWT teardown initiated by the AP, set change the value of twt_enabled and exit the function.
 	if (resp->operation == WIFI_TWT_TEARDOWN) {
 		LOG_INF("TWT teardown received for flow ID %d\n", resp->flow_id);
-		nrf_wifi_twt_enabled = 0;
+		twt_enabled = false;
+		twt_request_pending = false;
 		return;
 	}
 
@@ -58,9 +64,10 @@ static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 		LOG_INF("TWT response timed out\n");
 		return;
 	}
-	// If the TWT setup was accepted, change the value of nrf_wifi_twt_enabled and print the negotiated parameters.
+	// If the TWT setup was accepted, change the value of twt_enabled and print the negotiated parameters.
 	if (resp->setup_cmd == WIFI_TWT_SETUP_CMD_ACCEPT) {
-		nrf_wifi_twt_enabled = 1;
+		twt_enabled = true;
+		twt_request_pending = false;
 		print_twt_negotiated_params(resp);
 	}
 }
@@ -85,11 +92,6 @@ static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 
 int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 {
-	if (nrf_wifi_twt_enabled) {
-		LOG_WRN("TWT is already enabled");
-		return 0;
-	}
-
 	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -115,19 +117,26 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 			wifi_twt_get_err_code_str(params.fail_reason));
 		return -1;
 	}
+	twt_request_pending = true;
 	LOG_INF("-------------------------------");
 	LOG_INF("TWT setup requested");
 	LOG_INF("-------------------------------");
+
+	// Poll the twt status until connected
+	while(twt_request_pending) {
+		k_sleep(K_MSEC(TWT_POLLING_MS));
+	}
+
+	if(!twt_enabled) {
+		LOG_ERR("TWT setup failed");
+		return -1;
+	}
+	
 	return 0;
 }
 
 int twt_teardown()
 {
-	if (!nrf_wifi_twt_enabled) {
-		LOG_WRN("TWT is already disabled");
-		return 0;
-	}
-
 	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -147,10 +156,23 @@ int twt_teardown()
 			wifi_twt_get_err_code_str(params.fail_reason));
 		return -1;
 	}
+
+	twt_request_pending = true;
+
 	LOG_INF("-------------------------------");
 	LOG_INF("TWT teardown requested");
 	LOG_INF("-------------------------------");
 
+	// Poll the twt status until connected
+	while(twt_request_pending) {
+		k_sleep(K_MSEC(TWT_POLLING_MS));
+	}
+
+	if(twt_enabled) {
+		LOG_ERR("TWT setup failed");
+		return -1;
+	}
+	
 	// Update flow ID and disable TWT.
 	twt_flow_id = twt_flow_id < WIFI_MAX_TWT_FLOWS-1 ? twt_flow_id + 1 : 0;
 

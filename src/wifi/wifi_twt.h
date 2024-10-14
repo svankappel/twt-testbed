@@ -23,7 +23,7 @@ int twt_init();
  * @brief Sets up a TWT session.
  *
  * This function configures a TWT session with the specified wake interval
- * and TWT interval.
+ * and TWT interval. This function will block until the TWT session is set up
  *
  * @param twt_wake_interval_ms The wake interval in milliseconds.
  * @param twt_interval_ms The TWT interval in milliseconds.
@@ -34,7 +34,8 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
 /**
  * @brief Tears down the TWT session.
  *
- * This function terminates the current TWT session.
+ * This function terminates the current TWT session. This function will block
+ * until the TWT session is torn down.
  *
  * @return int Returns 0 on success, or a negative error code on failure.
  */
