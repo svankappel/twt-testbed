@@ -99,3 +99,19 @@ void wifi_args_to_params(struct wifi_connect_req_params *params)
 	params->timeout = SYS_FOREVER_MS;
 	params->band = WIFI_FREQ_BAND_UNKNOWN;
 }
+
+//wifi twt print negotiated params
+void print_twt_negotiated_params(const struct wifi_twt_params *resp)
+{
+	LOG_INF("== TWT negotiated parameters ==");
+	LOG_INF("TWT Dialog token: %d", resp->dialog_token);
+	LOG_INF("TWT flow ID: %d", resp->flow_id);
+	LOG_INF("TWT negotiation type: %s", wifi_twt_negotiation_type_txt(resp->negotiation_type));
+	LOG_INF("TWT responder: %s", resp->setup.responder ? "true" : "false");
+	LOG_INF("TWT implicit: %s", resp->setup.implicit ? "true" : "false");
+	LOG_INF("TWT announce: %s", resp->setup.announce ? "true" : "false");
+	LOG_INF("TWT trigger: %s", resp->setup.trigger ? "true" : "false");
+	LOG_INF("TWT wake interval: %d ms (%d us)", resp->setup.twt_wake_interval / USEC_PER_MSEC, resp->setup.twt_wake_interval);
+	LOG_INF("TWT interval: %lld s (%lld us)", resp->setup.twt_interval / USEC_PER_SEC, resp->setup.twt_interval);
+	LOG_INF("===============================");
+}

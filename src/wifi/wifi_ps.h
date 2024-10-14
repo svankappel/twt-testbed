@@ -4,6 +4,8 @@
  *
  * This header file provides the API for configuring Wi-Fi power save modes.
  */
+#ifndef WIFI_PS_H
+#define WIFI_PS_H
 
 /**
  * @brief Set Wi-Fi power save mode to legacy.
@@ -12,7 +14,7 @@
  *
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_mode_legacy(void);
+int ps_mode_legacy(void);
 
 /**
  * @brief Set Wi-Fi power save mode to WMM.
@@ -21,7 +23,7 @@ int wifi_ps_mode_legacy(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_mode_wmm(void);
+int ps_mode_wmm(void);
 
 /**
  * @brief Set Wi-Fi wakeup mode to DTIM.
@@ -30,7 +32,7 @@ int wifi_ps_mode_wmm(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_wakeup_dtim(void);
+int ps_wakeup_dtim(void);
 
 /**
  * @brief Set Wi-Fi wakeup mode to listen interval.
@@ -39,7 +41,7 @@ int wifi_ps_wakeup_dtim(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_wakeup_listen_interval(void);
+int ps_wakeup_listen_interval(void);
 
 /**
  * @brief Enable Wi-Fi power save mode.
@@ -48,7 +50,7 @@ int wifi_ps_wakeup_listen_interval(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_enable(void);
+int ps_enable(void);
 
 /**
  * @brief Disable Wi-Fi power save mode.
@@ -57,7 +59,7 @@ int wifi_ps_enable(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_disable(void);
+int ps_disable(void);
 
 /**
  * @brief Set Wi-Fi listen interval.
@@ -67,4 +69,6 @@ int wifi_ps_disable(void);
  * @param interval The listen interval to set.
  * @return 0 on success, -1 on failure.
  */
-int wifi_ps_set_listen_interval(int interval);
+int ps_set_listen_interval(int interval);
+
+#endif // WIFI_PS_H

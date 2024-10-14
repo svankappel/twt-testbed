@@ -43,4 +43,13 @@ void print_dhcp_ip(struct net_mgmt_event_callback *cb);
  */
 void wifi_args_to_params(struct wifi_connect_req_params *params);
 
+/**
+ * @brief Print the negotiated TWT parameters.
+ *
+ * This function prints the negotiated TWT parameters received in the TWT response.
+ *
+ * @param resp Pointer to the WiFi TWT parameters structure.
+ */
+void print_twt_negotiated_params(const struct wifi_twt_params *resp);
+
 #endif // WIFI_UTILS_H
