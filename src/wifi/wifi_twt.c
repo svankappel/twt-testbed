@@ -16,6 +16,8 @@
 #include <net/wifi_credentials.h>
 #include <zephyr/net/socket.h>
 
+#include "wifi_utils.h"
+
 LOG_MODULE_REGISTER(wifi_twt, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
 
@@ -27,21 +29,6 @@ static uint32_t twt_flow_id = 1;
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
 
-
-static void print_twt_negotiated_params(const struct wifi_twt_params *resp)
-{
-	LOG_INF("== TWT negotiated parameters ==");
-	LOG_INF("TWT Dialog token: %d", resp->dialog_token);
-	LOG_INF("TWT flow ID: %d", resp->flow_id);
-	LOG_INF("TWT negotiation type: %s", wifi_twt_negotiation_type_txt(resp->negotiation_type));
-	LOG_INF("TWT responder: %s", resp->setup.responder ? "true" : "false");
-	LOG_INF("TWT implicit: %s", resp->setup.implicit ? "true" : "false");
-	LOG_INF("TWT announce: %s", resp->setup.announce ? "true" : "false");
-	LOG_INF("TWT trigger: %s", resp->setup.trigger ? "true" : "false");
-	LOG_INF("TWT wake interval: %d ms (%d us)", resp->setup.twt_wake_interval / USEC_PER_MSEC, resp->setup.twt_wake_interval);
-	LOG_INF("TWT interval: %lld s (%lld us)", resp->setup.twt_interval / USEC_PER_SEC, resp->setup.twt_interval);
-	LOG_INF("===============================");
-}
 
 static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 {
@@ -88,13 +75,20 @@ static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 			//receive_packet();
 		}
 		break;
+	
 	}
 }
 
 
 
-int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
+int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 {
+	if (nrf_wifi_twt_enabled) {
+		LOG_WRN("TWT is already enabled");
+		return 0;
+	}
+
+	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
 
 	// Define the TWT parameters struct wifi_twt_params and fill the parameters for TWT setup.
@@ -125,8 +119,14 @@ int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	return 0;
 }
 
-int wifi_twt_teardown()
+int twt_teardown()
 {
+	if (!nrf_wifi_twt_enabled) {
+		LOG_WRN("TWT is already disabled");
+		return 0;
+	}
+
+	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
 
 	// Define the TWT parameters struct wifi_twt_params and fill the parameters for TWT teardown.
@@ -155,7 +155,7 @@ int wifi_twt_teardown()
 	return 0;
 }
 
-int wifi_twt_init()
+int twt_init()
 {
 	net_mgmt_init_event_callback(&twt_mgmt_cb, twt_mgmt_event_handler, TWT_MGMT_EVENTS);
 	net_mgmt_add_event_callback(&twt_mgmt_cb);

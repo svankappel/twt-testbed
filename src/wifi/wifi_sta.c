@@ -61,6 +61,7 @@
 #include <net/wifi_ready.h>
 
 #include "wifi_utils.h"
+#include "wifi_twt.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);
@@ -288,5 +289,62 @@ int wifi_init()
 
 	k_sleep(K_SECONDS(1));
 	
+	twt_init();
+	
 	return 0;
+}
+
+
+//call twt setup function
+int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
+{
+	return(twt_setup(twt_wake_interval_ms, twt_interval_ms));
+}
+
+//call twt teardown function
+int wifi_twt_teardown()
+{
+	return(twt_teardown());
+}
+
+// Set legacy power save mode
+int wifi_ps_mode_legacy(void)
+{
+	return ps_mode_legacy();
+}
+
+// Set WMM power save mode
+int wifi_ps_mode_wmm(void)
+{
+	return ps_mode_wmm();
+}
+
+// Wake up using DTIM
+int wifi_ps_wakeup_dtim(void)
+{
+	return ps_wakeup_dtim();
+}
+
+// Wake up using listen interval
+int wifi_ps_wakeup_listen_interval(void)
+{
+	return ps_wakeup_listen_interval();
+}
+
+// Enable power save mode
+int wifi_ps_enable(void)
+{
+	return ps_enable();
+}
+
+// Disable power save mode
+int wifi_ps_disable(void)
+{
+	return ps_disable();
+}
+
+// Set the listen interval for power save mode
+int wifi_ps_set_listen_interval(int interval)
+{
+	return ps_set_listen_interval(interval);
 }

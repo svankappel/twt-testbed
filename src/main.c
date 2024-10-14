@@ -12,11 +12,10 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/random/random.h>
 
-#include "wifi_sta.h"
-#include "wifi_ps.h"
+#include "wifi/wifi_sta.h"
 #include "coap.h"
 #include "profiler.h"
-#include "wifi_twt.h"
+
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
@@ -27,21 +26,13 @@ int main(void)
 
 	wifi_init();
 
-	wifi_twt_init();
-
 	wifi_ps_disable();
 
 	wifi_connect();
 
-	
-
-
-
 	while(true)
 	{
 		wifi_twt_setup(50, 1000);
-		k_sleep(K_SECONDS(20));
-		wifi_twt_setup(50, 2000);
 		k_sleep(K_SECONDS(20));
 		wifi_twt_teardown();
 		k_sleep(K_SECONDS(20));
