@@ -15,40 +15,22 @@
 #include "wifi/wifi_sta.h"
 #include "coap.h"
 #include "profiler.h"
+#include "tests/test_template.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
-static void handle_twt_event(const int awake)
-{
-	if (awake) {
-		LOG_INF("TWT event: Awake");
-	} else {
-		LOG_INF("TWT event: Asleep");
-	}
-}
+K_SEM_DEFINE(test_sem, 1, 1);
 
 
 int main(void)
 {
 	profiler_init();
-
 	wifi_init();
-
-	wifi_twt_register_event_callback(handle_twt_event);
-
 	wifi_ps_disable();
 
-	wifi_connect();
+        init_test_template(&test_sem);
 
-	while(true)
-	{
-		wifi_twt_setup(50, 1000);
-		k_sleep(K_SECONDS(20));
-		wifi_twt_teardown();
-		k_sleep(K_SECONDS(20));
-	}
-
-
+        k_sleep(K_FOREVER);
 	return 0;
 }
