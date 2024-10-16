@@ -43,7 +43,7 @@ int main(void)
 
 	while(true)
 	{
-		wifi_twt_setup(50, 1000);
+		wifi_twt_setup(50, 1000,0);
 		k_sleep(K_SECONDS(20));
 		wifi_twt_teardown();
 		k_sleep(K_SECONDS(20));

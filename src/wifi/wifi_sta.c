@@ -296,9 +296,9 @@ int wifi_init()
 
 
 //call twt setup function
-int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
+int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms, uint32_t twt_wake_ahead_duration)
 {
-	return(twt_setup(twt_wake_interval_ms, twt_interval_ms));
+	return(twt_setup(twt_wake_interval_ms, twt_interval_ms, twt_wake_ahead_duration));
 }
 
 //call twt teardown function

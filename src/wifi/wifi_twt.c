@@ -90,7 +90,7 @@ static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 	}
 }
 
-int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
+int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms, uint32_t twt_wake_ahead_duration)
 {
 	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
@@ -109,6 +109,7 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	params.setup.announce = 0;
 	params.setup.twt_wake_interval = twt_wake_interval_ms * USEC_PER_MSEC;
 	params.setup.twt_interval = twt_interval_ms * USEC_PER_MSEC;
+	params.setup.twt_wake_ahead_duration = twt_wake_ahead_duration * USEC_PER_MSEC;
 
 	// Send the TWT setup request with net_mgmt.
 	if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {

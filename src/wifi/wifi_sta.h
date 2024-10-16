@@ -46,9 +46,10 @@ int wifi_disconnect(void);
  *
  * @param twt_wake_interval_ms The wake interval in milliseconds.
  * @param twt_interval_ms The TWT interval in milliseconds.
+ * @param twt_wake_ahead_duration The callback wake ahead duration in milliseconds.
  * @return int Returns 0 on success, or a negative error code on failure.
  */
-int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
+int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms, uint32_t twt_wake_ahead_duration);
 
 /**
  * @brief Tears down the TWT session.
