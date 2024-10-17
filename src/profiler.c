@@ -117,3 +117,9 @@ void profiler_all_set() {
     gpio_pin_set_dt(&gpio2, 1);
     gpio_pin_set_dt(&gpio3, 1);
 }
+
+void profiler_output_next() {
+    static int i = 1;
+    profiler_output_binary(i);
+    i++;
+}

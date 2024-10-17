@@ -110,6 +110,8 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	params.setup.twt_wake_interval = twt_wake_interval_ms * USEC_PER_MSEC;
 	params.setup.twt_interval = twt_interval_ms * USEC_PER_MSEC;
 
+	twt_request_pending = true;
+
 	// Send the TWT setup request with net_mgmt.
 	if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
 		LOG_ERR("TWT setup with %s failed, reason : %s",
@@ -117,7 +119,7 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 			wifi_twt_get_err_code_str(params.fail_reason));
 		return -1;
 	}
-	twt_request_pending = true;
+	
 	LOG_INF("-------------------------------");
 	LOG_INF("TWT setup requested");
 	LOG_INF("-------------------------------");
@@ -149,6 +151,8 @@ int twt_teardown()
 	params.operation = WIFI_TWT_TEARDOWN;
 	params.setup_cmd = WIFI_TWT_TEARDOWN;
 
+	twt_request_pending = true;
+	
 	// Send the TWT teardown request with net_mgmt.
 	if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
 		LOG_ERR("TWT teardown with %s failed, reason : %s",
@@ -156,8 +160,6 @@ int twt_teardown()
 			wifi_twt_get_err_code_str(params.fail_reason));
 		return -1;
 	}
-
-	twt_request_pending = true;
 
 	LOG_INF("-------------------------------");
 	LOG_INF("TWT teardown requested");
@@ -183,4 +185,9 @@ int twt_init()
 {
 	net_mgmt_init_event_callback(&twt_mgmt_cb, twt_mgmt_event_handler, TWT_MGMT_EVENTS);
 	net_mgmt_add_event_callback(&twt_mgmt_cb);
+}
+
+bool twt_is_enabled()
+{
+	return twt_enabled;
 }

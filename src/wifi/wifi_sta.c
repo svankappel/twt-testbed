@@ -313,6 +313,12 @@ void wifi_twt_register_event_callback(void (*callback)(const int awake))
 	twt_register_event_callback(callback);
 }
 
+// is enabled
+bool wifi_twt_is_enabled(void)
+{
+	return twt_is_enabled();
+}
+
 // Set legacy power save mode
 int wifi_ps_mode_legacy(void)
 {

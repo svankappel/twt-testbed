@@ -99,4 +99,12 @@ void profiler_all_clear();
  */
 void profiler_all_set();
 
+/**
+ * @brief Outputs the next value to the profiler.
+ *
+ * This function outputs the next value to the profiler.
+ * Starts from 1 and increments by 1 each time it is called.
+ */
+void profiler_output_next();
+
 #endif 

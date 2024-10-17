@@ -70,6 +70,15 @@ int wifi_twt_teardown();
 void wifi_twt_register_event_callback(void (*callback)(const int awake));
 
 /**
+ * @brief Check if TWT is enabled.
+ *
+ * This function checks if TWT is enabled.
+ *
+ * @return true if TWT is enabled, false otherwise.
+ */
+bool wifi_twt_is_enabled(void);
+
+/**
  * @brief Set Wi-Fi power save mode to legacy.
  *
  * This function enables the legacy power save mode for Wi-Fi.
