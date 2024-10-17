@@ -25,7 +25,7 @@ K_SEM_DEFINE(test_sem, 0, 1);
 
 int main(void)
 {
-        // initialiye setup
+        // initialize setup
 	profiler_init();
 	wifi_init();
 	wifi_ps_disable();

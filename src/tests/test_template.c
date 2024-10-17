@@ -7,17 +7,19 @@
 #include "../wifi/wifi_sta.h"
 #include "../coap.h"
 #include "../profiler.h"
-LOG_MODULE_REGISTER(test_template, CONFIG_MY_MAIN_LOG_LEVEL);
+LOG_MODULE_REGISTER(test_template, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY -7    // high proirity to ensure the thread is not preempted until blocked by the semaphore
-#define MAX_THREADS 2  // Define the maximum number of threads
+#define PRIORITY -7    // high proirity to ensure the thread is not 
+                       //  preempted until blocked by the semaphore
+
+#define MAX_THREADS 2  // Define the maximum number of threads       ->       ADJUST THIS VALUE TO MATCH THE NUMBER OF TESTS
 
 // Define the stack size and thread data structure
 K_THREAD_STACK_ARRAY_DEFINE(thread_stacks, MAX_THREADS, STACK_SIZE);
 struct k_thread thread_data[MAX_THREADS];
 
-//--------------------------------------------------------------------
+//--------------------------------------------------------------------     
 // Callback function to handle TWT events
 //--------------------------------------------------------------------
 static void handle_twt_event(const int awake)
@@ -54,24 +56,43 @@ void run_test()
 // Thread function that runs the test
 void thread_function(void *arg1, void *arg2, void *arg3) 
 {
+    // Extract the semaphore and test settings
     struct k_sem *sem = (struct k_sem *)arg1;
     struct test_template_settings test_settings;
     memcpy(&test_settings, arg2, sizeof(test_settings));
 
+    // Wait for the semaphore to start the test
     k_sem_take(sem, K_FOREVER);
 
+    LOG_INF("Starting test %d setup", test_settings.test_number);
+
+    // configure power save mode 
     configure_ps();
-    wifi_connect();
+    LOG_DBG("Power save mode configured");
+
+    //connect to wifi
+    int ret = wifi_connect();
     k_sleep(K_SECONDS(1));
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to connect to wifi");
+        k_sleep(K_FOREVER);
+    }
+    LOG_DBG("Connected to wifi");
+    
+    // configure TWT
     wifi_twt_register_event_callback(handle_twt_event);
     configure_twt(&test_settings);
+    LOG_DBG("TWT configured");
 
+    //run the test
     LOG_INF("Starting test template %d", test_settings.test_number);
     profiler_output_binary(test_settings.test_number);
     run_test();
     profiler_all_clear();
     LOG_INF("Test %d finished", test_settings.test_number);
 
+    // tear down TWT and disconnect from wifi
     if(wifi_twt_is_enabled())
     {
         wifi_twt_teardown();
@@ -79,8 +100,15 @@ void thread_function(void *arg1, void *arg2, void *arg3)
 
     k_sleep(K_SECONDS(1));
 
-    wifi_disconnect();
+    ret = wifi_disconnect();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to disconnect from wifi");
+        k_sleep(K_FOREVER);
+    }
+    LOG_DBG("Disconnected from wifi");
 
+    // give the semaphore to start the next test
     k_sem_give(sem);
 }
 
