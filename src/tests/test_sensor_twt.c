@@ -1,4 +1,4 @@
-#include "test_template.h"
+#include "test_sensor_twt.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -7,24 +7,34 @@
 #include "../wifi/wifi_sta.h"
 #include "../coap.h"
 #include "../profiler.h"
-LOG_MODULE_REGISTER(test_template, CONFIG_MY_TEST_LOG_LEVEL);
+LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY -7    // high proirity to ensure the thread is not 
-                       //  preempted until blocked by the semaphore
+#define PRIORITY -7    // high priority to ensure the thread is not 
+                       // preempted until blocked by the semaphore
 
-#define MAX_THREADS 1  // Define the maximum number of threads       ->       ADJUST THIS VALUE TO MATCH THE NUMBER OF TESTS
+#define MAX_THREADS 2  // Define the maximum number of threads
 
 // Define the stack size and thread data structure
 K_THREAD_STACK_ARRAY_DEFINE(thread_stacks, MAX_THREADS, STACK_SIZE);
 struct k_thread thread_data[MAX_THREADS];
+
+bool test_running = false;
 
 //--------------------------------------------------------------------     
 // Callback function to handle TWT events
 //--------------------------------------------------------------------
 static void handle_twt_event(const int awake)
 {
-    
+    static int i = 0;
+    if(test_running && awake)
+    {
+        char payload[25];
+        sprintf(payload, "{\"sensor-value\":%d}", i);
+        coap_put("test/test1",payload,strlen(payload));
+        i++;
+        LOG_INF("Message sent : %s", payload);
+    }
 }
 
 //--------------------------------------------------------------------
@@ -38,7 +48,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 // Function to configure TWT (Target Wake Time)
 //--------------------------------------------------------------------
-void configure_twt(struct test_template_settings *test_settings)
+void configure_twt(struct test_sensor_twt_settings *test_settings)
 {
     wifi_twt_setup(test_settings->twt_interval, test_settings->twt_wake_interval);
 }
@@ -58,7 +68,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
 {
     // Extract the semaphore and test settings
     struct k_sem *sem = (struct k_sem *)arg1;
-    struct test_template_settings test_settings;
+    struct test_sensor_twt_settings test_settings;
     memcpy(&test_settings, arg2, sizeof(test_settings));
 
     // Wait for the semaphore to start the test
@@ -70,7 +80,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     configure_ps();
     LOG_DBG("Power save mode configured");
 
-    //connect to wifi
+    // connect to wifi
     int ret = wifi_connect();
     k_sleep(K_SECONDS(1));
     if(ret != 0)
@@ -85,12 +95,14 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     configure_twt(&test_settings);
     LOG_DBG("TWT configured");
 
-    //run the test
-    LOG_INF("Starting test template %d", test_settings.test_number);
+    // run the test
+    LOG_INF("Starting test sensor TWT %d", test_settings.test_number);
     profiler_output_binary(test_settings.test_number);
+    test_running = true;
     run_test();
+    test_running = false;
     profiler_all_clear();
-    LOG_INF("Test %d finished", test_settings.test_number);
+    LOG_INF("Test sensor TWT %d finished", test_settings.test_number);
 
     // tear down TWT and disconnect from wifi
     if(wifi_twt_is_enabled())
@@ -113,7 +125,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
 }
 
 // Function to initialize the test
-void init_test_template(struct k_sem *sem, void * test_settings) {
+void init_test_sensor_twt(struct k_sem *sem, void * test_settings) {
     static int i = 0;
     if (i > MAX_THREADS) {
         LOG_ERR("Max number of threads reached for this test");
