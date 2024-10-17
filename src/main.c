@@ -35,8 +35,19 @@ int main(void)
         k_sleep(K_SECONDS(1));
 
         // initialize the tests
-        init_test_template(&test_sem);
-        init_test_template(&test_sem);
+        struct test_template_settings test_settings_1 = {
+                .twt_interval = 100,
+                .twt_wake_interval = 1000,
+                .test_number = 1
+        };
+        init_test_template(&test_sem, &test_settings_1);
+
+        struct test_template_settings test_settings_2 = {
+                .twt_interval = 100,
+                .twt_wake_interval = 2000,
+                .test_number = 2
+        };
+        init_test_template(&test_sem, &test_settings_2);
 
 
         // give semaphore to start the tests
