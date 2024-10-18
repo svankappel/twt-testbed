@@ -222,6 +222,10 @@ int wifi_connect(void)
 	if (context.connected) {
 		cmd_wifi_status();
 	}
+	else {
+		LOG_ERR("Connection failed\n");
+		return -ENOEXEC;
+	}
 
 	k_sleep(K_SECONDS(1));
 
