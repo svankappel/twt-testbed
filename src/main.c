@@ -63,11 +63,11 @@ int main(void)
     k_sleep(K_SECONDS(1));
 
 
-    coap_put("test/test1","{\"sensor-value\":0}",4000);
-    k_sleep(K_SECONDS(3));
-    coap_put("test/test1","{\"sensor-value\":0}",4000);
-    k_sleep(K_SECONDS(3));
-    coap_put("test/test1","{\"sensor-value\":0}",4000);
+    coap_put("test/test1","{\"sensor-value\":0}",1500);
+    k_sleep(K_SECONDS(1));
+    coap_put("test/test1","{\"sensor-value\":0}",1500);
+    k_sleep(K_SECONDS(1));
+    coap_put("test/test1","{\"sensor-value\":0}",1500);
 
     k_sleep(K_FOREVER);
         

@@ -19,7 +19,7 @@ K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 struct k_thread coap_thread_data;
 
 K_SEM_DEFINE(send_sem, 0, 1);
-K_SEM_DEFINE(next_sem,1,1);
+K_SEM_DEFINE(sent_sem, 0, 1);
 
 K_SEM_DEFINE(init_sem, 0, 1);
 
@@ -100,9 +100,9 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 
 void coap_thread(void *arg1, void *arg2, void *arg3)
 {
-	int sock;
-	struct sockaddr_in server = { 0 };
-	struct coap_client coap_client = { 0 };
+	static int sock;
+	static struct sockaddr_in server = { 0 };
+	static struct coap_client coap_client = { 0 };
 
 	struct coap_client_request req = { 0 };
 	req_ptr = &req;
@@ -167,7 +167,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 
 		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req.path);
 
-		k_sem_give(&next_sem);
+		k_sem_give(&sent_sem);
 	}
 }
 
@@ -175,7 +175,6 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 
 int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 {
-	k_sem_take(&next_sem, K_FOREVER);
 
 	req_ptr->method = COAP_METHOD_PUT;
 
@@ -198,12 +197,11 @@ int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 	req_params_ptr->ack_timeout=timeout;
 
 	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
 }
 
 int coap_get(const char *resource, uint32_t timeout)
 {
-	k_sem_take(&next_sem, K_FOREVER);
-
 	req_ptr->method = COAP_METHOD_GET;
 	req_ptr->payload = NULL;
 	req_ptr->len = 0;
@@ -218,6 +216,7 @@ int coap_get(const char *resource, uint32_t timeout)
 	req_params_ptr->ack_timeout = timeout;
 
 	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
 
 	return 0;
 }
@@ -265,7 +264,7 @@ int coap_init() {
                                         coap_thread,
                                         NULL, NULL, NULL,
                                         PRIORITY, 0, K_NO_WAIT);
-    k_thread_name_set(thread_id, "test_thread");
+    k_thread_name_set(thread_id, "coap_thread");
     k_thread_start(thread_id);
 
 	k_sem_take(&init_sem, K_FOREVER);
