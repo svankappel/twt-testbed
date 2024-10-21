@@ -6,6 +6,8 @@
 
 int coap_init();
 
+int coap_validate();
+
 int coap_put(const char *resource,uint8_t *payload, uint32_t timeout);
 
 int coap_get(const char *resource, uint32_t timeout);

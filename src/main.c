@@ -61,8 +61,15 @@ int main(void)
     }
 
     k_sleep(K_SECONDS(1));
+
+    ret = coap_validate();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to validate CoAP client");
+        k_sleep(K_FOREVER);
+    }
         
-    wifi_disconnect();
+    ret = wifi_disconnect();
     if(ret != 0)
     {
         LOG_ERR("Failed to disconnect from wifi");

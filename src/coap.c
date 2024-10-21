@@ -22,6 +22,7 @@ K_SEM_DEFINE(send_sem, 0, 1);
 K_SEM_DEFINE(sent_sem, 0, 1);
 
 K_SEM_DEFINE(init_sem, 0, 1);
+K_SEM_DEFINE(validate_sem, 0, 1);
 
 
 
@@ -91,6 +92,9 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			LOG_INF("CoAP response: code: 0x%x", code);
 		}else{
 			LOG_INF("CoAP response: code: 0x%x, payload: %s", code, payload);
+			if(strcmp(payload,"valid")==0){
+				k_sem_give(&validate_sem);
+			}
 		}
 	} else {
 		LOG_INF("Response received with error code: %d", code);
@@ -219,6 +223,35 @@ int coap_get(const char *resource, uint32_t timeout)
 	k_sem_take(&sent_sem, K_FOREVER);
 
 	return 0;
+}
+
+int coap_validate()
+{
+	req_ptr->method = COAP_METHOD_GET;
+	req_ptr->payload = NULL;
+	req_ptr->len = 0;
+
+	const char *resource = "validate";
+	
+	req_ptr->path = k_malloc(strlen(resource) + 1);
+	if (req_ptr->path == NULL) {
+		LOG_ERR("Failed to allocate memory");
+		return -ENOMEM;
+	}
+	strcpy(req_ptr->path,resource);
+
+	req_params_ptr->ack_timeout = 5000;
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+
+	//wait for response to return
+	if (k_sem_take(&validate_sem, K_MSEC(5000)) != 0) {
+		LOG_ERR("Validation timed out");
+		return -ETIMEDOUT;
+	}
+
+	return;
 }
 
 /*

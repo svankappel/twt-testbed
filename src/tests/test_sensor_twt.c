@@ -34,18 +34,15 @@ static void handle_twt_event()
 {
     if(test_running)
     {
-        profiler_ch3_set();
-        k_sleep(K_MSEC(10));
-        profiler_ch3_clear();
-        /*char payload[25];
+        char payload[25];
         sprintf(payload, "{\"sensor-value\":%d}", i);
-        coap_put("test/test1",payload,test_settings.twt_wake_interval+test_settings.twt_wake_interval>>1);
+        coap_put("test/test1",payload,15000);
         LOG_INF("Message sent : %s", payload);
         i++;
         if(i>=test_settings.iterations)
         {
             k_sem_give(&end_sem);
-        }*/
+        }
     }
 }
 
