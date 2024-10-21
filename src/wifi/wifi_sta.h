@@ -67,7 +67,7 @@ int wifi_twt_teardown();
  *
  * @param callback The callback function to register.
  */
-void wifi_twt_register_event_callback(void (*callback)(const int awake));
+void wifi_twt_register_event_callback(void (*callback)(),uint32_t wake_ahead);
 
 /**
  * @brief Check if TWT is enabled.

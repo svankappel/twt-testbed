@@ -312,9 +312,9 @@ int wifi_twt_teardown()
 }
 
 //register twt event callback
-void wifi_twt_register_event_callback(void (*callback)(const int awake))
+void wifi_twt_register_event_callback(void (*callback)(),uint32_t wake_ahead)
 {
-	twt_register_event_callback(callback);
+	twt_register_event_callback(callback,wake_ahead);
 }
 
 // is enabled

@@ -53,7 +53,7 @@ int twt_teardown();
  *                 The callback function should have the following signature:
  *                 void callback(const int awake);
  */
-void twt_register_event_callback(void (*callback)(const int awake));
+void twt_register_event_callback(void (*callback)(),uint32_t wake_ahead);
 
 /**
  * @brief Check if TWT is enabled.

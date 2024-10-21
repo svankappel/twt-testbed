@@ -31,14 +31,28 @@ bool twt_request_pending = false;
 
 static uint32_t twt_flow_id = 0;
 
-void (*twt_event_callback)(const int awake) = NULL;
-
-void twt_register_event_callback(void (*callback)(const int awake)) {
-	twt_event_callback = callback;
-}
-
+uint32_t wake_ahead_ms = 0;
+uint32_t twt_interval_ms = 0;
+uint32_t twt_wake_interval_ms = 0;
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
+
+void twt_ahead_callback(struct k_work *work);
+
+static K_WORK_DELAYABLE_DEFINE(wake_ahead_work, twt_ahead_callback);
+
+void (*twt_event_callback)() = NULL;
+
+void twt_register_event_callback(void (*callback)(),uint32_t wake_ahead) {
+	twt_event_callback = callback;
+	wake_ahead_ms = wake_ahead;
+}
+
+void twt_ahead_callback(struct k_work *work)
+{
+	(*twt_event_callback)();
+}
+
 
 
 static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
@@ -69,6 +83,8 @@ static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 		twt_enabled = true;
 		twt_request_pending = false;
 		print_twt_negotiated_params(resp);
+		twt_interval_ms = resp->setup.twt_interval / USEC_PER_MSEC;
+		twt_wake_interval_ms = resp->setup.twt_wake_interval / USEC_PER_MSEC;
 	}
 }
 
@@ -83,7 +99,10 @@ static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 		int *twt_state;
 		twt_state = (int *)(cb->info);
 		if (twt_event_callback) {
-			twt_event_callback(*twt_state);
+			if(*twt_state == WIFI_TWT_STATE_SLEEP)
+			{
+				k_work_schedule(&wake_ahead_work, K_MSEC(twt_interval_ms - twt_wake_interval_ms - wake_ahead_ms));
+			}
 		}
 		break;
 	
