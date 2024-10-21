@@ -10,8 +10,8 @@
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY -7    // high priority to ensure the thread is not 
-                       // preempted until blocked by the semaphore
+#define PRIORITY 6    
+
 
 #define MAX_THREADS 2  // Define the maximum number of threads
 
@@ -23,19 +23,26 @@ bool test_running = false;
 
 struct test_sensor_twt_settings test_settings;
 
+K_SEM_DEFINE(end_sem, 0, 1);
+
+int i;
+
 //--------------------------------------------------------------------     
 // Callback function to handle TWT events
 //--------------------------------------------------------------------
 static void handle_twt_event(const int awake)
 {
-    static int i = 0;
     if(test_running && awake)
     {
         char payload[25];
         sprintf(payload, "{\"sensor-value\":%d}", i);
         coap_put("test/test1",payload,test_settings.twt_wake_interval+test_settings.twt_wake_interval>>1);
-        i++;
         LOG_INF("Message sent : %s", payload);
+        i++;
+        if(i>=test_settings.iterations)
+        {
+            k_sem_give(&end_sem);
+        }
     }
 }
 
@@ -52,7 +59,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 void configure_twt()
 {
-    wifi_twt_setup(test_settings.twt_interval, test_settings.twt_wake_interval);
+    //wifi_twt_setup(test_settings.twt_interval, test_settings.twt_wake_interval);
 }
 
 //--------------------------------------------------------------------
@@ -60,7 +67,16 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test()
 {
-    k_sleep(K_SECONDS(10));
+    while(i<test_settings.iterations)
+    {
+        char payload[25];
+        sprintf(payload, "{\"sensor-value\":%d}", i);
+        coap_put("test/test1",payload,test_settings.twt_wake_interval+test_settings.twt_wake_interval>>1);
+        LOG_INF("Message sent : %s", payload);
+        i++;
+        k_sleep(K_MSEC(test_settings.twt_interval));
+    }
+
 }
 //--------------------------------------------------------------------
 
@@ -68,6 +84,7 @@ void run_test()
 // Thread function that runs the test
 void thread_function(void *arg1, void *arg2, void *arg3) 
 {
+    i=0;
     // Extract the semaphore and test settings
     struct k_sem *sem = (struct k_sem *)arg1;
     memcpy(&test_settings, arg2, sizeof(test_settings));

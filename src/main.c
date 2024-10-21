@@ -61,17 +61,7 @@ int main(void)
     }
 
     k_sleep(K_SECONDS(1));
-
-
-    coap_put("test/test1","{\"sensor-value\":0}",1500);
-    k_sleep(K_SECONDS(1));
-    coap_put("test/test1","{\"sensor-value\":0}",1500);
-    k_sleep(K_SECONDS(1));
-    coap_put("test/test1","{\"sensor-value\":0}",1500);
-
-    k_sleep(K_FOREVER);
         
-
     wifi_disconnect();
     if(ret != 0)
     {
@@ -88,17 +78,12 @@ int main(void)
 
     struct test_sensor_twt_settings test_settings_1 = {
             .twt_interval = 100,
-            .twt_wake_interval = 1000,
-            .test_number = 1
+            .twt_wake_interval = 10000,
+            .test_number = 1,
+            .iterations = 10
     };
     init_test_sensor_twt(&test_sem, &test_settings_1);
 
-    struct test_sensor_twt_settings test_settings_2 = {
-            .twt_interval = 100,
-            .twt_wake_interval = 2000,
-            .test_number = 2
-    };
-    init_test_sensor_twt(&test_sem, &test_settings_2);
 
     LOG_INF("Tests initialized. Starting tests ...");
 

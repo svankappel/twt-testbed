@@ -10,6 +10,7 @@ struct test_sensor_twt_settings {
     uint32_t twt_interval;
     uint32_t twt_wake_interval;
     uint8_t test_number;
+    uint32_t iterations;
 };
 
 #endif // TEST_SENSOR_TWT_H

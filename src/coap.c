@@ -13,7 +13,7 @@
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY -8 
+#define PRIORITY 3
 
 K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 struct k_thread coap_thread_data;
