@@ -15,6 +15,9 @@
         "wifi_ps.h": "c",
         "tls_credentials.h": "c",
         "wifi_twt.h": "c",
-        "test_sensor_twt.h": "c"
+        "test_sensor_twt.h": "c",
+        "memory_resource": "c",
+        "coap_client.h": "c",
+        "reboot.h": "c"
     }
 }

@@ -21,6 +21,8 @@ struct k_thread thread_data[MAX_THREADS];
 
 bool test_running = false;
 
+struct test_sensor_twt_settings test_settings;
+
 //--------------------------------------------------------------------     
 // Callback function to handle TWT events
 //--------------------------------------------------------------------
@@ -31,7 +33,7 @@ static void handle_twt_event(const int awake)
     {
         char payload[25];
         sprintf(payload, "{\"sensor-value\":%d}", i);
-        coap_put("test/test1",payload,strlen(payload));
+        coap_put("test/test1",payload,test_settings.twt_wake_interval+test_settings.twt_wake_interval>>1);
         i++;
         LOG_INF("Message sent : %s", payload);
     }
@@ -48,9 +50,9 @@ void configure_ps()
 //--------------------------------------------------------------------
 // Function to configure TWT (Target Wake Time)
 //--------------------------------------------------------------------
-void configure_twt(struct test_sensor_twt_settings *test_settings)
+void configure_twt()
 {
-    wifi_twt_setup(test_settings->twt_interval, test_settings->twt_wake_interval);
+    wifi_twt_setup(test_settings.twt_interval, test_settings.twt_wake_interval);
 }
 
 //--------------------------------------------------------------------
@@ -68,7 +70,6 @@ void thread_function(void *arg1, void *arg2, void *arg3)
 {
     // Extract the semaphore and test settings
     struct k_sem *sem = (struct k_sem *)arg1;
-    struct test_sensor_twt_settings test_settings;
     memcpy(&test_settings, arg2, sizeof(test_settings));
 
     // Wait for the semaphore to start the test
