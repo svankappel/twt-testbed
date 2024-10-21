@@ -92,12 +92,19 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			LOG_INF("CoAP response: code: 0x%x", code);
 		}else{
 			LOG_INF("CoAP response: code: 0x%x, payload: %s", code, payload);
-			if(strcmp(payload,"valid")==0){
-				k_sem_give(&validate_sem);
-			}
 		}
 	} else {
 		LOG_INF("Response received with error code: %d", code);
+	}
+}
+
+static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
+			size_t len, bool last_block, void *user_data)
+{
+	if (code >= 0 && len > 0) {
+		if(strcmp(payload,"valid")==0){
+			k_sem_give(&validate_sem);
+		}
 	}
 }
 
@@ -230,6 +237,7 @@ int coap_validate()
 	req_ptr->method = COAP_METHOD_GET;
 	req_ptr->payload = NULL;
 	req_ptr->len = 0;
+	req_ptr->cb = valid_response_cb;
 
 	const char *resource = "validate";
 	
@@ -250,6 +258,9 @@ int coap_validate()
 		LOG_ERR("Validation timed out");
 		return -ETIMEDOUT;
 	}
+
+	//reset values for normal functionning
+	req_ptr->cb = response_cb;
 
 	return;
 }

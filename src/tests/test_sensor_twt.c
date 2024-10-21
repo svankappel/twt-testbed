@@ -10,7 +10,7 @@
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY 6    // high priority to ensure the thread is not 
+#define PRIORITY 6   
 
 
 #define MAX_THREADS 2  // Define the maximum number of threads
@@ -36,7 +36,7 @@ static void handle_twt_event()
     {
         char payload[25];
         sprintf(payload, "{\"sensor-value\":%d}", i);
-        coap_put("test/test1",payload,15000);
+        coap_put("test/test1",payload,5000);
         LOG_INF("Message sent : %s", payload);
         i++;
         if(i>=test_settings.iterations)
