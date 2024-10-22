@@ -24,24 +24,28 @@ K_SEM_DEFINE(sent_sem, 0, 1);
 K_SEM_DEFINE(init_sem, 0, 1);
 K_SEM_DEFINE(validate_sem, 0, 1);
 
+static int sock;
+static struct sockaddr_in server = { 0 };
+static struct coap_client coap_client = { 0 };
 
 
+/*
 struct coap_client_request* req_ptr;
 struct coap_transmission_parameters* req_params_ptr;
+*/
 
-
-int server_resolve(struct sockaddr_in* server)
+int server_resolve(struct sockaddr_in* server_ptr)
 {
     int err;
 
     LOG_DBG("Resolving server name: %s", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME);
 
     // Check if the hostname is an IP address
-	err = inet_pton(AF_INET, CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, &server->sin_addr);
+	err = inet_pton(AF_INET, CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, &server_ptr->sin_addr);
     if (err == 1) {
         // Successfully converted IP address
-        server->sin_family = AF_INET;
-		server->sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
+        server_ptr->sin_family = AF_INET;
+		server_ptr->sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
         LOG_DBG("Server resolved: %s", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME);
         return 0;
     } else if (err == 0) {
@@ -65,11 +69,11 @@ int server_resolve(struct sockaddr_in* server)
 			return -ENOENT;
 		}
 
-		server->sin_addr.s_addr =((struct sockaddr_in *)result->ai_addr)->sin_addr.s_addr;
-		server->sin_family = AF_INET;
-		server->sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
+		server_ptr->sin_addr.s_addr =((struct sockaddr_in *)result->ai_addr)->sin_addr.s_addr;
+		server_ptr->sin_family = AF_INET;
+		server_ptr->sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
 
-		inet_ntop(AF_INET, &server->sin_addr.s_addr, ipv4_addr,sizeof(ipv4_addr));
+		inet_ntop(AF_INET, &server_ptr->sin_addr.s_addr, ipv4_addr,sizeof(ipv4_addr));
 		LOG_INF("IPv4 Address found %s", ipv4_addr);
 
 		//free result pointer
@@ -111,6 +115,7 @@ static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payloa
 
 void coap_thread(void *arg1, void *arg2, void *arg3)
 {
+	/*
 	static int sock;
 	static struct sockaddr_in server = { 0 };
 	static struct coap_client coap_client = { 0 };
@@ -130,7 +135,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 
 	req_params.coap_backoff_percent=100;
 	req_params.max_retransmission=0;
-
+*/
 	//initialize server
 
 	int err;
@@ -154,7 +159,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		LOG_ERR("Failed to initialize CoAP client: %d", err);
 		return err;
 	}
-
+/*
 	k_sem_give(&init_sem);
 
 	while (1) {
@@ -184,13 +189,14 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 
 		k_sem_give(&sent_sem);
 	}
+	*/
 }
 
 
 
 int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 {
-
+	/*
 	req_ptr->method = COAP_METHOD_PUT;
 
 	req_ptr->path = k_malloc(strlen(resource) + 1);
@@ -213,8 +219,64 @@ int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
-}
+	*/
 
+	static int i = 0;
+
+	char payload1[25];
+	char payload2[25];
+    sprintf(payload1, "{ test %d.1 }", i);
+    sprintf(payload2, "{ test %d.2 }", i);
+
+	struct coap_client_request req1 = { 0 };
+	struct coap_transmission_parameters req_params1 = { 0 };
+
+	req1.method = COAP_METHOD_PUT;
+	req1.confirmable = true;
+	req1.path = resource;
+	req1.fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	req1.cb = response_cb;
+	req1.payload = payload1;
+	req1.len = strlen(payload1);
+
+	req_params1.ack_timeout = timeout;
+	req_params1.coap_backoff_percent = 100;
+	req_params1.max_retransmission = 0;
+
+	int ret = coap_client_req(&coap_client, sock, &server, &req1, &req_params1); 
+	if(ret < 0) {
+		LOG_ERR("Failed to send CoAP request: %d", ret);
+		return ret;
+	}else{
+		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req1.path);
+	}
+
+	struct coap_client_request req2 = { 0 };
+	struct coap_transmission_parameters req_params2 = { 0 };
+
+	req2.method = COAP_METHOD_PUT;
+	req2.confirmable = true;
+	req2.path = resource;
+	req2.fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	req2.cb = response_cb;
+	req2.payload = payload2;
+	req2.len = strlen(payload2);
+
+	req_params2.ack_timeout = timeout;
+	req_params2.coap_backoff_percent = 100;
+	req_params2.max_retransmission = 0;
+
+	ret = coap_client_req(&coap_client, sock, &server, &req2, &req_params2); 
+	if(ret < 0) {
+		LOG_ERR("Failed to send CoAP request: %d", ret);
+		return ret;
+	}else{
+		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req2.path);
+	}
+	i++;
+	return 0;
+}
+/*
 int coap_get(const char *resource, uint32_t timeout)
 {
 	req_ptr->method = COAP_METHOD_GET;
@@ -268,7 +330,7 @@ int coap_validate()
 
 	return;
 }
-
+*/
 /*
 int coap_observe(const char *resource, bool start_observe)
 {
@@ -306,7 +368,8 @@ int coap_observe(const char *resource, bool start_observe)
 int coap_init() {
 	
 	//start thread to handle CoAP 
-
+	coap_thread(NULL, NULL, NULL);
+/*
     k_tid_t thread_id = k_thread_create(&coap_thread_data, thread_stack,
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         coap_thread,
@@ -316,6 +379,6 @@ int coap_init() {
     k_thread_start(thread_id);
 
 	k_sem_take(&init_sem, K_FOREVER);
-
+*/
 	return 0;
 }

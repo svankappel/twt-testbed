@@ -38,9 +38,9 @@ static void handle_twt_event()
     {
         char payload[25];
         sprintf(payload, "{\"sensor-value\":%d}", i);
-        coap_put("test/test1",payload,15000);
+        coap_put("test/test1",payload,2000);
         //LOG_INF("Message sent : %s", payload);
-        //i++;
+        i++;
         if(i>=test_settings.iterations)
         {
             k_sem_give(&end_sem);
@@ -61,7 +61,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 void configure_twt()
 {
-    wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
+    //wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
 }
 
 //--------------------------------------------------------------------
@@ -69,11 +69,10 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test()
 {
-    /*while (test_running) {
-        handle_twt_event();
+    while (test_running) {
         handle_twt_event();
         k_sleep(K_SECONDS(5));
-    }*/
+    }
     k_sem_take(&end_sem, K_FOREVER);
 }
 //--------------------------------------------------------------------
