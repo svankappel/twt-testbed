@@ -13,6 +13,8 @@
 #include <zephyr/random/random.h>
 
 #include "wifi/wifi_sta.h"
+#include "wifi/wifi_ps.h"
+#include "wifi/wifi_twt.h"
 #include "coap.h"
 #include "profiler.h"
 #include "tests/test_sensor_twt.h"
@@ -84,8 +86,8 @@ int main(void)
     // initialize the tests
 
     struct test_sensor_twt_settings test_settings_1 = {
-            .twt_interval = 100,
-            .twt_wake_interval = 10000,
+            .twt_interval = 10000,
+            .twt_wake_interval = 10,
             .test_number = 1,
             .iterations = 10
     };

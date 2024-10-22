@@ -5,6 +5,8 @@
 #include <zephyr/logging/log_ctrl.h>
 
 #include "../wifi/wifi_sta.h"
+#include "../wifi/wifi_ps.h"
+#include "../wifi/wifi_twt.h"
 #include "../coap.h"
 #include "../profiler.h"
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
@@ -36,9 +38,9 @@ static void handle_twt_event()
     {
         char payload[25];
         sprintf(payload, "{\"sensor-value\":%d}", i);
-        coap_put("test/test1",payload,5000);
-        LOG_INF("Message sent : %s", payload);
-        i++;
+        coap_put("test/test1",payload,15000);
+        //LOG_INF("Message sent : %s", payload);
+        //i++;
         if(i>=test_settings.iterations)
         {
             k_sem_give(&end_sem);
@@ -59,7 +61,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 void configure_twt()
 {
-    wifi_twt_setup(test_settings.twt_interval, test_settings.twt_wake_interval);
+    wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
 }
 
 //--------------------------------------------------------------------
@@ -67,6 +69,11 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test()
 {
+    /*while (test_running) {
+        handle_twt_event();
+        handle_twt_event();
+        k_sleep(K_SECONDS(5));
+    }*/
     k_sem_take(&end_sem, K_FOREVER);
 }
 //--------------------------------------------------------------------

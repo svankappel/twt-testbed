@@ -27,7 +27,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_utils, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
-
+char dhcp_info[128];
 
 // retrieves and logs the current status of the WiFi interface.
  
@@ -58,6 +58,7 @@ int cmd_wifi_status(void)
 		LOG_INF("Security: %s", wifi_security_txt(status.security));
 		LOG_INF("MFP: %s", wifi_mfp_txt(status.mfp));
 		LOG_INF("RSSI: %d", status.rssi);
+		LOG_INF("DHCP IP address: %s", dhcp_info); // Log the DHCP IP address
 		if(status.link_mode < WIFI_6){
 			LOG_WRN("AP version lower than 802.11ax - Link mode: %s", wifi_link_mode_txt(status.link_mode));
 		}
@@ -65,21 +66,19 @@ int cmd_wifi_status(void)
 			LOG_WRN("AP does not support TWT");
 		}
 	}
+	LOG_INF("==================");
 	return 0;
 }
 
 
-//print IP
-void print_dhcp_ip(struct net_mgmt_event_callback *cb)
+//register ip
+void register_dhcp_ip(struct net_mgmt_event_callback *cb)
 {
 	// Get DHCP info from struct net_if_dhcpv4 and print
 	const struct net_if_dhcpv4 *dhcpv4 = cb->info;
 	const struct in_addr *addr = &dhcpv4->requested_ip;
-	char dhcp_info[128];
-
+	
 	net_addr_ntop(AF_INET, addr, dhcp_info, sizeof(dhcp_info)); // Convert IP address to string
-
-	LOG_INF("DHCP IP address: %s", dhcp_info); // Log the DHCP IP address
 }
 
 //wifi args to params

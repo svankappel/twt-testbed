@@ -18,6 +18,9 @@
         "test_sensor_twt.h": "c",
         "memory_resource": "c",
         "coap_client.h": "c",
-        "reboot.h": "c"
+        "reboot.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c"
     }
 }

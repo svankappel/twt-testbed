@@ -13,7 +13,7 @@
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY 3
+#define PRIORITY 8
 
 K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 struct k_thread coap_thread_data;
@@ -161,11 +161,17 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
 
-		/* Send request */
+		//memcpy(&coap_client.address, (struct sockaddr*)&server, sizeof(struct sockaddr));
+		//coap_client.socklen = sizeof(coap_client.address);
+
 		int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, &req, &req_params);
+
 		if (err) {
 			LOG_ERR("Failed to send request: %d", err);
-			continue;
+		}
+		else
+		{
+			LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req.path);
 		}
 
 		if(req.path!=NULL){
@@ -175,8 +181,6 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		if(req.payload!=NULL){
 			k_free(req.payload);
 		}
-
-		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req.path);
 
 		k_sem_give(&sent_sem);
 	}

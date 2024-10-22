@@ -1,6 +1,5 @@
 #include "wifi_twt.h"
 
-
 #include <errno.h>
 #include <stddef.h>
 #include <string.h>
@@ -22,7 +21,6 @@
 
 LOG_MODULE_REGISTER(wifi_twt, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
-
 #define TWT_MGMT_EVENTS (NET_EVENT_WIFI_TWT | NET_EVENT_WIFI_TWT_SLEEP_STATE)
 
 bool twt_enabled = false;
@@ -37,25 +35,23 @@ uint32_t twt_wake_interval_ms = 0;
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
 
-void twt_ahead_callback(struct k_work *work);
+void wifi_twt_ahead_callback(struct k_work *work);
 
-static K_WORK_DELAYABLE_DEFINE(wake_ahead_work, twt_ahead_callback);
+static K_WORK_DELAYABLE_DEFINE(wake_ahead_work, wifi_twt_ahead_callback);
 
 void (*twt_event_callback)() = NULL;
 
-void twt_register_event_callback(void (*callback)(),uint32_t wake_ahead) {
+void wifi_twt_register_event_callback(void (*callback)(), uint32_t wake_ahead) {
 	twt_event_callback = callback;
 	wake_ahead_ms = wake_ahead;
 }
 
-void twt_ahead_callback(struct k_work *work)
+void wifi_twt_ahead_callback(struct k_work *work)
 {
 	(*twt_event_callback)();
 }
 
-
-
-static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
+static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 {
 	// Create a wifi_twt_params struct for the received TWT event and fill it with the event information.
 	const struct wifi_twt_params *resp = (const struct wifi_twt_params *)cb->info;
@@ -88,12 +84,12 @@ static void handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 	}
 }
 
-static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event,
+static void wifi_twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event,
 				   struct net_if *iface)
 {
 	switch (mgmt_event) {
 	case NET_EVENT_WIFI_TWT:
-		handle_wifi_twt_event(cb);
+		wifi_handle_wifi_twt_event(cb);
 		break;
 	case NET_EVENT_WIFI_TWT_SLEEP_STATE:
 		int *twt_state;
@@ -109,7 +105,7 @@ static void twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t 
 	}
 }
 
-int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
+int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 {
 	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
@@ -156,7 +152,7 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	return 0;
 }
 
-int twt_teardown()
+int wifi_twt_teardown()
 {
 	//get interface
 	struct net_if *iface = net_if_get_first_wifi();
@@ -200,13 +196,13 @@ int twt_teardown()
 	return 0;
 }
 
-int twt_init()
+int wifi_twt_init()
 {
-	net_mgmt_init_event_callback(&twt_mgmt_cb, twt_mgmt_event_handler, TWT_MGMT_EVENTS);
+	net_mgmt_init_event_callback(&twt_mgmt_cb, wifi_twt_mgmt_event_handler, TWT_MGMT_EVENTS);
 	net_mgmt_add_event_callback(&twt_mgmt_cb);
 }
 
-bool twt_is_enabled()
+bool wifi_twt_is_enabled()
 {
 	return twt_enabled;
 }
