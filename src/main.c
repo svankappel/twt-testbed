@@ -33,72 +33,29 @@ int main(void)
 
     // initialize setup
     ret = profiler_init();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to initialize profiler");
-        k_sleep(K_FOREVER);
-    }
 
     wifi_init();
 
     ret = wifi_ps_disable();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to disable power save mode");
-        k_sleep(K_FOREVER);
-    }
-
+    
     ret = wifi_connect();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to connect to wifi");
-        k_sleep(K_FOREVER);
-    }
+ 
 
     coap_init();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to initialize CoAP client");
-        k_sleep(K_FOREVER);
-    }
 
     k_sleep(K_SECONDS(1));
 
-    ret = coap_validate();
-    if(ret != 0)
+    int i = 0;
+    char buf[32];
+
+    while(true)
     {
-        LOG_ERR("Failed to validate CoAP client");
-        k_sleep(K_FOREVER);
-    }
+        snprintf(buf, sizeof(buf), "test-payload-%d", i++);
+        coap_put("test/test1", buf, 1000);
+        snprintf(buf, sizeof(buf), "test-payload-%d", i++);
+        coap_put("test/test1", buf, 1000);
+
+        k_sleep(K_SECONDS(5));
         
-    ret = wifi_disconnect();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to disconnect from wifi");
-        k_sleep(K_FOREVER);
     }
-
-    k_sleep(K_SECONDS(1));
-
-    LOG_INF("TWT testbench initialized. Initializing tests ...");
-
-
-    // initialize the tests
-
-    struct test_sensor_twt_settings test_settings_1 = {
-            .twt_interval = 5000,
-            .twt_wake_interval = 10,
-            .test_number = 1,
-            .iterations = 10
-    };
-    init_test_sensor_twt(&test_sem, &test_settings_1);
-
-
-    LOG_INF("Tests initialized. Starting tests ...");
-
-
-    // give semaphore to start the tests
-    k_sem_give(&test_sem);
-    k_sleep(K_FOREVER);
-    return 0;
 }
