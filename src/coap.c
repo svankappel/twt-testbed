@@ -27,16 +27,14 @@ K_SEM_DEFINE(sent_sem, 0, 1);
 K_SEM_DEFINE(init_sem, 0, 1);
 K_SEM_DEFINE(validate_sem, 0, 1);
 
-static int sock;
-static struct sockaddr_in server = { 0 };
-static struct coap_client coap_client = { 0 };
-
-
-
 struct request_user_data {
 	struct coap_client_request *req;
 	struct coap_transmission_parameters *req_params;
 };
+
+
+#define MSGQ_SIZE 2
+K_MSGQ_DEFINE(coap_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
 
 int server_resolve(struct sockaddr_in* server_ptr)
 {
@@ -90,6 +88,8 @@ int server_resolve(struct sockaddr_in* server_ptr)
         return -errno;
     }
 }
+
+
 struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
 	//allocate memory for the request
 	struct coap_client_request *req = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_client_request), K_NO_WAIT);
@@ -167,6 +167,7 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
+	free_coap_request(user_data);
 	if (code >= 0 && len > 0) {
 		if(strcmp(payload,"valid")==0){
 			k_sem_give(&validate_sem);
@@ -174,15 +175,80 @@ static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payloa
 	}
 }
 
+int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
+{
+	struct coap_client_request* req = alloc_coap_request(strlen(resource)+1, strlen(payload)+1);
+	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
+
+	req->method = COAP_METHOD_PUT;
+	req->confirmable = true;
+	strcpy(req->path,resource);
+	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	req->cb = response_cb;
+	strcpy(req->payload,payload);
+	req->len = strlen(payload);
+	req->num_options = 0;
+	req->options = NULL;
+
+	req_params->ack_timeout = timeout;
+	req_params->coap_backoff_percent = 100;
+	req_params->max_retransmission = 0;
+
+	if (k_msgq_put(&coap_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+        LOG_ERR("Failed to enqueue CoAP request");
+        free_coap_request(req->user_data);
+        return -ENOMEM;
+    }
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+}
+
+
+int coap_validate()
+{
+	struct coap_client_request* req = alloc_coap_request(strlen("validate")+1, 0);
+	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
+
+	req->method = COAP_METHOD_GET;
+	req->confirmable = true;
+	strcpy(req->path,"validate");
+	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	req->cb = valid_response_cb;
+	req->payload = NULL;
+	req->len = 0;
+	req->num_options = 0;
+	req->options = NULL;
+
+	req_params->ack_timeout = 5000;
+	req_params->coap_backoff_percent = 100;
+	req_params->max_retransmission = 0;
+
+	if (k_msgq_put(&coap_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+        LOG_ERR("Failed to enqueue CoAP request");
+        free_coap_request(req->user_data);
+        return -ENOMEM;
+    }
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+
+	if (k_sem_take(&validate_sem, K_SECONDS(5)) != 0) {
+		LOG_ERR("Validation timed out");
+		return -ETIMEDOUT;
+	}
+	
+	return 0;
+}
+
 
 void coap_thread(void *arg1, void *arg2, void *arg3)
 {
-	/*
+	
 	static int sock;
 	static struct sockaddr_in server = { 0 };
 	static struct coap_client coap_client = { 0 };
-*/
-	
+
 	//initialize server
 
 	int err;
@@ -207,160 +273,43 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		return err;
 	}
 
-	return; //test
-
 	k_sem_give(&init_sem);
 
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
-/*
-		//memcpy(&coap_client.address, (struct sockaddr*)&server, sizeof(struct sockaddr));
-		//coap_client.socklen = sizeof(coap_client.address);
 
-		int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, &req, &req_params);
+		struct request_user_data *item;
+        if (k_msgq_get(&coap_msgq, &item, K_NO_WAIT) != 0) {
+            LOG_ERR("Failed to retrieve request from message queue");
 
+			k_sem_give(&sent_sem);
+            continue;
+        }
+
+		struct coap_client_request* req = ((struct request_user_data*)item)->req;
+		struct coap_transmission_parameters* req_params = ((struct request_user_data*)item)->req_params;
+
+		int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, req, req_params);
 		if (err) {
 			LOG_ERR("Failed to send request: %d", err);
+			free_coap_request(req->user_data);
 		}
 		else
 		{
-			LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req.path);
+			LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path);
 		}
 
-*/
+
 		k_sem_give(&sent_sem);
 	}
 	
 }
 
-
-
-int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
-{
-	struct coap_client_request* req = alloc_coap_request(strlen(resource)+1, strlen(payload)+1);
-	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
-
-	req->method = COAP_METHOD_PUT;
-	req->confirmable = true;
-	strcpy(req->path,resource);
-	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
-	req->cb = response_cb;
-	strcpy(req->payload,payload);
-	req->len = strlen(payload);
-	req->num_options = 0;
-	req->options = NULL;
-
-	req_params->ack_timeout = timeout;
-	req_params->coap_backoff_percent = 100;
-	req_params->max_retransmission = 0;
-
-	//k_sem_give(&send_sem);
-	//k_sem_take(&sent_sem, K_FOREVER);
-
-	int ret = coap_client_req(&coap_client, sock, &server, req, req_params); 
-	if(ret < 0) {
-		free_coap_request(req->user_data);
-		LOG_ERR("Failed to send CoAP request: %d", ret);
-		return ret;
-	}else{
-		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path);
-	}
-}
-/*
-int coap_get(const char *resource, uint32_t timeout)
-{
-	req_ptr->method = COAP_METHOD_GET;
-	req_ptr->payload = NULL;
-	req_ptr->len = 0;
-	
-	req_ptr->path = k_malloc(strlen(resource) + 1);
-	if (req_ptr->path == NULL) {
-		LOG_ERR("Failed to allocate memory");
-		return -ENOMEM;
-	}
-	strcpy(req_ptr->path,resource);
-
-	req_params_ptr->ack_timeout = timeout;
-
-	k_sem_give(&send_sem);
-	k_sem_take(&sent_sem, K_FOREVER);
-
-	return 0;
-}
-
-int coap_validate()
-{
-	req_ptr->method = COAP_METHOD_GET;
-	req_ptr->payload = NULL;
-	req_ptr->len = 0;
-	req_ptr->cb = valid_response_cb;
-
-	const char *resource = "validate";
-	
-	req_ptr->path = k_malloc(strlen(resource) + 1);
-	if (req_ptr->path == NULL) {
-		LOG_ERR("Failed to allocate memory");
-		return -ENOMEM;
-	}
-	strcpy(req_ptr->path,resource);
-
-	req_params_ptr->ack_timeout = 5000;
-
-	k_sem_give(&send_sem);
-	k_sem_take(&sent_sem, K_FOREVER);
-
-	//wait for response to return
-	if (k_sem_take(&validate_sem, K_MSEC(5000)) != 0) {
-		LOG_ERR("Validation timed out");
-		return -ETIMEDOUT;
-	}
-
-	//reset values for normal functionning
-	req_ptr->cb = response_cb;
-
-	return;
-}
-*/
-/*
-int coap_observe(const char *resource, bool start_observe)
-{
-    struct coap_client_option observe_option = {
-        .code = COAP_OPTION_OBSERVE,            
-        .len = 1,             
-        .value = { start_observe ? 0 : 1 }, 
-    };
-
-    struct coap_client_request req = {
-        .method = COAP_METHOD_GET,
-        .confirmable = true,
-        .fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN,
-        .payload = NULL,
-        .len = 0,
-        .cb = response_cb,
-        .path = resource,
-        .options = &observe_option,
-        .num_options = 1,
-    };
-
-    int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, &req, NULL);
-    if (err) {
-        LOG_ERR("Failed to send CoAP Observe request: %d", err);
-        return err;
-    }
-
-    LOG_INF("CoAP Observe %s request sent to %s, resource: %s",
-            start_observe ? "start" : "stop", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, resource);
-    return 0;
-}
-*/
-
 // Function to initialize the test
 int coap_init() {
 	
 	//start thread to handle CoAP 
-	coap_thread(NULL, NULL, NULL);
-/*
     k_tid_t thread_id = k_thread_create(&coap_thread_data, thread_stack,
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         coap_thread,
@@ -370,7 +319,6 @@ int coap_init() {
     k_thread_start(thread_id);
 
 	k_sem_take(&init_sem, K_FOREVER);
-	*/
 
 	return 0;
 }

@@ -64,13 +64,12 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
 
-    /*
     ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
-    }*/
+    }
         
     ret = wifi_disconnect();
     if(ret != 0)
@@ -87,7 +86,7 @@ int main(void)
     // initialize the tests
 
     struct test_sensor_twt_settings test_settings_1 = {
-            .twt_interval = 10000,
+            .twt_interval = 5000,
             .twt_wake_interval = 10,
             .test_number = 1,
             .iterations = 10

@@ -32,17 +32,18 @@ int i;
 //--------------------------------------------------------------------     
 // Callback function to handle TWT events
 //--------------------------------------------------------------------
-static void handle_twt_event()
+void handle_twt_event()
 {
+    char buf[32];
     if(test_running)
     {
-        int i = 0;
-        char payload[10];
-        sprintf(payload,"payload-%d",i);
-        coap_put("test/test1",payload,2000);
+        sprintf(buf, "{\"sensor-value\":%d}", i);
+        coap_put("test/test1",buf,6000);
         i++;
-        sprintf(payload,"payload-%d",i);
-        coap_put("test/test1",payload,2000);
+    }
+    if(i >= test_settings.iterations)
+    {
+        k_sem_give(&end_sem);
     }
 }
 
@@ -59,7 +60,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 void configure_twt()
 {
-    //wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
+    wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
 }
 
 //--------------------------------------------------------------------
@@ -67,11 +68,7 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test()
 {
-    while (test_running) {
-        handle_twt_event();
-    
-        k_sleep(K_SECONDS(5));
-    }
+
     k_sem_take(&end_sem, K_FOREVER);
 }
 //--------------------------------------------------------------------
@@ -140,17 +137,17 @@ void thread_function(void *arg1, void *arg2, void *arg3)
 
 // Function to initialize the test
 void init_test_sensor_twt(struct k_sem *sem, void * test_settings) {
-    static int i = 0;
-    if (i > MAX_THREADS) {
+    static int testnb = 0;
+    if (testnb > MAX_THREADS) {
         LOG_ERR("Max number of threads reached for this test");
         return;
     }
-    k_tid_t thread_id = k_thread_create(&thread_data[i], thread_stacks[i],
-                                        K_THREAD_STACK_SIZEOF(thread_stacks[i]),
+    k_tid_t thread_id = k_thread_create(&thread_data[testnb], thread_stacks[testnb],
+                                        K_THREAD_STACK_SIZEOF(thread_stacks[testnb]),
                                         thread_function,
                                         sem, test_settings, NULL,
                                         PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
-    i++;
+    testnb++;
 }
