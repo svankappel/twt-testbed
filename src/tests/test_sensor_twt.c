@@ -36,15 +36,13 @@ static void handle_twt_event()
 {
     if(test_running)
     {
-        char payload[25];
-        sprintf(payload, "{\"sensor-value\":%d}", i);
+        int i = 0;
+        char payload[10];
+        sprintf(payload,"payload-%d",i);
         coap_put("test/test1",payload,2000);
-        //LOG_INF("Message sent : %s", payload);
         i++;
-        if(i>=test_settings.iterations)
-        {
-            k_sem_give(&end_sem);
-        }
+        sprintf(payload,"payload-%d",i);
+        coap_put("test/test1",payload,2000);
     }
 }
 
@@ -71,6 +69,7 @@ void run_test()
 {
     while (test_running) {
         handle_twt_event();
+    
         k_sleep(K_SECONDS(5));
     }
     k_sem_take(&end_sem, K_FOREVER);

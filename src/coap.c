@@ -12,11 +12,14 @@
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
+#define COAP_REQUESTS_HEAP_SIZE 512
 #define STACK_SIZE 4096
 #define PRIORITY 8
 
 K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 struct k_thread coap_thread_data;
+
+K_HEAP_DEFINE(coap_requests_heap, COAP_REQUESTS_HEAP_SIZE);
 
 K_SEM_DEFINE(send_sem, 0, 1);
 K_SEM_DEFINE(sent_sem, 0, 1);
@@ -29,10 +32,11 @@ static struct sockaddr_in server = { 0 };
 static struct coap_client coap_client = { 0 };
 
 
-/*
-struct coap_client_request* req_ptr;
-struct coap_transmission_parameters* req_params_ptr;
-*/
+
+struct request_user_data {
+	struct coap_client_request *req;
+	struct coap_transmission_parameters *req_params;
+};
 
 int server_resolve(struct sockaddr_in* server_ptr)
 {
@@ -86,6 +90,63 @@ int server_resolve(struct sockaddr_in* server_ptr)
         return -errno;
     }
 }
+struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
+	//allocate memory for the request
+	struct coap_client_request *req = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_client_request), K_NO_WAIT);
+    if (!req) {
+		LOG_ERR("Failed to allocate memory for CoAP request");
+        return -ENOMEM;
+    }
+
+	// allocate memory for the path
+    req->path = k_heap_alloc(&coap_requests_heap, path_len, K_NO_WAIT);
+    if (!req->path) {
+        k_heap_free(&coap_requests_heap, req);
+		LOG_ERR("Failed to allocate memory for CoAP request path");
+        return -ENOMEM;
+    }
+
+	// allocate memory for the payload
+    req->payload = k_heap_alloc(&coap_requests_heap, payload_len, K_NO_WAIT);
+    if (!req->path) {
+		k_heap_free(&coap_requests_heap, req->path);
+        k_heap_free(&coap_requests_heap, req);
+		LOG_ERR("Failed to allocate memory for CoAP payload");
+        return -ENOMEM;
+    }
+
+	req->user_data= k_heap_alloc(&coap_requests_heap, sizeof(struct request_user_data), K_NO_WAIT);
+	if (!req->user_data) {
+		k_heap_free(&coap_requests_heap, req->path);
+		k_heap_free(&coap_requests_heap, req->payload);
+		k_heap_free(&coap_requests_heap, req);
+		LOG_ERR("Failed to allocate memory for CoAP user data");
+		return -ENOMEM;
+	}
+	((struct request_user_data*)req->user_data)->req = req;
+
+	((struct request_user_data*)req->user_data)->req_params = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_transmission_parameters), K_NO_WAIT);
+	if (!((struct request_user_data*)req->user_data)->req_params) {
+		k_heap_free(&coap_requests_heap, req->user_data);
+		k_heap_free(&coap_requests_heap, req->path);
+		k_heap_free(&coap_requests_heap, req->payload);
+		k_heap_free(&coap_requests_heap, req);
+		LOG_ERR("Failed to allocate memory for CoAP transmission parameters");
+		return -ENOMEM;
+	}
+	return req;
+}
+
+void free_coap_request(void * data) {
+	struct coap_client_request *req = ((struct request_user_data*)data)->req;
+	struct coap_transmission_parameters *req_params = ((struct request_user_data*)data)->req_params;
+
+	k_heap_free(&coap_requests_heap, req_params);
+	k_heap_free(&coap_requests_heap, req->user_data);
+	k_heap_free(&coap_requests_heap, req->path);
+	k_heap_free(&coap_requests_heap, req->payload);
+	k_heap_free(&coap_requests_heap, req);
+}
 
 
 static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
@@ -100,6 +161,7 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 	} else {
 		LOG_INF("Response received with error code: %d", code);
 	}
+	free_coap_request(user_data);
 }
 
 static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
@@ -119,23 +181,8 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 	static int sock;
 	static struct sockaddr_in server = { 0 };
 	static struct coap_client coap_client = { 0 };
-
-	struct coap_client_request req = { 0 };
-	req_ptr = &req;
-
-	struct coap_transmission_parameters req_params = { 0 };
-	req_params_ptr = &req_params;
-
-	//initialize request
-	req.confirmable = true;
-	req.fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
-	req.cb = response_cb;
-	req.num_options = 0;
-	req.options = NULL;
-
-	req_params.coap_backoff_percent=100;
-	req_params.max_retransmission=0;
 */
+	
 	//initialize server
 
 	int err;
@@ -159,13 +206,15 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		LOG_ERR("Failed to initialize CoAP client: %d", err);
 		return err;
 	}
-/*
+
+	return; //test
+
 	k_sem_give(&init_sem);
 
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
-
+/*
 		//memcpy(&coap_client.address, (struct sockaddr*)&server, sizeof(struct sockaddr));
 		//coap_client.socklen = sizeof(coap_client.address);
 
@@ -179,102 +228,44 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 			LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req.path);
 		}
 
-		if(req.path!=NULL){
-			k_free(req.path);
-		}
-
-		if(req.payload!=NULL){
-			k_free(req.payload);
-		}
-
+*/
 		k_sem_give(&sent_sem);
 	}
-	*/
+	
 }
 
 
 
 int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 {
-	/*
-	req_ptr->method = COAP_METHOD_PUT;
+	struct coap_client_request* req = alloc_coap_request(strlen(resource)+1, strlen(payload)+1);
+	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
-	req_ptr->path = k_malloc(strlen(resource) + 1);
-	if (req_ptr->path == NULL) {
-		LOG_ERR("Failed to allocate memory");
-		return -ENOMEM;
-	}
-	strcpy(req_ptr->path,resource);
+	req->method = COAP_METHOD_PUT;
+	req->confirmable = true;
+	strcpy(req->path,resource);
+	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	req->cb = response_cb;
+	strcpy(req->payload,payload);
+	req->len = strlen(payload);
+	req->num_options = 0;
+	req->options = NULL;
 
-	req_ptr->payload = k_malloc(strlen(payload) + 1); 
-	if (req_ptr->payload == NULL) {
-		LOG_ERR("Failed to allocate memory");
-		return -ENOMEM;
-	}
-	strcpy(req_ptr->payload, payload);
+	req_params->ack_timeout = timeout;
+	req_params->coap_backoff_percent = 100;
+	req_params->max_retransmission = 0;
 
-	req_ptr->len = strlen(payload);
+	//k_sem_give(&send_sem);
+	//k_sem_take(&sent_sem, K_FOREVER);
 
-	req_params_ptr->ack_timeout=timeout;
-
-	k_sem_give(&send_sem);
-	k_sem_take(&sent_sem, K_FOREVER);
-	*/
-
-	static int i = 0;
-
-	char payload1[25];
-	char payload2[25];
-    sprintf(payload1, "{ test %d.1 }", i);
-    sprintf(payload2, "{ test %d.2 }", i);
-
-	struct coap_client_request req1 = { 0 };
-	struct coap_transmission_parameters req_params1 = { 0 };
-
-	req1.method = COAP_METHOD_PUT;
-	req1.confirmable = true;
-	req1.path = resource;
-	req1.fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
-	req1.cb = response_cb;
-	req1.payload = payload1;
-	req1.len = strlen(payload1);
-
-	req_params1.ack_timeout = timeout;
-	req_params1.coap_backoff_percent = 100;
-	req_params1.max_retransmission = 0;
-
-	int ret = coap_client_req(&coap_client, sock, &server, &req1, &req_params1); 
+	int ret = coap_client_req(&coap_client, sock, &server, req, req_params); 
 	if(ret < 0) {
+		free_coap_request(req->user_data);
 		LOG_ERR("Failed to send CoAP request: %d", ret);
 		return ret;
 	}else{
-		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req1.path);
+		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path);
 	}
-
-	struct coap_client_request req2 = { 0 };
-	struct coap_transmission_parameters req_params2 = { 0 };
-
-	req2.method = COAP_METHOD_PUT;
-	req2.confirmable = true;
-	req2.path = resource;
-	req2.fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
-	req2.cb = response_cb;
-	req2.payload = payload2;
-	req2.len = strlen(payload2);
-
-	req_params2.ack_timeout = timeout;
-	req_params2.coap_backoff_percent = 100;
-	req_params2.max_retransmission = 0;
-
-	ret = coap_client_req(&coap_client, sock, &server, &req2, &req_params2); 
-	if(ret < 0) {
-		LOG_ERR("Failed to send CoAP request: %d", ret);
-		return ret;
-	}else{
-		LOG_INF("CoAP PUT request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req2.path);
-	}
-	i++;
-	return 0;
 }
 /*
 int coap_get(const char *resource, uint32_t timeout)
@@ -379,6 +370,7 @@ int coap_init() {
     k_thread_start(thread_id);
 
 	k_sem_take(&init_sem, K_FOREVER);
-*/
+	*/
+
 	return 0;
 }
