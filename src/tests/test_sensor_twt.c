@@ -39,7 +39,7 @@ void handle_twt_event()
     {
         sprintf(buf, "{\"sensor-value\":%d}", i);
         coap_put("test/test1",buf,6000);
-        i++;
+        i=i+1;
     }
     if(i >= test_settings.iterations)
     {
@@ -129,7 +129,6 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to disconnect from wifi");
         k_sleep(K_FOREVER);
     }
-    LOG_DBG("Disconnected from wifi");
 
     // give the semaphore to start the next test
     k_sem_give(sem);

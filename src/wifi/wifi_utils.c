@@ -25,7 +25,7 @@
 #include <net/wifi_ready.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(wifi_utils, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
+LOG_MODULE_REGISTER(wifi_uti, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
 char dhcp_info[128];
 
@@ -112,5 +112,4 @@ void print_twt_negotiated_params(const struct wifi_twt_params *resp)
 	LOG_INF("TWT trigger: %s", resp->setup.trigger ? "true" : "false");
 	LOG_INF("TWT wake interval: %d ms (%d us)", resp->setup.twt_wake_interval / USEC_PER_MSEC, resp->setup.twt_wake_interval);
 	LOG_INF("TWT interval: %lld s (%lld us)", resp->setup.twt_interval / USEC_PER_SEC, resp->setup.twt_interval);
-	LOG_INF("===============================");
 }
