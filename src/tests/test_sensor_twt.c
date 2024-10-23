@@ -12,7 +12,7 @@
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY 6   
+#define PRIORITY -1   
 
 
 #define MAX_THREADS 2  // Define the maximum number of threads
@@ -38,7 +38,7 @@ void handle_twt_event()
     if(test_running)
     {
         sprintf(buf, "{\"sensor-value\":%d}", i);
-        coap_put("test/test1",buf,6000);
+        coap_put("test/test2",buf,6000);
         i=i+1;
     }
     if(i >= test_settings.iterations)
@@ -60,7 +60,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 void configure_twt()
 {
-    wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
+    //wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
 }
 
 //--------------------------------------------------------------------
@@ -68,7 +68,15 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test()
 {
+    while(true)
+    {
+        coap_put("test/test1","{\"sensor-value\":1}",6000);
+        i++;
+        coap_put("test/test1","{\"sensor-value\":2}",6000);
+        i++;
 
+        k_sleep(K_SECONDS(5));
+    }
     k_sem_take(&end_sem, K_FOREVER);
 }
 //--------------------------------------------------------------------
@@ -79,11 +87,11 @@ void thread_function(void *arg1, void *arg2, void *arg3)
 {
     i=0;
     // Extract the semaphore and test settings
-    struct k_sem *sem = (struct k_sem *)arg1;
+    struct k_sem *start_sem = (struct k_sem *)arg1;
     memcpy(&test_settings, arg2, sizeof(test_settings));
 
     // Wait for the semaphore to start the test
-    k_sem_take(sem, K_FOREVER);
+    k_sem_take(start_sem, K_FOREVER);
 
     LOG_INF("Starting test %d setup", test_settings.test_number);
 
@@ -131,7 +139,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     // give the semaphore to start the next test
-    k_sem_give(sem);
+    k_sem_give(start_sem);
 }
 
 // Function to initialize the test
