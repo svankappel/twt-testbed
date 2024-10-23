@@ -84,42 +84,53 @@ void run_test()
 // Thread function that runs the test
 void thread_function(void *arg1, void *arg2, void *arg3) 
 {
+
+    while(true)
+    {
+        coap_put("test/test1","{\"sensor-value\":1}",6000);
+        iter++;
+        coap_put("test/test1","{\"sensor-value\":2}",6000);
+        iter++;
+
+        k_sleep(K_SECONDS(5));
+    }
+
     iter=0;
     // Extract the semaphore and test settings
-    struct k_sem *start_sem = (struct k_sem *)arg1;
-    memcpy(&test_settings, arg2, sizeof(test_settings));
+//    struct k_sem *start_sem = (struct k_sem *)arg1;
+//    memcpy(&test_settings, arg2, sizeof(test_settings));
 
     // Wait for the semaphore to start the test
-    k_sem_take(start_sem, K_FOREVER);
+//    k_sem_take(start_sem, K_FOREVER);
 
-    LOG_INF("Starting test %d setup", test_settings.test_number);
+//    LOG_INF("Starting test %d setup", test_settings.test_number);
 
     // configure power save mode 
-    configure_ps();
-    LOG_DBG("Power save mode configured");
-
+//    configure_ps();
+//    LOG_DBG("Power save mode configured");
+      int ret;
     // connect to wifi
-    int ret = wifi_connect();
-    k_sleep(K_SECONDS(1));
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to connect to wifi");
-        k_sleep(K_FOREVER);
-    }
-    LOG_DBG("Connected to wifi");
+//    ret = wifi_connect();
+//    k_sleep(K_SECONDS(1));
+//    if(ret != 0)
+//    {
+//        LOG_ERR("Failed to connect to wifi");
+//        k_sleep(K_FOREVER);
+//   }
+//    LOG_DBG("Connected to wifi");
     
     // configure TWT
-    wifi_twt_register_event_callback(handle_twt_event,100);
-    configure_twt(&test_settings);
-    LOG_DBG("TWT configured");
+//    wifi_twt_register_event_callback(handle_twt_event,100);
+//    configure_twt(&test_settings);
+//    LOG_DBG("TWT configured");
 
     // run the test
-    LOG_INF("Starting test sensor TWT %d", test_settings.test_number);
-    profiler_output_binary(test_settings.test_number);
-    test_running = true;
+//    LOG_INF("Starting test sensor TWT %d", test_settings.test_number);
+//    profiler_output_binary(test_settings.test_number);
+//    test_running = true;
     run_test();
-    test_running = false;
-    profiler_all_clear();
+//    test_running = false;
+//    profiler_all_clear();
     LOG_INF("Test sensor TWT %d finished", test_settings.test_number);
 
     // tear down TWT and disconnect from wifi
@@ -138,11 +149,13 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     // give the semaphore to start the next test
-    k_sem_give(start_sem);
+//    k_sem_give(start_sem);
 }
 
 // Function to initialize the test
 void init_test_sensor_twt(struct k_sem *sem, void * test_settings) {
+    
+    
     static int testnb = 0;
     if (testnb > MAX_THREADS) {
         LOG_ERR("Max number of threads reached for this test");
@@ -156,4 +169,5 @@ void init_test_sensor_twt(struct k_sem *sem, void * test_settings) {
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
     testnb++;
+    
 }
