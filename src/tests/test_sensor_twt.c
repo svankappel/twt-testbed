@@ -12,7 +12,7 @@
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY -1   
+#define PRIORITY 7   
 
 
 #define MAX_THREADS 2  // Define the maximum number of threads
@@ -27,7 +27,7 @@ struct test_sensor_twt_settings test_settings;
 
 K_SEM_DEFINE(end_sem, 0, 1);
 
-int i;
+int iter;
 
 //--------------------------------------------------------------------     
 // Callback function to handle TWT events
@@ -37,11 +37,10 @@ void handle_twt_event()
     char buf[32];
     if(test_running)
     {
-        sprintf(buf, "{\"sensor-value\":%d}", i);
+        sprintf(buf, "{\"sensor-value\":%d}", iter++);
         coap_put("test/test2",buf,6000);
-        i=i+1;
     }
-    if(i >= test_settings.iterations)
+    if(iter >= test_settings.iterations)
     {
         k_sem_give(&end_sem);
     }
@@ -71,9 +70,9 @@ void run_test()
     while(true)
     {
         coap_put("test/test1","{\"sensor-value\":1}",6000);
-        i++;
+        iter++;
         coap_put("test/test1","{\"sensor-value\":2}",6000);
-        i++;
+        iter++;
 
         k_sleep(K_SECONDS(5));
     }
@@ -85,7 +84,7 @@ void run_test()
 // Thread function that runs the test
 void thread_function(void *arg1, void *arg2, void *arg3) 
 {
-    i=0;
+    iter=0;
     // Extract the semaphore and test settings
     struct k_sem *start_sem = (struct k_sem *)arg1;
     memcpy(&test_settings, arg2, sizeof(test_settings));
