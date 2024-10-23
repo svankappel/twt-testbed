@@ -32,16 +32,23 @@ int main(void)
     LOG_INF("Starting TWT testbench ...");
 
     // initialize setup
-    ret = profiler_init();
+    profiler_init();
 
     wifi_init();
 
-    ret = wifi_ps_disable();
+    wifi_ps_disable();
     
-    ret = wifi_connect();
+    wifi_connect();
  
 
     coap_init();
+
+    ret = coap_validate();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to validate coap");
+        k_sleep(K_FOREVER);
+    }
 
     k_sleep(K_SECONDS(1));
 
