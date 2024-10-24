@@ -36,6 +36,15 @@ struct request_user_data {
 #define MSGQ_SIZE 2
 K_MSGQ_DEFINE(coap_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
 
+
+void (*coap_response_callback)(uint16_t code, void * user_data) = NULL;
+void * coap_response_callback_user_data = NULL;
+
+void coap_register_response_callback(void (*callback)(uint16_t code, void * user_data),void * callback_user_data) {
+	coap_response_callback_user_data = callback_user_data;
+	coap_response_callback = callback;
+}
+
 int server_resolve(struct sockaddr_in* server_ptr)
 {
     int err;
@@ -162,6 +171,10 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 		LOG_INF("Response received with error code: %d", code);
 	}
 	free_coap_request(user_data);
+	if(coap_response_callback)
+	{
+		(*coap_response_callback)(code, coap_response_callback_user_data);
+	}
 }
 
 static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
@@ -333,3 +346,5 @@ int coap_init() {
 
 	return 0;
 }
+
+
