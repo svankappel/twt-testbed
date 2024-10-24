@@ -91,11 +91,11 @@ int main(void)
     // initialize the tests
 
     struct test_sensor_twt_settings test_settings_1 = {
-            .twt_interval = 10000,
+            .twt_interval = 5000,
             .twt_wake_interval = 10,
             .test_number = 1,
-            .iterations = 180,
-            .request_timeout = 11000
+            .iterations = 10,
+            .request_timeout = 6000
     };
     init_test_sensor_twt(&test_sem, &test_settings_1);
 

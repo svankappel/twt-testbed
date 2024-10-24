@@ -63,4 +63,7 @@ void wifi_twt_register_event_callback(void (*callback)(void * user_data), uint32
  */
 bool wifi_twt_is_enabled();
 
+uint32_t wifi_twt_get_interval_ms(void);
+uint32_t wifi_twt_get_wake_interval_ms(void);
+
 #endif // WIFI_TWT_H

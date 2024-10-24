@@ -32,6 +32,7 @@ uint32_t wake_ahead_ms = 0;
 uint32_t twt_interval_ms = 0;
 uint32_t twt_wake_interval_ms = 0;
 
+
 static struct net_mgmt_event_callback twt_mgmt_cb;
 
 void wifi_twt_ahead_callback(struct k_work *work);
@@ -200,4 +201,12 @@ int wifi_twt_init()
 bool wifi_twt_is_enabled()
 {
 	return twt_enabled;
+}
+
+uint32_t wifi_twt_get_interval_ms(void) {
+	return twt_interval_ms;
+}
+
+uint32_t wifi_twt_get_wake_interval_ms(void) {
+	return twt_wake_interval_ms;
 }
