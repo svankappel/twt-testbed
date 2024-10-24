@@ -38,16 +38,18 @@ void wifi_twt_ahead_callback(struct k_work *work);
 
 static K_WORK_DELAYABLE_DEFINE(wake_ahead_work, wifi_twt_ahead_callback);
 
-void (*twt_event_callback)() = NULL;
+void (*twt_event_callback)(void * user_data) = NULL;
+void * twt_callback_user_data = NULL;
 
-void wifi_twt_register_event_callback(void (*callback)(), uint32_t wake_ahead) {
+void wifi_twt_register_event_callback(void (*callback)(void * user_data), uint32_t wake_ahead,void * user_data) {
 	twt_event_callback = callback;
 	wake_ahead_ms = wake_ahead;
+	twt_callback_user_data = user_data;
 }
 
 void wifi_twt_ahead_callback(struct k_work *work)
 {
-	(*twt_event_callback)();
+	(*twt_event_callback)(twt_callback_user_data);
 }
 
 static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)

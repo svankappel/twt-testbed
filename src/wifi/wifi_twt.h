@@ -52,7 +52,7 @@ int wifi_twt_teardown();
  *                 The callback function should have the following signature:
  *                 void callback(const int awake);
  */
-void wifi_twt_register_event_callback(void (*callback)(), uint32_t wake_ahead);
+void wifi_twt_register_event_callback(void (*callback)(void * user_data), uint32_t wake_ahead,void * user_data);
 
 /**
  * @brief Check if TWT is enabled.

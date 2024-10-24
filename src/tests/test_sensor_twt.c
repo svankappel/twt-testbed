@@ -25,23 +25,26 @@ bool test_running = false;
 
 struct test_sensor_twt_settings test_settings;
 
-//K_SEM_DEFINE(end_sem, 0, 1);
+K_SEM_DEFINE(end_sem, 0, 1);
 
 //--------------------------------------------------------------------     
 // Callback function to handle TWT events
 //--------------------------------------------------------------------
-void handle_twt_event()
-{/*
+void handle_twt_event(void * user_data)
+{
+    int * iter = (int *)user_data;
     char buf[32];
     if(test_running)
     {
-        sprintf(buf, "{\"sensor-value\":%d}", iter++);
+        sprintf(buf, "{\"sensor-value\":%d}", (*iter)++);
         coap_put("test/test2",buf,6000);
     }
-    if(iter >= test_settings.iterations)
+    if((*iter) >= test_settings.iterations)
     {
+        test_running = false;
+        k_sleep(K_SECONDS(6));  //wait to receive response -> a coap callback will be implemented next
         k_sem_give(&end_sem);
-    }*/
+    }
 }
 
 //--------------------------------------------------------------------
@@ -57,7 +60,7 @@ void configure_ps()
 //--------------------------------------------------------------------
 void configure_twt()
 {
-    //wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
+    wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
 }
 
 //--------------------------------------------------------------------
@@ -65,22 +68,7 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test(int * iter)
 {
-    char buf[32];
-    while(true)
-    {
-        sprintf(buf, "{\"sensor-value\":%d}", (*iter)++);
-        coap_put("test/test1",buf,1000);
-        sprintf(buf, "{\"sensor-value\":%d}", (*iter)++);
-        coap_put("test/test1",buf,1000);
-
-        k_sleep(K_SECONDS(5));
-
-        if((*iter) >= test_settings.iterations)
-        {
-            break;
-        }
-    }
-    //k_sem_take(&end_sem, K_FOREVER);
+    k_sem_take(&end_sem, K_FOREVER);
 }
 //--------------------------------------------------------------------
 
@@ -113,7 +101,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     LOG_DBG("Connected to wifi");
     
     // configure TWT
-    wifi_twt_register_event_callback(handle_twt_event,100);
+    wifi_twt_register_event_callback(handle_twt_event,100,(void*)&iter);
     configure_twt(&test_settings);
     LOG_DBG("TWT configured");
 
