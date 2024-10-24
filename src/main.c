@@ -94,7 +94,7 @@ int main(void)
             .twt_interval = 5000,
             .twt_wake_interval = 10,
             .test_number = 1,
-            .iterations = 10,
+            .iterations = 500,
             .request_timeout = 6000
     };
     init_test_sensor_twt(&test_sem, &test_settings_1);
