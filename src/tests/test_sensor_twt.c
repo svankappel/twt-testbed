@@ -31,7 +31,53 @@ struct test_control{
     int iter;
     int sent;
     int received;
+    int send_fails;
+    int send_err_11;
+    int send_err_120;
+    int send_err_other;
+    int recv_resp;
+    int recv_err;
 };
+
+void print_test_results(struct test_control *control) {
+    // Check for inconsistencies and print warnings
+    if ((control->send_err_11 + control->send_err_120 + control->send_err_other) != control->send_fails) {
+        LOG_WRN("Warning: Sum of send errors does not match send fails");
+    }
+    if (control->sent != control->received) {
+        LOG_WRN("Warning: Sent messages do not match received messages");
+    }
+    if ((control->recv_resp + control->recv_err) != control->received) {
+        LOG_WRN("Warning: Sum of received responses and errors does not match received messages");
+    }
+    if ((control->sent + control->send_fails) != control->iter) {
+        LOG_WRN("Warning: Sent messages plus send fails do not match iterations");
+    }
+
+    // Print the results
+    LOG_INF("Test Results:\n\n"
+            "----------------------------------------\n"
+            "Iterations: %d\n"
+            "----------------------------------------\n"
+            "Sent: %d\n"
+            "----------------------------------------\n"
+            "Received Responses: %d\n"
+            "Received Errors: %d\n"
+            "----------------------------------------\n"
+            "Send Fails: %d\n"
+            "  Send Error -11: %d\n"
+            "  Send Error -120: %d\n"
+            "  Other Send Errors: %d\n"
+            "----------------------------------------\n",
+            control->iter,
+            control->sent,
+            control->recv_resp,
+            control->recv_err,
+            control->send_fails,
+            control->send_err_11,
+            control->send_err_120,
+            control->send_err_other);
+}
 
 //--------------------------------------------------------------------     
 // Callback function to handle TWT session wake ahead event
@@ -45,10 +91,18 @@ void handle_twt_event(void * user_data)
         if(control->iter < test_settings.iterations)
         {
             sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            ret = coap_put("sensor", buf, 1000);
-            if(ret == 0)
-            {
+            ret = coap_put("test/test1", buf, test_settings.request_timeout);
+            if(ret == 0){
                 control->sent++;
+            } else if(ret == -11){
+                control->send_err_11++;
+                control->send_fails++;
+            }else if(ret == -120){  
+                control->send_err_120++;
+                control->send_fails++;
+            }else{
+                control->send_err_other++;
+                control->send_fails++;
             }
             
         }else{
@@ -65,9 +119,15 @@ void handle_twt_event(void * user_data)
 //--------------------------------------------------------------------
 void handle_coap_response(int16_t code, void * user_data)
 {
-    struct test_control * control = (int *)user_data;
+    struct test_control * control = (struct test_control *)user_data;
 
     control->received++;
+
+    if(code >= 0){
+        control->recv_resp++;
+    }else{
+        control->recv_err++;
+    }
 
     if(control->iter>=test_settings.iterations && (control->received == control->sent))
     {
@@ -104,10 +164,7 @@ void run_test(struct test_control * control)
 // Thread function that runs the test
 void thread_function(void *arg1, void *arg2, void *arg3) 
 {
-    struct test_control control;
-    control.iter = 0;
-    control.sent = 0;
-    control.received = 0;
+    struct test_control control = { 0 };
 
     // Extract the semaphore and test settings
     struct k_sem *start_sem = (struct k_sem *)arg1;
@@ -163,6 +220,8 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to disconnect from wifi");
         k_sleep(K_FOREVER);
     }
+
+    print_test_results(&control);
 
     // give the semaphore to start the next test
     k_sem_give(start_sem);

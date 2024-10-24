@@ -8,7 +8,7 @@ int coap_init();
 
 int coap_validate();
 
-void coap_register_response_callback(void (*callback)(uint16_t code, void * user_data),void * callback_user_data);
+void coap_register_response_callback(void (*callback)(int16_t code, void * user_data),void * callback_user_data);
 
 int coap_put(const char *resource,uint8_t *payload, uint32_t timeout);
 

@@ -38,10 +38,10 @@ K_MSGQ_DEFINE(coap_req_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
 K_MSGQ_DEFINE(coap_ret_msgq, sizeof(int), MSGQ_SIZE, 4);
 
 
-void (*coap_response_callback)(uint16_t code, void * user_data) = NULL;
+void (*coap_response_callback)(int16_t code, void * user_data) = NULL;
 void * coap_response_callback_user_data = NULL;
 
-void coap_register_response_callback(void (*callback)(uint16_t code, void * user_data),void * callback_user_data) {
+void coap_register_response_callback(void (*callback)(int16_t code, void * user_data),void * callback_user_data) {
 	coap_response_callback_user_data = callback_user_data;
 	coap_response_callback = callback;
 }
