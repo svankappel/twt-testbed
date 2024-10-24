@@ -67,10 +67,13 @@ int main(void)
 
     ret = coap_validate();
     if(ret != 0)
-   {
+    {
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
+
+    //sleep some time to allow the AP to set up its ARP table
+    k_sleep(K_SECONDS(10));
         
     ret = wifi_disconnect();
     if(ret != 0)

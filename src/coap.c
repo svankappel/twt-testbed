@@ -167,6 +167,15 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
+	if (code >= 0) {
+		if(len==0){
+			LOG_INF("CoAP validate response: code: 0x%x", code);
+		}else{
+			LOG_INF("CoAP validate response: code: 0x%x, payload: %s", code, payload);
+		}
+	} else {
+		LOG_INF("CoAP validate request timed out: error code: %d", code);
+	}
 	free_coap_request(user_data);
 	if (code >= 0 && len > 0) {
 		if(strcmp(payload,"valid")==0){
@@ -297,10 +306,12 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		}
 		else
 		{
-			LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path);
+			if(req->len==0){
+				LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path);
+			}else{
+				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path,req->payload);
+			}
 		}
-
-
 		k_sem_give(&sent_sem);
 	}
 	
