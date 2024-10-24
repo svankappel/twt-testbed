@@ -13,14 +13,14 @@ LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 K_THREAD_STACK_DEFINE(test_thread_stack, 4096);
 
-int d;
+
 struct k_thread debug_thread_data;
 
 
 
 void coap_debug_thread(void)
 {
-
+    int d;
     wifi_connect();
 
     d = 0;
