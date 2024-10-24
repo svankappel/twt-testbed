@@ -73,6 +73,7 @@ int main(void)
     }
 
     //sleep some time to allow the AP to set up its ARP table
+    LOG_INF("Waiting some time to allow the AP to set up its ARP table ...");
     k_sleep(K_SECONDS(10));
         
     ret = wifi_disconnect();

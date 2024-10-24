@@ -33,8 +33,9 @@ struct request_user_data {
 };
 
 
-#define MSGQ_SIZE 2
-K_MSGQ_DEFINE(coap_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
+#define MSGQ_SIZE 1
+K_MSGQ_DEFINE(coap_req_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
+K_MSGQ_DEFINE(coap_ret_msgq, sizeof(int), MSGQ_SIZE, 4);
 
 
 void (*coap_response_callback)(uint16_t code, void * user_data) = NULL;
@@ -216,7 +217,7 @@ int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 	req_params->coap_backoff_percent = 100;
 	req_params->max_retransmission = 0;
 
-	if (k_msgq_put(&coap_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+	if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
         LOG_ERR("Failed to enqueue CoAP request");
         free_coap_request(req->user_data);
         return -ENOMEM;
@@ -224,6 +225,14 @@ int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
+
+	int ret;
+
+	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
+		LOG_ERR("Failed to retrieve return value from message queue");
+		return -ENOEXEC;
+	}
+	return ret;
 }
 
 
@@ -246,7 +255,7 @@ int coap_validate()
 	req_params->coap_backoff_percent = 100;
 	req_params->max_retransmission = 0;
 
-	if (k_msgq_put(&coap_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+	if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
         LOG_ERR("Failed to enqueue CoAP request");
         free_coap_request(req->user_data);
         return -ENOMEM;
@@ -255,12 +264,18 @@ int coap_validate()
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
 
+	int ret;
+
+	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
+		LOG_ERR("Failed to retrieve return value from message queue");
+		return -ENOEXEC;
+	}
+
 	if (k_sem_take(&validate_sem, K_SECONDS(5)) != 0) {
 		LOG_ERR("Validation timed out");
 		return -ETIMEDOUT;
 	}
-	
-	return 0;
+	return ret;
 }
 
 
@@ -297,14 +312,14 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 
 	k_sem_give(&init_sem);
 
+
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
 
 		struct request_user_data *item;
-        if (k_msgq_get(&coap_msgq, &item, K_NO_WAIT) != 0) {
+        if (k_msgq_get(&coap_req_msgq, &item, K_NO_WAIT) != 0) {
             LOG_ERR("Failed to retrieve request from message queue");
-
 			k_sem_give(&sent_sem);
             continue;
         }
@@ -312,7 +327,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		struct coap_client_request* req = ((struct request_user_data*)item)->req;
 		struct coap_transmission_parameters* req_params = ((struct request_user_data*)item)->req_params;
 
-		int err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, req, req_params);
+		err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, req, req_params);
 		if (err) {
 			LOG_ERR("Failed to send request: %d", err);
 			free_coap_request(req->user_data);
@@ -325,6 +340,10 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path,req->payload);
 			}
 		}
+		if (k_msgq_put(&coap_ret_msgq, &err, K_NO_WAIT) != 0) {
+			LOG_ERR("Failed to enqueue CoAP return value");
+		}
+
 		k_sem_give(&sent_sem);
 	}
 	

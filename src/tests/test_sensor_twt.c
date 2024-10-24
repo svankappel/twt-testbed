@@ -40,12 +40,17 @@ void handle_twt_event(void * user_data)
 {
     struct test_control * control = (int *)user_data;
     char buf[32];
+    int ret;
     if(test_running){
         if(control->iter < test_settings.iterations)
         {
             sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            coap_put("test/test2",buf,6000);
-            control->sent++;
+            ret = coap_put("sensor", buf, 1000);
+            if(ret == 0)
+            {
+                control->sent++;
+            }
+            
         }else{
             test_running = false;
             k_sleep(K_SECONDS(6));  //wait to receive response -> a coap callback will be implemented next
@@ -63,7 +68,6 @@ void handle_coap_response(int16_t code, void * user_data)
     struct test_control * control = (int *)user_data;
 
     control->received++;
-    LOG_INF("CoAP response received");
 
     if(control->iter>=test_settings.iterations && (control->received == control->sent))
     {
