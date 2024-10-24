@@ -18,7 +18,7 @@
 
 LOG_MODULE_REGISTER(wifi_ps, CONFIG_MY_WIFI_LOG_LEVEL);
 
-int ps_mode_legacy()
+int wifi_ps_mode_legacy()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -38,7 +38,7 @@ int ps_mode_legacy()
 	return 0;
 }
 
-int ps_mode_wmm()
+int wifi_ps_mode_wmm()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -58,7 +58,7 @@ int ps_mode_wmm()
 	return 0;
 }
 
-int ps_wakeup_dtim()
+int wifi_ps_wakeup_dtim()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -78,7 +78,7 @@ int ps_wakeup_dtim()
 	return 0;
 }
 
-int ps_wakeup_listen_interval()
+int wifi_ps_wakeup_listen_interval()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -98,7 +98,7 @@ int ps_wakeup_listen_interval()
 	return 0;
 }
 
-int ps_enable()
+int wifi_ps_enable()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -118,7 +118,7 @@ int ps_enable()
 	return 0;
 }
 
-int ps_disable()
+int wifi_ps_disable()
 {
 	struct net_if *iface = net_if_get_first_wifi();
 
@@ -138,7 +138,7 @@ int ps_disable()
 	return 0;
 }
 
-int ps_set_listen_interval(int interval)
+int wifi_ps_set_listen_interval(int interval)
 {
 	struct net_if *iface = net_if_get_first_wifi();
 

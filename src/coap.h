@@ -3,15 +3,14 @@
 
 #include <zephyr/kernel.h>
 
-int server_resolve();
 
 int coap_init();
 
+int coap_validate();
 
-int coap_put(const char *resource,uint8_t *payload,size_t len);
+void coap_register_response_callback(void (*callback)(int16_t code, void * user_data),void * callback_user_data);
 
-int coap_get(const char *resource);
+int coap_put(const char *resource,uint8_t *payload, uint32_t timeout);
 
-int coap_observe(const char *resource, bool start_observe);
 
 #endif

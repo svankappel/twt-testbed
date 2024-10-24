@@ -14,7 +14,7 @@
  *
  * @return 0 on success, -1 on failure.
  */
-int ps_mode_legacy(void);
+int wifi_ps_mode_legacy(void);
 
 /**
  * @brief Set Wi-Fi power save mode to WMM.
@@ -23,7 +23,7 @@ int ps_mode_legacy(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int ps_mode_wmm(void);
+int wifi_ps_mode_wmm(void);
 
 /**
  * @brief Set Wi-Fi wakeup mode to DTIM.
@@ -32,7 +32,7 @@ int ps_mode_wmm(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int ps_wakeup_dtim(void);
+int wifi_ps_wakeup_dtim(void);
 
 /**
  * @brief Set Wi-Fi wakeup mode to listen interval.
@@ -41,7 +41,7 @@ int ps_wakeup_dtim(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int ps_wakeup_listen_interval(void);
+int wifi_ps_wakeup_listen_interval(void);
 
 /**
  * @brief Enable Wi-Fi power save mode.
@@ -50,7 +50,7 @@ int ps_wakeup_listen_interval(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int ps_enable(void);
+int wifi_ps_enable(void);
 
 /**
  * @brief Disable Wi-Fi power save mode.
@@ -59,7 +59,7 @@ int ps_enable(void);
  *
  * @return 0 on success, -1 on failure.
  */
-int ps_disable(void);
+int wifi_ps_disable(void);
 
 /**
  * @brief Set Wi-Fi listen interval.
@@ -69,6 +69,6 @@ int ps_disable(void);
  * @param interval The listen interval to set.
  * @return 0 on success, -1 on failure.
  */
-int ps_set_listen_interval(int interval);
+int wifi_ps_set_listen_interval(int interval);
 
 #endif // WIFI_PS_H

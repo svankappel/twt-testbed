@@ -13,42 +13,98 @@
 #include <zephyr/random/random.h>
 
 #include "wifi/wifi_sta.h"
+#include "wifi/wifi_ps.h"
+#include "wifi/wifi_twt.h"
 #include "coap.h"
 #include "profiler.h"
+#include "tests/test_sensor_twt.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
-static void handle_twt_event(const int awake)
-{
-	if (awake) {
-		LOG_INF("TWT event: Awake");
-	} else {
-		LOG_INF("TWT event: Asleep");
-	}
-}
+K_SEM_DEFINE(test_sem, 0, 1);
 
 
 int main(void)
 {
-	profiler_init();
+    int ret;
 
-	wifi_init();
+    LOG_INF("Starting TWT testbench ...");
 
-	wifi_twt_register_event_callback(handle_twt_event);
+    // initialize setup
+    ret = profiler_init();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to initialize profiler");
+        k_sleep(K_FOREVER);
+    }
 
-	wifi_ps_disable();
+    wifi_init();
 
-	wifi_connect();
+    ret = wifi_ps_disable();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to disable power save mode");
+        k_sleep(K_FOREVER);
+    }
 
-	while(true)
-	{
-		wifi_twt_setup(50, 1000);
-		k_sleep(K_SECONDS(20));
-		wifi_twt_teardown();
-		k_sleep(K_SECONDS(20));
-	}
+    ret = wifi_connect();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to connect to wifi");
+        k_sleep(K_FOREVER);
+    }
+
+    coap_init();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to initialize CoAP client");
+        k_sleep(K_FOREVER);
+    }
+
+    k_sleep(K_SECONDS(1));
+    
+
+    ret = coap_validate();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to validate CoAP client");
+        k_sleep(K_FOREVER);
+    }
+
+    //sleep some time to allow the AP to set up its ARP table
+    LOG_INF("Waiting some time to allow the AP to set up its ARP table ...");
+    k_sleep(K_SECONDS(10));
+        
+    ret = wifi_disconnect();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to disconnect from wifi");
+        k_sleep(K_FOREVER);
+     }
+
+    k_sleep(K_SECONDS(1));
+
+    LOG_INF("TWT testbench initialized. Initializing tests ...");
 
 
-	return 0;
+    // initialize the tests
+
+    struct test_sensor_twt_settings test_settings_1 = {
+            .twt_interval = 5000,
+            .twt_wake_interval = 10,
+            .test_number = 1,
+            .iterations = 500,
+            .request_timeout = 6000
+    };
+    init_test_sensor_twt(&test_sem, &test_settings_1);
+
+
+    LOG_INF("Tests initialized. Starting tests ...");
+
+
+    // give semaphore to start the tests
+    k_sem_give(&test_sem);
+    k_sleep(K_FOREVER);
+    return 0;
 }

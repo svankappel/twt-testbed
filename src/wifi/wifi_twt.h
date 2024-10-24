@@ -17,7 +17,7 @@
  *
  * @return int Returns 0 on success, or a negative error code on failure.
  */
-int twt_init();
+int wifi_twt_init();
 
 /**
  * @brief Sets up a TWT session.
@@ -29,7 +29,7 @@ int twt_init();
  * @param twt_interval_ms The TWT interval in milliseconds.
  * @return int Returns 0 on success, or a negative error code on failure.
  */
-int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
+int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
 
 /**
  * @brief Tears down the TWT session.
@@ -39,8 +39,7 @@ int twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms);
  *
  * @return int Returns 0 on success, or a negative error code on failure.
  */
-int twt_teardown();
-
+int wifi_twt_teardown();
 
 /**
  * @brief Registers a callback function for TWT (Target Wake Time) event notifications.
@@ -53,6 +52,18 @@ int twt_teardown();
  *                 The callback function should have the following signature:
  *                 void callback(const int awake);
  */
-void twt_register_event_callback(void (*callback)(const int awake));
+void wifi_twt_register_event_callback(void (*callback)(void * user_data), uint32_t wake_ahead,void * user_data);
+
+/**
+ * @brief Check if TWT is enabled.
+ *
+ * This function checks if TWT is enabled.
+ *
+ * @return true if TWT is enabled, false otherwise.
+ */
+bool wifi_twt_is_enabled();
+
+uint32_t wifi_twt_get_interval_ms(void);
+uint32_t wifi_twt_get_wake_interval_ms(void);
 
 #endif // WIFI_TWT_H

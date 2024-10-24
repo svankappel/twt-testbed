@@ -30,7 +30,7 @@ int cmd_wifi_status(void);
  *
  * @param cb Pointer to the network management event callback structure.
  */
-void print_dhcp_ip(struct net_mgmt_event_callback *cb);
+void register_dhcp_ip(struct net_mgmt_event_callback *cb);
 
 /**
  * @brief Convert WiFi arguments to connection parameters.

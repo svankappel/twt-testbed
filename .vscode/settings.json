@@ -13,6 +13,14 @@
         "net_event.h": "c",
         "nrfx_clock.h": "c",
         "wifi_ps.h": "c",
-        "tls_credentials.h": "c"
+        "tls_credentials.h": "c",
+        "wifi_twt.h": "c",
+        "test_sensor_twt.h": "c",
+        "memory_resource": "c",
+        "coap_client.h": "c",
+        "reboot.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c"
     }
 }

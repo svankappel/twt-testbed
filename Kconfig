@@ -37,8 +37,6 @@ config MY_MAIN_LOG_LEVEL
     default 3
     depends on LOG
     help
-      Sets log level for modules which don't specify it explicitly. When
-      set to 0 it means log will not be activated for those modules.
       Levels are:
 
       - 0 OFF, do not write by default
@@ -53,8 +51,6 @@ config MY_WIFI_LOG_LEVEL
     default 3
     depends on LOG
     help
-      Sets log level for modules which don't specify it explicitly. When
-      set to 0 it means log will not be activated for those modules.
       Levels are:
 
       - 0 OFF, do not write by default
@@ -69,8 +65,20 @@ config MY_COAP_LOG_LEVEL
     default 3
     depends on LOG
     help
-      Sets log level for modules which don't specify it explicitly. When
-      set to 0 it means log will not be activated for those modules.
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config MY_TEST_LOG_LEVEL
+    int "Test log level"
+    range 0 4
+    default 3
+    depends on LOG
+    help
       Levels are:
 
       - 0 OFF, do not write by default
