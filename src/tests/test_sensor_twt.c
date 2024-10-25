@@ -37,6 +37,7 @@ struct test_control{
     int send_err_other;
     int recv_resp;
     int recv_err;
+    int recv_serv;
 };
 
 void print_test_results(struct test_control *control) {
@@ -53,6 +54,10 @@ void print_test_results(struct test_control *control) {
     if ((control->sent + control->send_fails) != control->iter) {
         LOG_WRN("Warning: Sent messages plus send fails do not match iterations");
     }
+    if (control->recv_serv < 0) {
+        LOG_WRN("Warning: Could not receive server stats");
+    }
+
 
     // Print the results
     LOG_INF("\n\n"
@@ -71,6 +76,8 @@ void print_test_results(struct test_control *control) {
             "================================================================================\n"
             "=  Requests sent:                         %6d                               =\n"
             "--------------------------------------------------------------------------------\n"
+            "=  Requests received on server:           %6d                               =\n"
+            "--------------------------------------------------------------------------------\n"
             "=  Responses received:                    %6d                               =\n"
             "=  Responses timed-out:                   %6d                               =\n"
             "--------------------------------------------------------------------------------\n"
@@ -84,6 +91,7 @@ void print_test_results(struct test_control *control) {
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
             control->sent,
+            control->recv_serv,
             control->recv_resp,
             control->recv_err,
             control->send_fails,
@@ -104,7 +112,7 @@ void handle_twt_event(void * user_data)
         if(control->iter < test_settings.iterations)
         {
             sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            ret = coap_put("test/test1", buf, test_settings.request_timeout);
+            ret = coap_put("test", buf, test_settings.request_timeout);
             if(ret == 0){
                 control->sent++;
             } else if(ret == -11){
@@ -204,7 +212,17 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         k_sleep(K_FOREVER);
     }
     LOG_DBG("Connected to wifi");
-    
+
+    ret = coap_validate();
+    if(ret != 0)
+    {
+        LOG_ERR("Failed to validate CoAP client");
+        k_sleep(K_FOREVER);
+    }
+    LOG_DBG("CoAP validated");
+
+    k_sleep(K_SECONDS(1));
+
     // configure TWT
     wifi_twt_register_event_callback(handle_twt_event,100,(void*)&control);
     configure_twt(&test_settings);
@@ -226,6 +244,12 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     k_sleep(K_SECONDS(1));
+
+    control.recv_serv = coap_get_stat();
+    if(control.recv_serv < 0)
+    {
+        LOG_WRN("Failed to get CoAP stats from server");
+    }
 
     ret = wifi_disconnect();
     if(ret != 0)

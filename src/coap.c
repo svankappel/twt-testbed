@@ -36,6 +36,7 @@ struct request_user_data {
 #define MSGQ_SIZE 1
 K_MSGQ_DEFINE(coap_req_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
 K_MSGQ_DEFINE(coap_ret_msgq, sizeof(int), MSGQ_SIZE, 4);
+K_MSGQ_DEFINE(coap_stat_msgq, sizeof(int), MSGQ_SIZE, 4);
 
 
 void (*coap_response_callback)(int16_t code, void * user_data) = NULL;
@@ -198,6 +199,28 @@ static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payloa
 	}
 }
 
+static void stat_response_cb(int16_t code, size_t offset, const uint8_t *payload,
+			size_t len, bool last_block, void *user_data)
+{
+	if (code >= 0) {
+		if(len==0){
+			LOG_INF("CoAP stat response: code: 0x%x", code);
+		}else{
+			LOG_INF("CoAP stat response: code: 0x%x, payload: %s", code, payload);
+		}
+	} else {
+		LOG_INF("CoAP stat request timed out: error code: %d", code);
+	}
+	free_coap_request(user_data);
+	if (code >= 0 && len > 0) {
+		int stat_value = atoi((const char *)payload);
+		if (k_msgq_put(&coap_stat_msgq, &stat_value, K_NO_WAIT) != 0) {
+			LOG_ERR("Failed to enqueue CoAP stat");
+		}
+		
+	}
+}
+
 int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
 {
 	struct coap_client_request* req = alloc_coap_request(strlen(resource)+1, strlen(payload)+1);
@@ -275,6 +298,48 @@ int coap_validate()
 		LOG_ERR("Validation timed out");
 		return -ETIMEDOUT;
 	}
+	return ret;
+}
+
+int coap_get_stat()
+{
+	struct coap_client_request* req = alloc_coap_request(strlen("stat")+1, 0);
+	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
+
+	req->method = COAP_METHOD_GET;
+	req->confirmable = true;
+	strcpy(req->path,"stat");
+	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	req->cb = stat_response_cb;
+	req->payload = NULL;
+	req->len = 0;
+	req->num_options = 0;
+	req->options = NULL;
+
+	req_params->ack_timeout = 1000;
+	req_params->coap_backoff_percent = 100;
+	req_params->max_retransmission = 5;
+
+	if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+        LOG_ERR("Failed to enqueue CoAP request");
+        return -ENOMEM;
+    }
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+
+	int ret;
+
+	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
+		LOG_ERR("Failed to retrieve return value from message queue");
+		return -ENOEXEC;
+	}
+
+	if (k_msgq_get(&coap_stat_msgq, &ret, K_SECONDS(8)) != 0) {
+		LOG_ERR("Failed to retrieve stat from message queue");
+		return -1;
+	}
+
 	return ret;
 }
 
