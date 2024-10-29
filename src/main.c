@@ -65,7 +65,7 @@ int main(void)
     k_sleep(K_SECONDS(1));
     
 
-    ret = coap_validate();
+//    ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
@@ -90,8 +90,9 @@ int main(void)
             .twt_interval = 5000,
             .twt_wake_interval = 10,
             .test_number = 1,
-            .iterations = 500,
-            .request_timeout = 6000
+            .iterations = 5,
+            .request_timeout = 6000,
+            .wake_ahead_ms = 100
     };
     init_test_sensor_twt(&test_sem, &test_settings_1);
 

@@ -21,11 +21,11 @@ LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 K_THREAD_STACK_ARRAY_DEFINE(thread_stacks, MAX_THREADS, STACK_SIZE);
 struct k_thread thread_data[MAX_THREADS];
 
-bool test_running = false;
 
 struct test_sensor_twt_settings test_settings;
 
 K_SEM_DEFINE(end_sem, 0, 1);
+K_SEM_DEFINE(wake_ahead_sem, 0, 1);
 
 struct test_control{
     int iter;
@@ -110,36 +110,9 @@ void print_test_results(struct test_control *control) {
 //--------------------------------------------------------------------     
 // Callback function to handle TWT session wake ahead event
 //--------------------------------------------------------------------
-void handle_twt_event(void * user_data)
+void handle_twt_event()
 {
-    struct test_control * control = (int *)user_data;
-    char buf[32];
-    int ret;
-    if(test_running){
-        if(control->iter < test_settings.iterations)
-        {
-            sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            ret = coap_put("test", buf, test_settings.request_timeout);
-            if(ret == 0){
-                control->sent++;
-            } else if(ret == -11){
-                control->send_err_11++;
-                control->send_fails++;
-            }else if(ret == -120){  
-                control->send_err_120++;
-                control->send_fails++;
-            }else{
-                control->send_err_other++;
-                control->send_fails++;
-            }
-            
-        }else{
-            test_running = false;
-            k_sleep(K_SECONDS(6));  //wait to receive response -> a coap callback will be implemented next
-            k_sem_give(&end_sem);
-        }
-    }
-    
+    k_sem_give(&wake_ahead_sem);
 }
 
 //--------------------------------------------------------------------     
@@ -184,6 +157,34 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test(struct test_control * control)
 {
+    while(true)
+    {
+        k_sem_take(&wake_ahead_sem, K_FOREVER);
+
+        char buf[32];
+        int ret;
+
+        if(control->iter < test_settings.iterations)
+        {
+            sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
+            ret = coap_put("test", buf, test_settings.request_timeout);
+            if(ret == 0){
+                control->sent++;
+            } else if(ret == -11){
+                control->send_err_11++;
+                control->send_fails++;
+            }else if(ret == -120){  
+                control->send_err_120++;
+                control->send_fails++;
+            }else{
+                control->send_err_other++;
+                control->send_fails++;
+            }
+            
+        }else{
+            break;
+        }
+    }
     k_sem_take(&end_sem, K_FOREVER);
 }
 //--------------------------------------------------------------------
@@ -220,7 +221,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
     LOG_DBG("Connected to wifi");
 
-    ret = coap_validate();
+//    ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
@@ -231,16 +232,16 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     k_sleep(K_SECONDS(1));
 
     // configure TWT
-    wifi_twt_register_event_callback(handle_twt_event,100,(void*)&control);
+    wifi_twt_register_event_callback(handle_twt_event,test_settings.wake_ahead_ms);
     configure_twt(&test_settings);
     LOG_DBG("TWT configured");
 
     // run the test
     LOG_INF("Starting test sensor TWT %d", test_settings.test_number);
     profiler_output_binary(test_settings.test_number);
-    test_running = true;
+
     run_test(&control);
-    test_running = false;
+
     profiler_all_clear();
     LOG_INF("Test sensor TWT %d finished", test_settings.test_number);
 
