@@ -47,19 +47,20 @@ void coap_register_response_callback(void (*callback)(int16_t code, void * user_
 	coap_response_callback = callback;
 }
 
+#ifndef CONFIG_IP_PROTO_IPV6
 int server_resolve(struct sockaddr_in* server_ptr)
 {
     int err;
 
-    LOG_DBG("Resolving server name: %s", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME);
+    LOG_DBG("Resolving server name: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
 
     // Check if the hostname is an IP address
-	err = inet_pton(AF_INET, CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, &server_ptr->sin_addr);
+	err = inet_pton(AF_INET, CONFIG_COAP_TEST_SERVER_HOSTNAME, &server_ptr->sin_addr);
     if (err == 1) {
         // Successfully converted IP address
         server_ptr->sin_family = AF_INET;
-		server_ptr->sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
-        LOG_DBG("Server resolved: %s", CONFIG_COAP_SAMPLE_SERVER_HOSTNAME);
+		server_ptr->sin_port = htons(CONFIG_COAP_TEST_SERVER_PORT);
+        LOG_DBG("Server resolved: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
         return 0;
     } else if (err == 0) {
         // Not a valid IP address, proceed with DNS resolution
@@ -71,7 +72,7 @@ int server_resolve(struct sockaddr_in* server_ptr)
 		int addr_err;
 		char ipv4_addr[NET_IPV4_ADDR_LEN];
 
-		addr_err = getaddrinfo(CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, NULL, &hints, &result);
+		addr_err = getaddrinfo(CONFIG_COAP_TEST_SERVER_HOSTNAME, NULL, &hints, &result);
 		if (addr_err != 0) {
 			LOG_ERR("getaddrinfo failed, error: %d", addr_err);
 			return -EIO;
@@ -84,7 +85,7 @@ int server_resolve(struct sockaddr_in* server_ptr)
 
 		server_ptr->sin_addr.s_addr =((struct sockaddr_in *)result->ai_addr)->sin_addr.s_addr;
 		server_ptr->sin_family = AF_INET;
-		server_ptr->sin_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
+		server_ptr->sin_port = htons(CONFIG_COAP_TEST_SERVER_PORT);
 
 		inet_ntop(AF_INET, &server_ptr->sin_addr.s_addr, ipv4_addr,sizeof(ipv4_addr));
 		LOG_INF("IPv4 Address found %s", ipv4_addr);
@@ -99,24 +100,24 @@ int server_resolve(struct sockaddr_in* server_ptr)
         return -errno;
     }
 }
-
-int server_resolve_ipv6(struct sockaddr_in6* server_ptr)
+#else // CONFIG_IP_PROTO_IPV6
+int server_resolve(struct sockaddr_in6* server_ptr)
 {
 	int err;
 
-	LOG_DBG("Resolving server name: %s", "fe80::e4dd:2120:3d66:6f1a");
+	LOG_DBG("Resolving server name: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
 
 	// Check if the hostname is an IPv6 address
-	err = inet_pton(AF_INET6, "fe80::e4dd:2120:3d66:6f1a", &server_ptr->sin6_addr);
+	err = inet_pton(AF_INET6, CONFIG_COAP_TEST_SERVER_HOSTNAME, &server_ptr->sin6_addr);
 	if (err == 1) {
 		// Successfully converted IP address
 		server_ptr->sin6_family = AF_INET6;
-		server_ptr->sin6_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
-		LOG_DBG("Server resolved: %s", "fe80::e4dd:2120:3d66:6f1a");
+		server_ptr->sin6_port = htons(CONFIG_COAP_TEST_SERVER_PORT);
+		LOG_DBG("Server resolved: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
 		return 0;
 	} else if (err == 0) {
 		// Not a valid IP address
-		LOG_ERR("Invalid IPv6 address: %s", "fe80::e4dd:2120:3d66:6f1a");
+		LOG_ERR("Invalid IPv6 address: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
 		return -EINVAL;
 	} else {
 		// inet_pton failed
@@ -124,7 +125,7 @@ int server_resolve_ipv6(struct sockaddr_in6* server_ptr)
 		return -errno;
 	}
 }
-
+#endif // CONFIG_IP_PROTO_IPV6
 
 struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
 	//allocate memory for the request
@@ -373,23 +374,31 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 {
 	
 	static int sock;
-	//static struct sockaddr_in server = { 0 };
+
+	#ifndef CONFIG_IP_PROTO_IPV6
+	static struct sockaddr_in server = { 0 };
+	#else // CONFIG_IP_PROTO_IPV6
 	static struct sockaddr_in6 server = { 0 };
+	#endif // CONFIG_IP_PROTO_IPV6
+
 	static struct coap_client coap_client = { 0 };
 
 	//initialize server
 
 	int err;
 
-    //err = server_resolve(&server);
-	err = server_resolve_ipv6(&server);
+	err = server_resolve(&server);
 	if (err) {
 		LOG_ERR("Failed to resolve server name");
 		return err;
 	}
-
-	//sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	
+	#ifndef CONFIG_IP_PROTO_IPV6
+	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	#else // CONFIG_IP_PROTO_IPV6
 	sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+	#endif // CONFIG_IP_PROTO_IPV6
+
 	if (sock < 0) {
 		LOG_ERR("Failed to create CoAP socket: %d.", -errno);
 		return -errno;
@@ -428,9 +437,9 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		else
 		{
 			if(req->len==0){
-				LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path);
+				LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path);
 			}else{
-				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s",CONFIG_COAP_SAMPLE_SERVER_HOSTNAME, req->path,req->payload);
+				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path,req->payload);
 			}
 		}
 		if (k_msgq_put(&coap_ret_msgq, &err, K_NO_WAIT) != 0) {

@@ -4,29 +4,36 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
-menu "CoAP client sample"
+menu "CoAP client"
 
 
-config COAP_SAMPLE_SERVER_HOSTNAME
+config COAP_TEST_SERVER_HOSTNAME
 	string "CoAP server hostname"
-	default "ServerAddress"
 
-config COAP_SAMPLE_SERVER_PORT
+config COAP_TEST_SERVER_PORT
 	int "CoAP server port"
-	default 0000
-
 
 endmenu
+
+choice
+prompt "Select IP protocol"
+
+config IP_PROTO_IPV4
+  bool "IPv4"
+
+config IP_PROTO_IPV6
+  bool "IPv6"
+
+endchoice
+
 
 menu "Wi-Fi config"
 
 config WIFI_CREDENTIALS_STATIC_SSID
 	string "Wi-Fi SSID"
-	default "MySSID"
 
 config WIFI_CREDENTIALS_STATIC_PASSWORD
-	string "Wi-Fi SSID"
-	default "MyPassword"
+	string "Wi-Fi Password"
 
 endmenu
 
@@ -34,7 +41,6 @@ menu "Log Levels"
 config MY_MAIN_LOG_LEVEL
     int "Main log level"
     range 0 4
-    default 3
     depends on LOG
     help
       Levels are:
@@ -48,7 +54,6 @@ config MY_MAIN_LOG_LEVEL
 config MY_WIFI_LOG_LEVEL
     int "Wi-Fi log level"
     range 0 4
-    default 3
     depends on LOG
     help
       Levels are:
@@ -62,7 +67,6 @@ config MY_WIFI_LOG_LEVEL
 config MY_COAP_LOG_LEVEL
     int "CoAP log level"
     range 0 4
-    default 3
     depends on LOG
     help
       Levels are:
@@ -76,7 +80,6 @@ config MY_COAP_LOG_LEVEL
 config MY_TEST_LOG_LEVEL
     int "Test log level"
     range 0 4
-    default 3
     depends on LOG
     help
       Levels are:
