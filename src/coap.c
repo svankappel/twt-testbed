@@ -100,6 +100,31 @@ int server_resolve(struct sockaddr_in* server_ptr)
     }
 }
 
+int server_resolve_ipv6(struct sockaddr_in6* server_ptr)
+{
+	int err;
+
+	LOG_DBG("Resolving server name: %s", "fe80::e4dd:2120:3d66:6f1a");
+
+	// Check if the hostname is an IPv6 address
+	err = inet_pton(AF_INET6, "fe80::e4dd:2120:3d66:6f1a", &server_ptr->sin6_addr);
+	if (err == 1) {
+		// Successfully converted IP address
+		server_ptr->sin6_family = AF_INET6;
+		server_ptr->sin6_port = htons(CONFIG_COAP_SAMPLE_SERVER_PORT);
+		LOG_DBG("Server resolved: %s", "fe80::e4dd:2120:3d66:6f1a");
+		return 0;
+	} else if (err == 0) {
+		// Not a valid IP address
+		LOG_ERR("Invalid IPv6 address: %s", "fe80::e4dd:2120:3d66:6f1a");
+		return -EINVAL;
+	} else {
+		// inet_pton failed
+		LOG_ERR("inet_pton failed, error: %d", errno);
+		return -errno;
+	}
+}
+
 
 struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
 	//allocate memory for the request
@@ -348,20 +373,23 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 {
 	
 	static int sock;
-	static struct sockaddr_in server = { 0 };
+	//static struct sockaddr_in server = { 0 };
+	static struct sockaddr_in6 server = { 0 };
 	static struct coap_client coap_client = { 0 };
 
 	//initialize server
 
 	int err;
 
-    err = server_resolve(&server);
+    //err = server_resolve(&server);
+	err = server_resolve_ipv6(&server);
 	if (err) {
 		LOG_ERR("Failed to resolve server name");
 		return err;
 	}
 
-	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	//sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0) {
 		LOG_ERR("Failed to create CoAP socket: %d.", -errno);
 		return -errno;

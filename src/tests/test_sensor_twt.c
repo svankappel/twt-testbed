@@ -221,7 +221,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
     LOG_DBG("Connected to wifi");
 
-//    ret = coap_validate();
+    ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
