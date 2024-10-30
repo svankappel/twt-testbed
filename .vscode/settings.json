@@ -21,6 +21,13 @@
         "reboot.h": "c",
         "array": "c",
         "string": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "limits": "cpp",
+        "streambuf": "cpp",
+        "functional": "cpp",
+        "wifi_mgmt.h": "c",
+        "wifi_ready.h": "c",
+        "net_if.h": "c",
+        "stdio.h": "c"
     }
 }

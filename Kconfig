@@ -8,7 +8,7 @@ menu "CoAP client"
 
 
 config COAP_TEST_SERVER_HOSTNAME
-	string "CoAP server hostname"
+	string "CoAP server hostname or address"
 
 config COAP_TEST_SERVER_PORT
 	int "CoAP server port"

@@ -27,7 +27,6 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_uti, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
-char dhcp_info[128];
 
 // retrieves and logs the current status of the WiFi interface.
  
@@ -41,6 +40,15 @@ int cmd_wifi_status(void)
 		LOG_INF("Status request failed");
 		return -ENOEXEC; // Return error if status request fails
 	}
+	
+	struct in_addr *ipv4 = &iface->config.ip.ipv4->unicast[0].ipv4.address.in_addr; // Get the IPv4 address
+	struct in_addr6 *ipv6 = &iface->config.ip.ipv6->unicast[0].address.in6_addr; // Get the IPv6 address
+
+	char ipv4_addr[NET_IPV4_ADDR_LEN]; // Buffer to store the IP address
+	char ipv6_addr[NET_IPV6_ADDR_LEN]; // Buffer to store the IP address
+
+	net_addr_ntop(AF_INET, ipv4, ipv4_addr, sizeof(ipv4_addr)); // Convert IP address to string
+	net_addr_ntop(AF_INET6, ipv6, ipv6_addr, sizeof(ipv6_addr)); // Convert IP address to string
 
 	// Log the WiFi status information
 	LOG_INF("==================");
@@ -58,7 +66,9 @@ int cmd_wifi_status(void)
 		LOG_INF("Security: %s", wifi_security_txt(status.security));
 		LOG_INF("MFP: %s", wifi_mfp_txt(status.mfp));
 		LOG_INF("RSSI: %d", status.rssi);
-		LOG_INF("DHCP IP address: %s", dhcp_info); // Log the DHCP IP address
+		LOG_INF("IPv4 address: %s", ipv4_addr); 
+		LOG_INF("IPv6 address: %s", ipv6_addr); 
+
 		if(status.link_mode < WIFI_6){
 			LOG_WRN("AP version lower than 802.11ax - Link mode: %s", wifi_link_mode_txt(status.link_mode));
 		}
@@ -70,16 +80,6 @@ int cmd_wifi_status(void)
 	return 0;
 }
 
-
-//register ip
-void register_dhcp_ip(struct net_mgmt_event_callback *cb)
-{
-	// Get DHCP info from struct net_if_dhcpv4 and print
-	const struct net_if_dhcpv4 *dhcpv4 = cb->info;
-	const struct in_addr *addr = &dhcpv4->requested_ip;
-	
-	net_addr_ntop(AF_INET, addr, dhcp_info, sizeof(dhcp_info)); // Convert IP address to string
-}
 
 //wifi args to params
 void wifi_args_to_params(struct wifi_connect_req_params *params)
