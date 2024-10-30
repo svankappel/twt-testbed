@@ -55,6 +55,7 @@ int main(void)
         k_sleep(K_FOREVER);
     }
 
+    
     coap_init();
     if(ret != 0)
     {
@@ -71,10 +72,6 @@ int main(void)
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-
-    //sleep some time to allow the AP to set up its ARP table
-    LOG_INF("Waiting some time to allow the AP to set up its ARP table ...");
-    k_sleep(K_SECONDS(10));
         
     ret = wifi_disconnect();
     if(ret != 0)
@@ -94,8 +91,9 @@ int main(void)
             .twt_interval = 5000,
             .twt_wake_interval = 10,
             .test_number = 1,
-            .iterations = 500,
-            .request_timeout = 6000
+            .iterations = 5,
+            .request_timeout = 6000,
+            .wake_ahead_ms = 100
     };
     init_test_sensor_twt(&test_sem, &test_settings_1);
 

@@ -35,22 +35,20 @@ uint32_t twt_wake_interval_ms = 0;
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
 
-void wifi_twt_ahead_callback(struct k_work *work);
+void wifi_twt_ahead_callback();
 
-static K_WORK_DELAYABLE_DEFINE(wake_ahead_work, wifi_twt_ahead_callback);
+K_TIMER_DEFINE(wake_ahead_timer, wifi_twt_ahead_callback, NULL);
 
-void (*twt_event_callback)(void * user_data) = NULL;
-void * twt_callback_user_data = NULL;
+void (*twt_event_callback)() = NULL;
 
-void wifi_twt_register_event_callback(void (*callback)(void * user_data), uint32_t wake_ahead,void * user_data) {
+void wifi_twt_register_event_callback(void (*callback)(), uint32_t wake_ahead) {
 	twt_event_callback = callback;
 	wake_ahead_ms = wake_ahead;
-	twt_callback_user_data = user_data;
 }
 
-void wifi_twt_ahead_callback(struct k_work *work)
+void wifi_twt_ahead_callback()
 {
-	(*twt_event_callback)(twt_callback_user_data);
+	(*twt_event_callback)();
 }
 
 static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
@@ -101,7 +99,7 @@ static void wifi_twt_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint
 		if (twt_event_callback) {
 			if(*twt_state == WIFI_TWT_STATE_SLEEP)
 			{
-				k_work_schedule(&wake_ahead_work, K_MSEC(twt_interval_ms - twt_wake_interval_ms - wake_ahead_ms));
+				k_timer_start(&wake_ahead_timer, K_MSEC(twt_interval_ms - twt_wake_interval_ms - wake_ahead_ms), K_NO_WAIT);
 			}
 		}
 		break;

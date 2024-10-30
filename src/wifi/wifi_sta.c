@@ -4,7 +4,6 @@
 #include <zephyr/kernel.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <zephyr/shell/shell.h>
 #include <zephyr/init.h>
 
 #include <zephyr/net/net_if.h>
@@ -22,8 +21,9 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);
 
-#define WIFI_SHELL_MGMT_EVENTS (NET_EVENT_WIFI_CONNECT_RESULT | \
+#define WIFI_MGMT_EVENTS (NET_EVENT_WIFI_CONNECT_RESULT | \
 								NET_EVENT_WIFI_DISCONNECT_RESULT)
+
 
 // Semaphore for connection and disconnection events
 K_SEM_DEFINE(connect_sem, 0, 1);
@@ -31,12 +31,11 @@ K_SEM_DEFINE(disconnect_sem, 0, 1);
 K_SEM_DEFINE(dhcp_sem, 0, 1);
 
 //callback structure for WiFi management events
-static struct net_mgmt_event_callback wifi_shell_mgmt_cb;
-static struct net_mgmt_event_callback net_shell_mgmt_cb;
+static struct net_mgmt_event_callback wifi_mgmt_cb;
+static struct net_mgmt_event_callback net_mgmt_dhcp_cb;
 
 // context structure for connection status
 static struct {
-	const struct shell *sh;
 	union {
 		struct {
 			uint8_t connected : 1;
@@ -102,25 +101,18 @@ static void wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t
 	}
 }
 
-/**
- * @brief Handle network management events
- *
- * @param cb Pointer to the net_mgmt_event_callback structure
- * @param mgmt_event Management event type
- * @param iface Pointer to the network interface
- */
-static void net_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event, struct net_if *iface)
+
+static void net_mgmt_dhcp_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event, struct net_if *iface)
 {
-	//print the DHCP IP address when the device is bound
 	switch (mgmt_event) {
 	case NET_EVENT_IPV4_DHCP_BOUND:
-		register_dhcp_ip(cb);
 		k_sem_give(&dhcp_sem);
 		break;
 	default:
 		break;
 	}
 }
+
 
 /**
  * @brief Initiate a WiFi connection
@@ -216,17 +208,17 @@ int wifi_init()
 	memset(&context, 0, sizeof(context));
 
 	// Initialize the WiFi management event callbacks
-	net_mgmt_init_event_callback(&wifi_shell_mgmt_cb,
+	net_mgmt_init_event_callback(&wifi_mgmt_cb,
 								 wifi_mgmt_event_handler,
-								 WIFI_SHELL_MGMT_EVENTS);
+								 WIFI_MGMT_EVENTS);
 
-	net_mgmt_add_event_callback(&wifi_shell_mgmt_cb);
+	net_mgmt_add_event_callback(&wifi_mgmt_cb);
 
-	net_mgmt_init_event_callback(&net_shell_mgmt_cb,
-								 net_mgmt_event_handler,
+	net_mgmt_init_event_callback(&net_mgmt_dhcp_cb,
+								 net_mgmt_dhcp_event_handler,
 								 NET_EVENT_IPV4_DHCP_BOUND);
 
-	net_mgmt_add_event_callback(&net_shell_mgmt_cb);
+	net_mgmt_add_event_callback(&net_mgmt_dhcp_cb);
 
 	k_sleep(K_SECONDS(1));
 	

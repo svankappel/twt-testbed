@@ -23,14 +23,6 @@
  */
 int cmd_wifi_status(void); 
 
-/**
- * @brief Print DHCP IP address.
- *
- * This function prints the IP address obtained via DHCP.
- *
- * @param cb Pointer to the network management event callback structure.
- */
-void register_dhcp_ip(struct net_mgmt_event_callback *cb);
 
 /**
  * @brief Convert WiFi arguments to connection parameters.
