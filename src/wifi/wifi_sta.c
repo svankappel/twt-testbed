@@ -33,7 +33,6 @@ K_SEM_DEFINE(dhcp_sem, 0, 1);
 //callback structure for WiFi management events
 static struct net_mgmt_event_callback wifi_mgmt_cb;
 static struct net_mgmt_event_callback net_mgmt_dhcp_cb;
-static struct net_mgmt_event_callback net_mgmt_dhcpv6_cb;
 
 // context structure for connection status
 static struct {
@@ -114,16 +113,6 @@ static void net_mgmt_dhcp_event_handler(struct net_mgmt_event_callback *cb, uint
 	}
 }
 
-static void net_mgmt_dhcpv6_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event, struct net_if *iface)
-{
-	switch (mgmt_event) {
-	case NET_EVENT_IPV6_DHCP_BOUND:
-		//
-		break;
-	default:
-		break;
-	}
-}
 
 /**
  * @brief Initiate a WiFi connection
@@ -230,13 +219,6 @@ int wifi_init()
 								 NET_EVENT_IPV4_DHCP_BOUND);
 
 	net_mgmt_add_event_callback(&net_mgmt_dhcp_cb);
-
-	net_mgmt_init_event_callback(&net_mgmt_dhcpv6_cb,
-								 net_mgmt_dhcpv6_event_handler,
-								 NET_EVENT_IPV6_DHCP_BOUND);
-
-	net_mgmt_add_event_callback(&net_mgmt_dhcpv6_cb);
-
 
 	k_sleep(K_SECONDS(1));
 	
