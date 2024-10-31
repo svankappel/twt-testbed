@@ -34,6 +34,9 @@ K_SEM_DEFINE(dhcp_sem, 0, 1);
 static struct net_mgmt_event_callback wifi_mgmt_cb;
 static struct net_mgmt_event_callback net_mgmt_dhcp_cb;
 
+// Declaration of the WiFi disconnected callback function pointer
+static void (*wifi_disconnected_cb)(void) = NULL;
+
 // context structure for connection status
 static struct {
 	union {
@@ -73,6 +76,9 @@ static void handle_wifi_disconnect_result(struct net_mgmt_event_callback *cb)
 		context.disconnect_requested = false;
 	} else {
 		LOG_WRN("Received Disconnected");
+		if (wifi_disconnected_cb) {
+			wifi_disconnected_cb();
+		}
 	}
 	context.connected = false;
 
@@ -225,4 +231,13 @@ int wifi_init()
 	wifi_twt_init();
 	
 	return 0;
+}
+
+void wifi_register_disconnected_cb(void (*cb)(void))
+{
+	// Register a callback function to be called on disconnection
+	if (cb != NULL) {
+		// Store the callback function pointer
+		wifi_disconnected_cb = cb;
+	}
 }

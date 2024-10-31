@@ -37,4 +37,11 @@ int wifi_connect(void);
  */
 int wifi_disconnect(void);
 
+/**
+ * @brief Register a callback function to be called when the WiFi gets disconnected.
+ *
+ * @param cb The callback function to be registered.
+ */
+void wifi_register_disconnected_cb(void (*cb)(void));
+
 #endif /* WIFI_STA_H */
