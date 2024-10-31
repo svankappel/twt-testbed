@@ -27,6 +27,8 @@ struct test_sensor_twt_settings test_settings;
 K_SEM_DEFINE(end_sem, 0, 1);
 K_SEM_DEFINE(wake_ahead_sem, 0, 1);
 
+bool test_failed = false;
+
 struct test_control{
     int iter;
     int sent;
@@ -116,6 +118,16 @@ void handle_twt_event()
 }
 
 //--------------------------------------------------------------------     
+// Callback function to be called if wifi is disconnected unexpectedly
+//--------------------------------------------------------------------
+void wifi_disconnected_event()
+{
+    LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
+    test_failed = true;
+    k_sem_give(&wake_ahead_sem);
+}
+
+//--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
 void handle_coap_response(int16_t code, void * user_data)
@@ -130,7 +142,7 @@ void handle_coap_response(int16_t code, void * user_data)
         control->recv_err++;
     }
 
-    if(control->iter>=test_settings.iterations && (control->received == control->sent))
+    if((control->iter>=test_settings.iterations || test_failed) && (control->received == control->sent))
     {
         k_sem_give(&end_sem);
     }
@@ -157,15 +169,17 @@ void configure_twt()
 //--------------------------------------------------------------------
 void run_test(struct test_control * control)
 {
-    while(true)
-    {
+    while(true){
         k_sem_take(&wake_ahead_sem, K_FOREVER);
+
+        if(test_failed){
+            break;
+        }
 
         char buf[32];
         int ret;
 
-        if(control->iter < test_settings.iterations)
-        {
+        if(control->iter < test_settings.iterations){
             sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
             ret = coap_put("test", buf, test_settings.request_timeout);
             if(ret == 0){
@@ -180,7 +194,6 @@ void run_test(struct test_control * control)
                 control->send_err_other++;
                 control->send_fails++;
             }
-            
         }else{
             break;
         }
@@ -213,17 +226,16 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     int ret;
     // connect to wifi
     ret = wifi_connect();
-    k_sleep(K_SECONDS(1));
-    if(ret != 0)
-    {
+    if(ret != 0){
         LOG_ERR("Failed to connect to wifi");
         k_sleep(K_FOREVER);
     }
     LOG_DBG("Connected to wifi");
+    k_sleep(K_SECONDS(1));
+    wifi_register_disconnected_cb(wifi_disconnected_event);
 
     ret = coap_validate();
-    if(ret != 0)
-    {
+    if(ret != 0){
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
@@ -243,27 +255,33 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     run_test(&control);
 
     profiler_all_clear();
-    LOG_INF("Test sensor TWT %d finished", test_settings.test_number);
 
-    // tear down TWT and disconnect from wifi
-    if(wifi_twt_is_enabled())
-    {
-        wifi_twt_teardown();
+    if(!test_failed){
+        LOG_INF("Test sensor TWT %d finished", test_settings.test_number);
+
+        // tear down TWT and disconnect from wifi
+        if(wifi_twt_is_enabled())
+        {
+            wifi_twt_teardown();
+        }
+
+        k_sleep(K_SECONDS(1));
+
+        control.recv_serv = coap_get_stat();
+        if(control.recv_serv < 0)
+        {
+            LOG_WRN("Failed to get CoAP stats from server");
+        }
+
+        ret = wifi_disconnect();
+        if(ret != 0)
+        {
+            LOG_ERR("Failed to disconnect from wifi");
+            k_sleep(K_FOREVER);
+        }
     }
-
-    k_sleep(K_SECONDS(1));
-
-    control.recv_serv = coap_get_stat();
-    if(control.recv_serv < 0)
-    {
-        LOG_WRN("Failed to get CoAP stats from server");
-    }
-
-    ret = wifi_disconnect();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to disconnect from wifi");
-        k_sleep(K_FOREVER);
+    else{ //test failed
+        LOG_ERR("Test sensor TWT %d failed", test_settings.test_number);
     }
 
     print_test_results(&control);

@@ -117,8 +117,36 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 		return 0;
 	} else if (err == 0) {
 		// Not a valid IP address
-		LOG_ERR("Invalid IPv6 address: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
-		return -EINVAL;
+		struct addrinfo hints = {
+			.ai_family = AF_INET6,
+			.ai_socktype = SOCK_DGRAM
+		};
+		struct addrinfo *result;
+		int addr_err;
+		char ipv6_addr[INET6_ADDRSTRLEN];
+
+		addr_err = getaddrinfo(CONFIG_COAP_TEST_SERVER_HOSTNAME, NULL, &hints, &result);
+		if (addr_err != 0) {
+			LOG_ERR("getaddrinfo failed, error: %d", addr_err);
+			return -EIO;
+		}
+
+		if (result == NULL) {
+			LOG_ERR("Address not found");
+			return -ENOENT;
+		}
+
+		server_ptr->sin6_addr = ((struct sockaddr_in6 *)result->ai_addr)->sin6_addr;
+		server_ptr->sin6_family = AF_INET6;
+		server_ptr->sin6_port = htons(CONFIG_COAP_TEST_SERVER_PORT);
+
+		inet_ntop(AF_INET6, &server_ptr->sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+		LOG_INF("IPv6 Address found %s", ipv6_addr);
+
+		// Free result pointer
+		freeaddrinfo(result);
+
+		return 0;
 	} else {
 		// inet_pton failed
 		LOG_ERR("inet_pton failed, error: %d", errno);
@@ -132,7 +160,6 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
 	struct coap_client_request *req = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_client_request), K_NO_WAIT);
     if (!req) {
 		LOG_ERR("Failed to allocate memory for CoAP request");
-        return -ENOMEM;
     }
 
 	// allocate memory for the path
@@ -140,7 +167,6 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
     if (!req->path) {
         k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP request path");
-        return -ENOMEM;
     }
 
 	// allocate memory for the payload
@@ -149,7 +175,6 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
 		k_heap_free(&coap_requests_heap, req->path);
         k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP payload");
-        return -ENOMEM;
     }
 
 	req->user_data= k_heap_alloc(&coap_requests_heap, sizeof(struct request_user_data), K_NO_WAIT);
@@ -158,7 +183,6 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
 		k_heap_free(&coap_requests_heap, req->payload);
 		k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP user data");
-		return -ENOMEM;
 	}
 	((struct request_user_data*)req->user_data)->req = req;
 
@@ -169,7 +193,6 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
 		k_heap_free(&coap_requests_heap, req->payload);
 		k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP transmission parameters");
-		return -ENOMEM;
 	}
 	return req;
 }
@@ -247,7 +270,7 @@ static void stat_response_cb(int16_t code, size_t offset, const uint8_t *payload
 	}
 }
 
-int coap_put(const char *resource,uint8_t *payload, uint32_t timeout)
+int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 {
 	struct coap_client_request* req = alloc_coap_request(strlen(resource)+1, strlen(payload)+1);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
@@ -390,7 +413,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 	err = server_resolve(&server);
 	if (err) {
 		LOG_ERR("Failed to resolve server name");
-		return err;
+		k_sleep(K_FOREVER);
 	}
 	
 	#ifndef CONFIG_IP_PROTO_IPV6
@@ -401,7 +424,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 
 	if (sock < 0) {
 		LOG_ERR("Failed to create CoAP socket: %d.", -errno);
-		return -errno;
+		k_sleep(K_FOREVER);
 	}
 
 	LOG_INF("Initializing CoAP client");
@@ -409,7 +432,7 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 	err = coap_client_init(&coap_client, NULL);
 	if (err) {
 		LOG_ERR("Failed to initialize CoAP client: %d", err);
-		return err;
+		k_sleep(K_FOREVER);
 	}
 
 	k_sem_give(&init_sem);
