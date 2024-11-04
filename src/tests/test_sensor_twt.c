@@ -231,7 +231,9 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         k_sleep(K_FOREVER);
     }
     LOG_DBG("Connected to wifi");
+
     k_sleep(K_SECONDS(1));
+
     wifi_register_disconnected_cb(wifi_disconnected_event);
 
     ret = coap_validate();
@@ -241,7 +243,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
     LOG_DBG("CoAP validated");
 
-    k_sleep(K_SECONDS(1));
+    k_sleep(K_SECONDS(5));
 
     // configure TWT
     wifi_twt_register_event_callback(handle_twt_event,test_settings.wake_ahead_ms);
