@@ -1,4 +1,4 @@
-#include "coap.h"
+#include "coap_testserver_client.h"
 #include "coap_utils.h"
 
 #include <zephyr/net/socket.h>
@@ -9,10 +9,9 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/coap.h>
-#include <zephyr/net/coap_client.h>
 
-LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
-
+/*
+LOG_MODULE_REGISTER(coap_testserver_client, CONFIG_MY_COAP_LOG_LEVEL);
 
 #define STACK_SIZE 4096
 #define PRIORITY 8
@@ -26,7 +25,6 @@ K_SEM_DEFINE(sent_sem, 0, 1);
 
 K_SEM_DEFINE(init_sem, 0, 1);
 K_SEM_DEFINE(validate_sem, 0, 1);
-
 
 
 #define MSGQ_SIZE 1
@@ -326,3 +324,4 @@ int coap_init() {
 }
 
 
+*/
