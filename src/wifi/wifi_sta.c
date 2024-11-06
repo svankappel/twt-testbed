@@ -1,4 +1,6 @@
 #include "wifi_sta.h"
+#include "wifi_utils.h"
+#include "wifi_twt.h"
 
 #include <nrfx_clock.h>
 #include <zephyr/kernel.h>
@@ -14,9 +16,6 @@
 
 #include <net/wifi_mgmt_ext.h>
 #include <net/wifi_ready.h>
-
-#include "wifi_utils.h"
-#include "wifi_twt.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);

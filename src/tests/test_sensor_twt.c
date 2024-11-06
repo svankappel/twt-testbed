@@ -4,11 +4,11 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
 
-#include "../wifi/wifi_sta.h"
-#include "../wifi/wifi_ps.h"
-#include "../wifi/wifi_twt.h"
-#include "../coap.h"
-#include "../profiler.h"
+#include "wifi_sta.h"
+#include "wifi_ps.h"
+#include "wifi_twt.h"
+#include "coap.h"
+#include "profiler.h"
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096

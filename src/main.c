@@ -15,9 +15,10 @@
 #include "wifi/wifi_sta.h"
 #include "wifi/wifi_ps.h"
 #include "wifi/wifi_twt.h"
+
 #include "coap.h"
 #include "profiler.h"
-#include "tests/test_sensor_twt.h"
+#include "test_sensor_twt.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);

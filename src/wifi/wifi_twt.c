@@ -121,9 +121,25 @@ int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	params.operation = WIFI_TWT_SETUP;
 	params.setup_cmd = WIFI_TWT_SETUP_CMD_REQUEST;
 	params.setup.responder = 0;
+	
+	#ifdef CONFIG_TWT_TRIGGER
+	params.setup.trigger = 1;
+	#else
 	params.setup.trigger = 0;
+	#endif
+
+	#ifdef CONFIG_TWT_IMPLICIT
 	params.setup.implicit = 1;
-	params.setup.announce = CONFIG_TWT_ANNOUNCED_MODE;
+	#else
+	params.setup.implicit = 0;
+	#endif
+
+	#ifdef CONFIG_TWT_ANNOUNCED_MODE
+	params.setup.announce = 1;
+	#else
+	params.setup.announce = 0;
+	#endif
+
 	params.setup.twt_wake_interval = twt_wake_interval_ms * USEC_PER_MSEC;
 	params.setup.twt_interval = twt_interval_ms * USEC_PER_MSEC;
 
