@@ -15,6 +15,7 @@ config COAP_TEST_SERVER_PORT
 
 endmenu
 
+
 choice
 prompt "Select IP protocol"
 
@@ -27,13 +28,39 @@ config IP_PROTO_IPV6
 endchoice
 
 
+
 menu "Wi-Fi config"
 
+menu "Wi-Fi credentials"
 config WIFI_CREDENTIALS_STATIC_SSID
 	string "Wi-Fi SSID"
 
 config WIFI_CREDENTIALS_STATIC_PASSWORD
 	string "Wi-Fi Password"
+
+endmenu
+
+menu "TWT config"
+
+config TWT_ANNOUNCED_MODE
+  bool "Enable TWT announced mode"
+
+config TWT_TRIGGER
+  bool "Enable TWT trigger"
+
+config TWT_IMPLICIT
+  bool "Enable TWT implicit"
+
+endmenu
+
+menu "PS settings"
+
+config PS_LISTEN_INTERVAL
+  int "Listen interval"
+  help
+    Listen Interval (used when PS is enabled and wakeup mode is listen interval)
+
+endmenu
 
 endmenu
 

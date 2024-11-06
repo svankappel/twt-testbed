@@ -33,7 +33,7 @@ int wifi_ps_mode_legacy()
 		LOG_ERR("Power save legacy mode failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: enable | mode : legacy");
+	LOG_INF("Set power save mode : legacy");
 
 	return 0;
 }
@@ -53,7 +53,7 @@ int wifi_ps_mode_wmm()
 		LOG_ERR("Power save WMM mode failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: enable | mode : WMM");
+	LOG_INF("Set power save mode : WMM");
 
 	return 0;
 }
@@ -73,7 +73,7 @@ int wifi_ps_wakeup_dtim()
 		LOG_ERR("Power save wakeup mode DTIM failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: enable | wakeup mode : DTIM");
+	LOG_INF("Set power save wakeup mode : DTIM");
 
 	return 0;
 }
@@ -93,7 +93,7 @@ int wifi_ps_wakeup_listen_interval()
 		LOG_ERR("Power save wakeup mode listen interval failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: enable | wakeup mode : listen interval");
+	LOG_INF("Set power save wakeup mode : listen interval");
 
 	return 0;
 }
@@ -113,7 +113,7 @@ int wifi_ps_enable()
 		LOG_ERR("Power save disable failed. Reason %s", wifi_ps_get_config_err_code_str(params.fail_reason));
 		return -1;
 	}
-	LOG_INF("Set power save: disable");
+	LOG_INF("Set power save: enable");
 
 	return 0;
 }

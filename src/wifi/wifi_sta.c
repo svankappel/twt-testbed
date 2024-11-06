@@ -1,4 +1,6 @@
 #include "wifi_sta.h"
+#include "wifi_utils.h"
+#include "wifi_twt.h"
 
 #include <nrfx_clock.h>
 #include <zephyr/kernel.h>
@@ -15,9 +17,6 @@
 #include <net/wifi_mgmt_ext.h>
 #include <net/wifi_ready.h>
 
-#include "wifi_utils.h"
-#include "wifi_twt.h"
-
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);
 
@@ -26,9 +25,9 @@ LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);
 
 
 // Semaphore for connection and disconnection events
-K_SEM_DEFINE(connect_sem, 0, 1);
-K_SEM_DEFINE(disconnect_sem, 0, 1);
-K_SEM_DEFINE(dhcp_sem, 0, 1);
+static K_SEM_DEFINE(connect_sem, 0, 1);
+static K_SEM_DEFINE(disconnect_sem, 0, 1);
+static K_SEM_DEFINE(dhcp_sem, 0, 1);
 
 //callback structure for WiFi management events
 static struct net_mgmt_event_callback wifi_mgmt_cb;

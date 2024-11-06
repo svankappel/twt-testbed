@@ -21,32 +21,32 @@ LOG_MODULE_REGISTER(wifi_twt, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging
 
 #define TWT_MGMT_EVENTS (NET_EVENT_WIFI_TWT | NET_EVENT_WIFI_TWT_SLEEP_STATE)
 
-bool twt_enabled = false;
+static bool twt_enabled = false;
 
-K_SEM_DEFINE(twt_teardown_sem, 0, 1);
-K_SEM_DEFINE(twt_setup_sem, 0, 1);
+static K_SEM_DEFINE(twt_teardown_sem, 0, 1);
+static K_SEM_DEFINE(twt_setup_sem, 0, 1);
 
 static uint32_t twt_flow_id = 0;
 
-uint32_t wake_ahead_ms = 0;
-uint32_t twt_interval_ms = 0;
-uint32_t twt_wake_interval_ms = 0;
+static uint32_t wake_ahead_ms = 0;
+static uint32_t twt_interval_ms = 0;
+static uint32_t twt_wake_interval_ms = 0;
 
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
 
-void wifi_twt_ahead_callback();
+static void wifi_twt_ahead_callback();
 
-K_TIMER_DEFINE(wake_ahead_timer, wifi_twt_ahead_callback, NULL);
+static K_TIMER_DEFINE(wake_ahead_timer, wifi_twt_ahead_callback, NULL);
 
-void (*twt_event_callback)() = NULL;
+static void (*twt_event_callback)() = NULL;
 
 void wifi_twt_register_event_callback(void (*callback)(), uint32_t wake_ahead) {
 	twt_event_callback = callback;
 	wake_ahead_ms = wake_ahead;
 }
 
-void wifi_twt_ahead_callback()
+static void wifi_twt_ahead_callback()
 {
 	(*twt_event_callback)();
 }
@@ -63,10 +63,9 @@ static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 	
 		twt_enabled = false;
 		k_sem_give(&twt_teardown_sem);
+		return;
 	}
 
-	// Update twt_flow_id to reflect the flow ID received in the TWT response.
-	twt_flow_id = resp->flow_id;
 
 	// Check if a TWT response was received. If not, the TWT request timed out.
 	if (resp->resp_status != WIFI_TWT_RESP_RECEIVED) {
@@ -83,6 +82,7 @@ static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 		twt_wake_interval_ms = resp->setup.twt_wake_interval / USEC_PER_MSEC;
 		LOG_INF("-------------------------------");
 		k_sem_give(&twt_setup_sem);
+		return;
 	}
 }
 
@@ -121,9 +121,25 @@ int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	params.operation = WIFI_TWT_SETUP;
 	params.setup_cmd = WIFI_TWT_SETUP_CMD_REQUEST;
 	params.setup.responder = 0;
+	
+	#ifdef CONFIG_TWT_TRIGGER
+	params.setup.trigger = 1;
+	#else
 	params.setup.trigger = 0;
+	#endif
+
+	#ifdef CONFIG_TWT_IMPLICIT
 	params.setup.implicit = 1;
+	#else
+	params.setup.implicit = 0;
+	#endif
+
+	#ifdef CONFIG_TWT_ANNOUNCED_MODE
+	params.setup.announce = 1;
+	#else
 	params.setup.announce = 0;
+	#endif
+
 	params.setup.twt_wake_interval = twt_wake_interval_ms * USEC_PER_MSEC;
 	params.setup.twt_interval = twt_interval_ms * USEC_PER_MSEC;
 
@@ -180,11 +196,11 @@ int wifi_twt_teardown()
 	k_sem_take(&twt_teardown_sem, K_FOREVER);
 
 	if(twt_enabled) {
-		LOG_ERR("TWT setup failed");
+		LOG_ERR("TWT teardown failed");
 		return -1;
 	}
 	
-	// Update flow ID and disable TWT.
+	// Update flow ID
 	twt_flow_id = twt_flow_id < WIFI_MAX_TWT_FLOWS-1 ? twt_flow_id + 1 : 0;
 
 	return 0;

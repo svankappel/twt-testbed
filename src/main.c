@@ -12,12 +12,16 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/random/random.h>
 
-#include "wifi/wifi_sta.h"
-#include "wifi/wifi_ps.h"
-#include "wifi/wifi_twt.h"
+#include "wifi_sta.h"
+#include "wifi_ps.h"
+#include "wifi_twt.h"
+
 #include "coap.h"
+
 #include "profiler.h"
-#include "tests/test_sensor_twt.h"
+
+#include "test_sensor_twt.h"
+#include "test_sensor_ps.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
@@ -40,6 +44,8 @@ int main(void)
     }
 
     wifi_init();
+
+    wifi_ps_set_listen_interval(CONFIG_PS_LISTEN_INTERVAL);
 
     ret = wifi_ps_disable();
     if(ret != 0)
@@ -66,7 +72,7 @@ int main(void)
     k_sleep(K_SECONDS(1));
  
 
-//    ret = coap_validate();
+    ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
@@ -82,27 +88,43 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
 
-    LOG_INF("TWT testbench initialized. Initializing tests ...");
+    LOG_INF("TWT testbench initialized. Running tests ...");
 
 
     // initialize the tests
 
     struct test_sensor_twt_settings test_settings_1 = {
             .twt_interval = 5000,
-            .twt_wake_interval = 10,
+            .twt_wake_interval = 8,
             .test_number = 1,
-            .iterations = 500,
-            .request_timeout = 6000,
+            .iterations = 5,
             .wake_ahead_ms = 100
     };
-    init_test_sensor_twt(&test_sem, &test_settings_1);
+    test_sensor_twt(&test_sem, &test_settings_1);
+
+    struct test_sensor_ps_settings test_settings_2 = {
+            .send_interval = 5000,
+            .test_number = 2,
+            .iterations = 5,
+            .ps_enabled = PS_MODE_ENABLED,
+            .ps_mode = PS_MODE_LEGACY,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
+    };
+    test_sensor_ps(&test_sem, &test_settings_2);
+
+    struct test_sensor_ps_settings test_settings_3 = {
+            .send_interval = 5000,
+            .test_number = 2,
+            .iterations = 5,
+            .ps_enabled = PS_MODE_ENABLED,
+            .ps_mode = PS_MODE_LEGACY,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
+    };
+    test_sensor_ps(&test_sem, &test_settings_3);
+
+    LOG_INF("Tests Finished!");
 
 
-    LOG_INF("Tests initialized. Starting tests ...");
-
-
-    // give semaphore to start the tests
-    k_sem_give(&test_sem);
     k_sleep(K_FOREVER);
     return 0;
 }
