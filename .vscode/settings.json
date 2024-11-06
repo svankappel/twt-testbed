@@ -29,6 +29,7 @@
         "wifi_ready.h": "c",
         "net_if.h": "c",
         "stdio.h": "c",
-        "initializer_list": "c"
+        "initializer_list": "c",
+        "compare": "c"
     }
 }

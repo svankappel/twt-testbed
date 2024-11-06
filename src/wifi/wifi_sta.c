@@ -25,9 +25,9 @@ LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);
 
 
 // Semaphore for connection and disconnection events
-K_SEM_DEFINE(connect_sem, 0, 1);
-K_SEM_DEFINE(disconnect_sem, 0, 1);
-K_SEM_DEFINE(dhcp_sem, 0, 1);
+static K_SEM_DEFINE(connect_sem, 0, 1);
+static K_SEM_DEFINE(disconnect_sem, 0, 1);
+static K_SEM_DEFINE(dhcp_sem, 0, 1);
 
 //callback structure for WiFi management events
 static struct net_mgmt_event_callback wifi_mgmt_cb;

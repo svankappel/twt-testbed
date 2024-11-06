@@ -16,16 +16,16 @@ LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 #define STACK_SIZE 4096
 #define PRIORITY 8
 
-K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
+static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 struct k_thread coap_thread_data;
 
-K_HEAP_DEFINE(coap_requests_heap, COAP_REQUESTS_HEAP_SIZE);
+static K_HEAP_DEFINE(coap_requests_heap, COAP_REQUESTS_HEAP_SIZE);
 
-K_SEM_DEFINE(send_sem, 0, 1);
-K_SEM_DEFINE(sent_sem, 0, 1);
+static K_SEM_DEFINE(send_sem, 0, 1);
+static K_SEM_DEFINE(sent_sem, 0, 1);
 
-K_SEM_DEFINE(init_sem, 0, 1);
-K_SEM_DEFINE(validate_sem, 0, 1);
+static K_SEM_DEFINE(init_sem, 0, 1);
+static K_SEM_DEFINE(validate_sem, 0, 1);
 
 struct request_user_data {
 	struct coap_client_request *req;
@@ -39,8 +39,8 @@ K_MSGQ_DEFINE(coap_ret_msgq, sizeof(int), MSGQ_SIZE, 4);
 K_MSGQ_DEFINE(coap_stat_msgq, sizeof(int), MSGQ_SIZE, 4);
 
 
-void (*coap_response_callback)(int16_t code, void * user_data) = NULL;
-void * coap_response_callback_user_data = NULL;
+static void (*coap_response_callback)(int16_t code, void * user_data) = NULL;
+static void * coap_response_callback_user_data = NULL;
 
 void coap_register_response_callback(void (*callback)(int16_t code, void * user_data),void * callback_user_data) {
 	coap_response_callback_user_data = callback_user_data;
@@ -48,7 +48,7 @@ void coap_register_response_callback(void (*callback)(int16_t code, void * user_
 }
 
 #ifndef CONFIG_IP_PROTO_IPV6
-int server_resolve(struct sockaddr_in* server_ptr)
+static int server_resolve(struct sockaddr_in* server_ptr)
 {
     int err;
 
@@ -101,7 +101,7 @@ int server_resolve(struct sockaddr_in* server_ptr)
     }
 }
 #else // CONFIG_IP_PROTO_IPV6
-int server_resolve(struct sockaddr_in6* server_ptr)
+static int server_resolve(struct sockaddr_in6* server_ptr)
 {
 	int err;
 
@@ -155,7 +155,7 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 }
 #endif // CONFIG_IP_PROTO_IPV6
 
-struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
+static struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
 	//allocate memory for the request
 	struct coap_client_request *req = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_client_request), K_NO_WAIT);
     if (!req) {
@@ -197,7 +197,7 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
 	return req;
 }
 
-void free_coap_request(void * data) {
+static void free_coap_request(void * data) {
 	struct coap_client_request *req = ((struct request_user_data*)data)->req;
 	struct coap_transmission_parameters *req_params = ((struct request_user_data*)data)->req_params;
 

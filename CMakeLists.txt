@@ -29,4 +29,7 @@ target_sources(app PRIVATE
 )
 
 # Tests module
-target_sources(app PRIVATE src/tests/test_sensor_twt.c)
+target_sources(app PRIVATE 
+    src/tests/test_sensor_twt.c
+    src/tests/test_sensor_ps.c
+)

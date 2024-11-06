@@ -12,13 +12,16 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/random/random.h>
 
-#include "wifi/wifi_sta.h"
-#include "wifi/wifi_ps.h"
-#include "wifi/wifi_twt.h"
+#include "wifi_sta.h"
+#include "wifi_ps.h"
+#include "wifi_twt.h"
 
 #include "coap.h"
+
 #include "profiler.h"
+
 #include "test_sensor_twt.h"
+#include "test_sensor_ps.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
@@ -92,12 +95,17 @@ int main(void)
             .twt_interval = 5000,
             .twt_wake_interval = 8,
             .test_number = 1,
-            .iterations = 500,
-            .request_timeout = 6000,
+            .iterations = 5,
             .wake_ahead_ms = 100
     };
-    init_test_sensor_twt(&test_sem, &test_settings_1);
+    test_sensor_twt(&test_sem, &test_settings_1);
 
+    struct test_sensor_ps_settings test_settings_2 = {
+            .send_interval = 5000,
+            .test_number = 2,
+            .iterations = 5
+    };
+    test_sensor_ps(&test_sem, &test_settings_2);
 
     LOG_INF("Tests Finished!");
 
