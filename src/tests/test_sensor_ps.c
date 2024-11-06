@@ -145,7 +145,23 @@ static void handle_coap_response(int16_t code, void * user_data)
 //--------------------------------------------------------------------
 static void configure_ps()
 {
-    
+    if(test_settings.ps_mode == PS_MODE_LEGACY){
+        wifi_ps_mode_legacy();
+    }else{
+        wifi_ps_mode_wmm();
+    }
+
+    if(test_settings.ps_wakeup_mode == PS_WAKEUP_MODE_DTIM){
+        wifi_ps_wakeup_dtim();
+    }else{
+        wifi_ps_wakeup_listen_interval();
+    }
+
+    if(test_settings.ps_enabled == PS_MODE_ENABLED){
+        wifi_ps_enable();
+    }else{
+        wifi_ps_disable();
+    }
 }
 
 //--------------------------------------------------------------------
@@ -230,7 +246,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
 
     // run the test
-    LOG_INF("Starting test sensor PS %d", test_settings.test_number);
+    LOG_INF("Starting test %d", test_settings.test_number);
     profiler_output_binary(test_settings.test_number);
 
     run_test(&control);
@@ -238,7 +254,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     profiler_all_clear();
 
     if(!test_failed){
-        LOG_INF("Test sensor PS %d finished", test_settings.test_number);
+        LOG_INF("Test %d finished", test_settings.test_number);
 
 
         k_sleep(K_SECONDS(2));
@@ -258,7 +274,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         }
     }
     else{ //test failed
-        LOG_ERR("Test sensor PS %d failed", test_settings.test_number);
+        LOG_ERR("Test %d failed", test_settings.test_number);
         control.recv_serv = -1;
     }
 

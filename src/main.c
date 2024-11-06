@@ -45,6 +45,8 @@ int main(void)
 
     wifi_init();
 
+    wifi_ps_set_listen_interval(CONFIG_PS_LISTEN_INTERVAL);
+
     ret = wifi_ps_disable();
     if(ret != 0)
     {
@@ -103,9 +105,22 @@ int main(void)
     struct test_sensor_ps_settings test_settings_2 = {
             .send_interval = 5000,
             .test_number = 2,
-            .iterations = 5
+            .iterations = 5,
+            .ps_enabled = PS_MODE_ENABLED,
+            .ps_mode = PS_MODE_LEGACY,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
     };
     test_sensor_ps(&test_sem, &test_settings_2);
+
+    struct test_sensor_ps_settings test_settings_3 = {
+            .send_interval = 5000,
+            .test_number = 2,
+            .iterations = 5,
+            .ps_enabled = PS_MODE_ENABLED,
+            .ps_mode = PS_MODE_LEGACY,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
+    };
+    test_sensor_ps(&test_sem, &test_settings_3);
 
     LOG_INF("Tests Finished!");
 
