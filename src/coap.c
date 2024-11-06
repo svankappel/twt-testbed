@@ -323,9 +323,9 @@ int coap_validate()
 	req->num_options = 0;
 	req->options = NULL;
 
-	req_params->ack_timeout = 5000;
+	req_params->ack_timeout = 1000;
 	req_params->coap_backoff_percent = 100;
-	req_params->max_retransmission = 0;
+	req_params->max_retransmission = 5;
 
 	if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
         LOG_ERR("Failed to enqueue CoAP request");
@@ -343,7 +343,7 @@ int coap_validate()
 		return -ENOEXEC;
 	}
 
-	if (k_sem_take(&validate_sem, K_SECONDS(5)) != 0) {
+	if (k_sem_take(&validate_sem, K_SECONDS(10)) != 0) {
 		LOG_ERR("Validation timed out");
 		return -ETIMEDOUT;
 	}
@@ -384,7 +384,7 @@ int coap_get_stat()
 		return -ENOEXEC;
 	}
 
-	if (k_msgq_get(&coap_stat_msgq, &ret, K_SECONDS(8)) != 0) {
+	if (k_msgq_get(&coap_stat_msgq, &ret, K_SECONDS(10)) != 0) {
 		LOG_ERR("Failed to retrieve stat from message queue");
 		return -1;
 	}

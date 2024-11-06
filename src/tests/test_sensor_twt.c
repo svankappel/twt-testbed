@@ -95,13 +95,14 @@ void print_test_results(struct test_control *control) {
             control->recv_serv,
             control->recv_resp,
             control->recv_err,
-            control->sent - control->recv_serv,
-            control->recv_serv - control->recv_resp,
+            control->recv_serv < 0 ? -1 : control->sent - control->recv_serv,
+            control->recv_serv < 0 ? -1 : control->recv_serv - control->recv_resp,
             control->send_fails,
             control->send_err_11,
             control->send_err_120,
             control->send_err_other);
 }
+
 
 //--------------------------------------------------------------------     
 // Callback function to handle TWT session wake ahead event
@@ -264,6 +265,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         if(control.recv_serv < 0)
         {
             LOG_WRN("Failed to get CoAP stats from server");
+            control.recv_serv = -1;
         }
 
         ret = wifi_disconnect();
@@ -275,6 +277,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     }
     else{ //test failed
         LOG_ERR("Test sensor TWT %d failed", test_settings.test_number);
+        control.recv_serv = -1;
     }
 
     print_test_results(&control);

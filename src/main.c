@@ -91,41 +91,12 @@ int main(void)
             .twt_interval = 5000,
             .twt_wake_interval = 8,
             .test_number = 1,
-            .iterations = 5,
+            .iterations = 500,
             .request_timeout = 6000,
             .wake_ahead_ms = 100
     };
     init_test_sensor_twt(&test_sem, &test_settings_1);
 
-    struct test_sensor_twt_settings test_settings_2 = {
-            .twt_interval = 5000,
-            .twt_wake_interval = 16,
-            .test_number = 2,
-            .iterations = 5,
-            .request_timeout = 6000,
-            .wake_ahead_ms = 100
-    };
-    init_test_sensor_twt(&test_sem, &test_settings_2);
-
-    struct test_sensor_twt_settings test_settings_3 = {
-            .twt_interval = 5000,
-            .twt_wake_interval = 32,
-            .test_number = 3,
-            .iterations = 5,
-            .request_timeout = 6000,
-            .wake_ahead_ms = 100
-    };
-    init_test_sensor_twt(&test_sem, &test_settings_3);
-
-    struct test_sensor_twt_settings test_settings_4 = {
-            .twt_interval = 5000,
-            .twt_wake_interval = 64,
-            .test_number = 4,
-            .iterations = 5,
-            .request_timeout = 6000,
-            .wake_ahead_ms = 100
-    };
-    init_test_sensor_twt(&test_sem, &test_settings_4);
 
     LOG_INF("Tests Finished!");
 
