@@ -243,7 +243,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     LOG_DBG("TWT configured");
 
     // run the test
-    LOG_INF("Starting test sensor TWT %d", test_settings.test_number);
+    LOG_INF("Starting test %d", test_settings.test_number);
     profiler_output_binary(test_settings.test_number);
 
     run_test(&control);
@@ -251,7 +251,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     profiler_all_clear();
 
     if(!test_failed){
-        LOG_INF("Test sensor TWT %d finished", test_settings.test_number);
+        LOG_INF("Test %d finished", test_settings.test_number);
 
         // tear down TWT and disconnect from wifi
         if(wifi_twt_is_enabled())
@@ -276,7 +276,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         }
     }
     else{ //test failed
-        LOG_ERR("Test sensor TWT %d failed", test_settings.test_number);
+        LOG_ERR("Test %d failed", test_settings.test_number);
         control.recv_serv = -1;
     }
 
