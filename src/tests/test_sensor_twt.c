@@ -12,14 +12,8 @@
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 4096
-#define PRIORITY 7   
-
-
-#define MAX_THREADS 2  // Define the maximum number of threads
-
-// Define the stack size and thread data structure
-K_THREAD_STACK_ARRAY_DEFINE(thread_stacks, MAX_THREADS, STACK_SIZE);
-struct k_thread thread_data[MAX_THREADS];
+#define PRIORITY -2         //non preemptive priority
+K_THREAD_STACK_DEFINE(test_sensor_twt_thread_stack, STACK_SIZE);
 
 
 struct test_sensor_twt_settings test_settings;
@@ -209,11 +203,8 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     struct test_control control = { 0 };
 
     // Extract the semaphore and test settings
-    struct k_sem *start_sem = (struct k_sem *)arg1;
+    struct k_sem *test_sem = (struct k_sem *)arg1;
     memcpy(&test_settings, arg2, sizeof(test_settings));
-
-    // Wait for the semaphore to start the test
-    k_sem_take(start_sem, K_FOREVER);
 
     LOG_INF("Starting test %d setup", test_settings.test_number);
 
@@ -267,7 +258,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
             wifi_twt_teardown();
         }
 
-        k_sleep(K_SECONDS(1));
+        k_sleep(K_SECONDS(2));
 
         control.recv_serv = coap_get_stat();
         if(control.recv_serv < 0)
@@ -289,24 +280,25 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     print_test_results(&control);
 
     // give the semaphore to start the next test
-    k_sem_give(start_sem);
+    k_sem_give(test_sem);
 }
 
 // Function to initialize the test
 void init_test_sensor_twt(struct k_sem *sem, void * test_settings) {
     
-    
-    static int testnb = 0;
-    if (testnb > MAX_THREADS) {
-        LOG_ERR("Max number of threads reached for this test");
-        return;
-    }
-    k_tid_t thread_id = k_thread_create(&thread_data[testnb], thread_stacks[testnb],
-                                        K_THREAD_STACK_SIZEOF(thread_stacks[testnb]),
+    struct k_thread thread_data;
+
+    k_tid_t thread_id = k_thread_create(&thread_data, test_sensor_twt_thread_stack,
+                                        K_THREAD_STACK_SIZEOF(test_sensor_twt_thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
                                         PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
-    testnb++;
+
+    //wait for the test to finish
+    k_sem_take(sem, K_FOREVER);
+
+    //make sure the thread is stopped
+    k_thread_abort(thread_id);  
 }

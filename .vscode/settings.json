@@ -28,6 +28,7 @@
         "wifi_mgmt.h": "c",
         "wifi_ready.h": "c",
         "net_if.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "initializer_list": "c"
     }
 }

@@ -63,10 +63,9 @@ static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 	
 		twt_enabled = false;
 		k_sem_give(&twt_teardown_sem);
+		return;
 	}
 
-	// Update twt_flow_id to reflect the flow ID received in the TWT response.
-	twt_flow_id = resp->flow_id;
 
 	// Check if a TWT response was received. If not, the TWT request timed out.
 	if (resp->resp_status != WIFI_TWT_RESP_RECEIVED) {
@@ -83,6 +82,7 @@ static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 		twt_wake_interval_ms = resp->setup.twt_wake_interval / USEC_PER_MSEC;
 		LOG_INF("-------------------------------");
 		k_sem_give(&twt_setup_sem);
+		return;
 	}
 }
 
@@ -180,11 +180,11 @@ int wifi_twt_teardown()
 	k_sem_take(&twt_teardown_sem, K_FOREVER);
 
 	if(twt_enabled) {
-		LOG_ERR("TWT setup failed");
+		LOG_ERR("TWT teardown failed");
 		return -1;
 	}
 	
-	// Update flow ID and disable TWT.
+	// Update flow ID
 	twt_flow_id = twt_flow_id < WIFI_MAX_TWT_FLOWS-1 ? twt_flow_id + 1 : 0;
 
 	return 0;
