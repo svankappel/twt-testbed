@@ -58,7 +58,7 @@ static void print_test_results(struct test_control *control) {
     // Print the results
     LOG_INF("\n\n"
             "================================================================================\n"
-            "=                                 TEST RESULTS                                 =\n"
+            "=                          TEST RESULTS - SENSOR TWT                           =\n"
             "================================================================================\n"
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
@@ -120,6 +120,7 @@ static void wifi_disconnected_event()
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
     test_failed = true;
     k_sem_give(&wake_ahead_sem);
+    k_sem_give(&end_sem);
 }
 
 //--------------------------------------------------------------------     
@@ -127,6 +128,10 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------
 static void handle_coap_response(int16_t code, void * user_data)
 {
+    if(test_failed){
+        return;
+    }
+
     struct test_control * control = (struct test_control *)user_data;
 
     control->received++;
@@ -137,7 +142,7 @@ static void handle_coap_response(int16_t code, void * user_data)
         control->recv_err++;
     }
 
-    if((control->iter>=test_settings.iterations || test_failed) && (control->received == control->sent))
+    if((control->iter>=test_settings.iterations) && (control->received == control->sent))
     {
         k_sem_give(&end_sem);
     }
@@ -168,6 +173,7 @@ static void run_test(struct test_control * control)
         k_sem_take(&wake_ahead_sem, K_FOREVER);
 
         if(test_failed){
+            k_sleep(K_SECONDS(10));
             break;
         }
 
@@ -281,6 +287,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     print_test_results(&control);
+
+    k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
     k_sem_give(test_sem);

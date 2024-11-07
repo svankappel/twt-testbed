@@ -92,35 +92,77 @@ int main(void)
 
 
     // initialize the tests
-
-    struct test_sensor_twt_settings test_settings_1 = {
-            .twt_interval = 5000,
-            .twt_wake_interval = 8,
-            .test_number = 1,
+    struct test_sensor_ps_settings test_settings_1 = {
             .iterations = 5,
-            .wake_ahead_ms = 100
+            .send_interval = 5000,
+            .test_number = 1,
+            .ps_enabled = PS_MODE_DISABLED,
+            .ps_mode = PS_MODE_LEGACY,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM
     };
-    test_sensor_twt(&test_sem, &test_settings_1);
+    test_sensor_ps(&test_sem, &test_settings_1);
 
     struct test_sensor_ps_settings test_settings_2 = {
+            .iterations = 5,
             .send_interval = 5000,
             .test_number = 2,
-            .iterations = 5,
             .ps_enabled = PS_MODE_ENABLED,
             .ps_mode = PS_MODE_LEGACY,
-            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM
     };
     test_sensor_ps(&test_sem, &test_settings_2);
 
     struct test_sensor_ps_settings test_settings_3 = {
-            .send_interval = 5000,
-            .test_number = 2,
             .iterations = 5,
+            .send_interval = 5000,
+            .test_number = 3,
             .ps_enabled = PS_MODE_ENABLED,
             .ps_mode = PS_MODE_LEGACY,
-            .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL
     };
     test_sensor_ps(&test_sem, &test_settings_3);
+
+    struct test_sensor_ps_settings test_settings_4 = {
+            .iterations = 5,
+            .send_interval = 5000,
+            .test_number = 4,
+            .ps_enabled = PS_MODE_ENABLED,
+            .ps_mode = PS_MODE_WMM,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM
+    };
+    test_sensor_ps(&test_sem, &test_settings_4);
+
+    struct test_sensor_ps_settings test_settings_5 = {
+            .iterations = 5,
+            .send_interval = 5000,
+            .test_number = 5,
+            .ps_enabled = PS_MODE_ENABLED,
+            .ps_mode = PS_MODE_WMM,
+            .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL
+    };
+    test_sensor_ps(&test_sem, &test_settings_5);
+
+/*
+    struct test_sensor_twt_settings test_settings_1 = {
+            .twt_interval = 20000,
+            .twt_wake_interval = 8,
+            .test_number = 1,
+            .iterations = 5000,
+            .wake_ahead_ms = 100
+    };
+    test_sensor_twt(&test_sem, &test_settings_1);
+
+    
+    struct test_sensor_twt_settings test_settings_2 = {
+            .twt_interval = 20000,
+            .twt_wake_interval = 8,
+            .test_number = 2,
+            .iterations = 5000,
+            .wake_ahead_ms = 100
+    };
+    test_sensor_twt(&test_sem, &test_settings_2);
+*/
+
 
     LOG_INF("Tests Finished!");
 

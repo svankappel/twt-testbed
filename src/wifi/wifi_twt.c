@@ -24,6 +24,7 @@ LOG_MODULE_REGISTER(wifi_twt, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging
 static bool twt_enabled = false;
 
 static K_SEM_DEFINE(twt_teardown_sem, 0, 1);
+static bool twt_teardown_requested = false;
 static K_SEM_DEFINE(twt_setup_sem, 0, 1);
 
 static uint32_t twt_flow_id = 0;
@@ -62,7 +63,11 @@ static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 		LOG_INF("-------------------------------");
 	
 		twt_enabled = false;
-		k_sem_give(&twt_teardown_sem);
+		
+		if(twt_teardown_requested){
+			twt_teardown_requested = false;
+			k_sem_give(&twt_teardown_sem);
+		}
 		return;
 	}
 
@@ -193,6 +198,7 @@ int wifi_twt_teardown()
 	}
 
 	// wait until teardown is complete
+	twt_teardown_requested = true;
 	k_sem_take(&twt_teardown_sem, K_FOREVER);
 
 	if(twt_enabled) {
