@@ -200,12 +200,22 @@ static struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_
 static void free_coap_request(void * data) {
 	struct coap_client_request *req = ((struct request_user_data*)data)->req;
 	struct coap_transmission_parameters *req_params = ((struct request_user_data*)data)->req_params;
-
-	k_heap_free(&coap_requests_heap, req_params);
-	k_heap_free(&coap_requests_heap, req->user_data);
-	k_heap_free(&coap_requests_heap, req->path);
-	k_heap_free(&coap_requests_heap, req->payload);
-	k_heap_free(&coap_requests_heap, req);
+	
+	if (req_params) {
+		k_heap_free(&coap_requests_heap, req_params);
+	}
+	if (req->user_data) {
+		k_heap_free(&coap_requests_heap, req->user_data);
+	}
+	if (req->path) {
+		k_heap_free(&coap_requests_heap, req->path);
+	}
+	if (req->payload) {
+		k_heap_free(&coap_requests_heap, req->payload);
+	}
+	if (req) {
+		k_heap_free(&coap_requests_heap, req);
+	}
 }
 
 
