@@ -90,7 +90,7 @@ static void print_test_results(struct test_control *control) {
             "=    Send Error -120:                     %6d                               =\n"
             "=    Other Send Errors:                   %6d                               =\n"
             "================================================================================\n",
-            test_settings.test_number,
+            test_settings.test_id,
             control->iter,
             test_settings.ps_enabled ? " Enabled" : "Disabled",
             test_settings.ps_mode ? "   WMM" : "Legacy",
@@ -228,7 +228,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     struct k_sem *test_sem = (struct k_sem *)arg1;
     memcpy(&test_settings, arg2, sizeof(test_settings));
 
-    LOG_INF("Starting test %d setup", test_settings.test_number);
+    LOG_INF("Starting test %d setup", test_settings.test_id);
 
     //register coap response callback
     coap_register_response_callback(handle_coap_response,(void*)&control);
@@ -260,15 +260,15 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
 
     // run the test
-    LOG_INF("Starting test %d", test_settings.test_number);
-    profiler_output_binary(test_settings.test_number);
+    LOG_INF("Starting test %d", test_settings.test_id);
+    profiler_output_binary(test_settings.test_id);
 
     run_test(&control);
 
     profiler_all_clear();
 
     if(!test_failed){
-        LOG_INF("Test %d finished", test_settings.test_number);
+        LOG_INF("Test %d finished", test_settings.test_id);
 
 
         k_sleep(K_SECONDS(2));
@@ -288,7 +288,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         }
     }
     else{ //test failed
-        LOG_ERR("Test %d failed", test_settings.test_number);
+        LOG_ERR("Test %d failed", test_settings.test_id);
         control.recv_serv = -1;
     }
 
