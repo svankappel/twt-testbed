@@ -1,4 +1,4 @@
-#ifdef CONIFG_COAP_TWT_TESTBENCH_SERVER
+#ifdef CONFIG_COAP_TWT_TESTBENCH_SERVER
 
 #include "test_sensor_ps.h"
 
@@ -322,4 +322,4 @@ void test_sensor_ps(struct k_sem *sem, void * test_settings) {
     k_thread_abort(thread_id);  
 }
 
-#endif //CONIFG_COAP_TWT_TESTBENCH_SERVER
+#endif //CONFIG_COAP_TWT_TESTBENCH_SERVER
