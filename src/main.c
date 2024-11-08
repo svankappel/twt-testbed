@@ -20,13 +20,10 @@
 
 #include "profiler.h"
 
-#include "test_sensor_twt.h"
-#include "test_sensor_ps.h"
+#include "test_runner.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
-
-K_SEM_DEFINE(test_sem, 0, 1);
 
 
 int main(void)
@@ -71,14 +68,15 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
  
-
+    #ifdef CONFIG_COAP_TWT_TESTBENCH_SERVER
     ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-        
+    #endif //CONFIG_COAP_TWT_TESTBENCH_SERVER
+
     ret = wifi_disconnect();
     if(ret != 0)
     {
@@ -90,37 +88,10 @@ int main(void)
 
     LOG_INF("TWT testbench initialized. Running tests ...");
 
+    //run tests
 
-    // initialize the tests
+    run_tests();
 
-    struct test_sensor_twt_settings test_settings_1 = {
-            .twt_interval = 5000,
-            .twt_wake_interval = 8,
-            .test_number = 1,
-            .iterations = 5,
-            .wake_ahead_ms = 100
-    };
-    test_sensor_twt(&test_sem, &test_settings_1);
-
-    struct test_sensor_ps_settings test_settings_2 = {
-            .send_interval = 5000,
-            .test_number = 2,
-            .iterations = 5,
-            .ps_enabled = PS_MODE_ENABLED,
-            .ps_mode = PS_MODE_LEGACY,
-            .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
-    };
-    test_sensor_ps(&test_sem, &test_settings_2);
-
-    struct test_sensor_ps_settings test_settings_3 = {
-            .send_interval = 5000,
-            .test_number = 2,
-            .iterations = 5,
-            .ps_enabled = PS_MODE_ENABLED,
-            .ps_mode = PS_MODE_LEGACY,
-            .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
-    };
-    test_sensor_ps(&test_sem, &test_settings_3);
 
     LOG_INF("Tests Finished!");
 

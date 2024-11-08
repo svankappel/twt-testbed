@@ -6,12 +6,19 @@
 
 menu "CoAP client"
 
+config COAP_TWT_TESTBENCH_SERVER
+  bool "Using TWT testbench server"
 
 config COAP_TEST_SERVER_HOSTNAME
 	string "CoAP server hostname or address"
 
 config COAP_TEST_SERVER_PORT
 	int "CoAP server port"
+
+config COAP_TEST_RESOURCE
+  depends on !COAP_TWT_TESTBENCH_SERVER
+  string "Resource on server for the tests"
+
 
 endmenu
 
@@ -61,6 +68,264 @@ config PS_LISTEN_INTERVAL
     Listen Interval (used when PS is enabled and wakeup mode is listen interval)
 
 endmenu
+endmenu
+
+menu "Tests"
+config PS_TESTS_ENABLE
+  bool "Enable PS tests"
+
+config PS_TEST_1
+  bool "Enable PS Test 1"
+  depends on PS_TESTS_ENABLE
+
+config PS_TEST_1_PS_ENABLED
+  bool "PS enabled for Test 1"
+  depends on PS_TEST_1
+
+config PS_TEST_1_ITERATIONS
+  int "Iterations for Test 1"
+  depends on PS_TEST_1
+
+config PS_TEST_1_SEND_INTERVAL
+  int "Send interval for Test 1 (ms)"
+  depends on PS_TEST_1
+
+choice PS_TEST_1_MODE
+  prompt "Mode for Test 1"
+  depends on PS_TEST_1 && PS_TEST_1_PS_ENABLED
+  config PS_TEST_1_MODE_LEGACY
+    bool "Legacy"
+  config PS_TEST_1_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice PS_TEST_1_WAKEUP_MODE
+  prompt "Wakeup mode for Test 1"
+  depends on PS_TEST_1 && PS_TEST_1_PS_ENABLED
+  config PS_TEST_1_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config PS_TEST_2
+  bool "Enable PS Test 2"
+  depends on PS_TESTS_ENABLE
+
+config PS_TEST_2_PS_ENABLED
+  bool "PS enabled for Test 2"
+  depends on PS_TEST_2
+
+config PS_TEST_2_ITERATIONS
+  int "Iterations for Test 2"
+  depends on PS_TEST_2
+
+config PS_TEST_2_SEND_INTERVAL
+  int "Send interval for Test 2 (ms)"
+  depends on PS_TEST_2
+
+choice PS_TEST_2_MODE
+  prompt "Mode for Test 2"
+  depends on PS_TEST_2 && PS_TEST_2_PS_ENABLED
+  config PS_TEST_2_MODE_LEGACY
+    bool "Legacy"
+  config PS_TEST_2_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice PS_TEST_2_WAKEUP_MODE
+  prompt "Wakeup mode for Test 2"
+  depends on PS_TEST_2 && PS_TEST_2_PS_ENABLED
+  config PS_TEST_2_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config PS_TEST_3
+  bool "Enable PS Test 3"
+  depends on PS_TESTS_ENABLE
+
+config PS_TEST_3_PS_ENABLED
+  bool "PS enabled for Test 3"
+  depends on PS_TEST_3
+
+config PS_TEST_3_ITERATIONS
+  int "Iterations for Test 3"
+  depends on PS_TEST_3
+
+config PS_TEST_3_SEND_INTERVAL
+  int "Send interval for Test 3 (ms)"
+  depends on PS_TEST_3
+
+choice PS_TEST_3_MODE
+  prompt "Mode for Test 3"
+  depends on PS_TEST_3 && PS_TEST_3_PS_ENABLED
+  config PS_TEST_3_MODE_LEGACY
+    bool "Legacy"
+  config PS_TEST_3_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice PS_TEST_3_WAKEUP_MODE
+  prompt "Wakeup mode for Test 3"
+  depends on PS_TEST_3 && PS_TEST_3_PS_ENABLED
+  config PS_TEST_3_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config PS_TEST_4
+  bool "Enable PS Test 4"
+  depends on PS_TESTS_ENABLE
+
+config PS_TEST_4_PS_ENABLED
+  bool "PS enabled for Test 4"
+  depends on PS_TEST_4
+
+config PS_TEST_4_ITERATIONS
+  int "Iterations for Test 4"
+  depends on PS_TEST_4
+
+config PS_TEST_4_SEND_INTERVAL
+  int "Send interval for Test 4 (ms)"
+  depends on PS_TEST_4
+
+choice PS_TEST_4_MODE
+  prompt "Mode for Test 4"
+  depends on PS_TEST_4 && PS_TEST_4_PS_ENABLED
+  config PS_TEST_4_MODE_LEGACY
+    bool "Legacy"
+  config PS_TEST_4_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice PS_TEST_4_WAKEUP_MODE
+  prompt "Wakeup mode for Test 4"
+  depends on PS_TEST_4 && PS_TEST_4_PS_ENABLED
+  config PS_TEST_4_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config PS_TEST_4_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config PS_TEST_5
+  bool "Enable PS Test 5"
+  depends on PS_TESTS_ENABLE
+
+config PS_TEST_5_PS_ENABLED
+  bool "PS enabled for Test 5"
+  depends on PS_TEST_5
+
+config PS_TEST_5_ITERATIONS
+  int "Iterations for Test 5"
+  depends on PS_TEST_5
+
+config PS_TEST_5_SEND_INTERVAL
+  int "Send interval for Test 5 (ms)"
+  depends on PS_TEST_5
+
+choice PS_TEST_5_MODE
+  prompt "Mode for Test 5"
+  depends on PS_TEST_5 && PS_TEST_5_PS_ENABLED
+  config PS_TEST_5_MODE_LEGACY
+    bool "Legacy"
+  config PS_TEST_5_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice PS_TEST_5_WAKEUP_MODE
+  prompt "Wakeup mode for Test 5"
+  depends on PS_TEST_5 && PS_TEST_5_PS_ENABLED
+  config PS_TEST_5_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config PS_TEST_5_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config TWT_TESTS_ENABLE
+  bool "Enable TWT tests"
+
+config TWT_TEST_1
+  bool "Enable TWT Test 1"
+  depends on TWT_TESTS_ENABLE
+
+config TWT_TEST_1_ITERATIONS
+  int "Iterations for TWT Test 1"
+  depends on TWT_TEST_1
+
+config TWT_TEST_1_INTERVAL
+  int "TWT interval for Test 1 (ms)"
+  depends on TWT_TEST_1
+
+config TWT_TEST_1_SESSION_DURATION
+  int "TWT session duration for Test 1 (ms)"
+  depends on TWT_TEST_1
+
+config TWT_TEST_2
+  bool "Enable TWT Test 2"
+  depends on TWT_TESTS_ENABLE
+
+config TWT_TEST_2_ITERATIONS
+  int "Iterations for TWT Test 2"
+  depends on TWT_TEST_2
+
+config TWT_TEST_2_INTERVAL
+  int "TWT interval for Test 2 (ms)"
+  depends on TWT_TEST_2
+
+config TWT_TEST_2_SESSION_DURATION
+  int "TWT session duration for Test 2 (ms)"
+  depends on TWT_TEST_2
+
+config TWT_TEST_3
+  bool "Enable TWT Test 3"
+  depends on TWT_TESTS_ENABLE
+
+config TWT_TEST_3_ITERATIONS
+  int "Iterations for TWT Test 3"
+  depends on TWT_TEST_3
+
+config TWT_TEST_3_INTERVAL
+  int "TWT interval for Test 3 (ms)"
+  depends on TWT_TEST_3
+
+config TWT_TEST_3_SESSION_DURATION
+  int "TWT session duration for Test 3 (ms)"
+  depends on TWT_TEST_3
+
+config TWT_TEST_4
+  bool "Enable TWT Test 4"
+  depends on TWT_TESTS_ENABLE
+
+config TWT_TEST_4_ITERATIONS
+  int "Iterations for TWT Test 4"
+  depends on TWT_TEST_4
+
+config TWT_TEST_4_INTERVAL
+  int "TWT interval for Test 4 (ms)"
+  depends on TWT_TEST_4
+
+config TWT_TEST_4_SESSION_DURATION
+  int "TWT session duration for Test 4 (ms)"
+  depends on TWT_TEST_4
+
+config TWT_TEST_5
+  bool "Enable TWT Test 5"
+  depends on TWT_TESTS_ENABLE
+
+config TWT_TEST_5_ITERATIONS
+  int "Iterations for TWT Test 5"
+  depends on TWT_TEST_5
+
+config TWT_TEST_5_INTERVAL
+  int "TWT interval for Test 5 (ms)"
+  depends on TWT_TEST_5
+
+config TWT_TEST_5_SESSION_DURATION
+  int "TWT session duration for Test 5 (ms)"
+  depends on TWT_TEST_5
 
 endmenu
 

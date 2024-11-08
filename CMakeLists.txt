@@ -30,6 +30,9 @@ target_sources(app PRIVATE
 
 # Tests module
 target_sources(app PRIVATE 
+    src/tests/test_runner.c
     src/tests/test_sensor_twt.c
     src/tests/test_sensor_ps.c
+    src/tests/test_sensor_twt_public_server.c
+    src/tests/test_sensor_ps_public_server.c
 )
