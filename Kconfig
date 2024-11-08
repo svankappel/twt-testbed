@@ -6,12 +6,19 @@
 
 menu "CoAP client"
 
+config COAP_TWT_TESTBENCH_SERVER
+  bool "Using TWT testbench server"
 
 config COAP_TEST_SERVER_HOSTNAME
 	string "CoAP server hostname or address"
 
 config COAP_TEST_SERVER_PORT
 	int "CoAP server port"
+
+config COAP_TEST_RESOURCE
+  depends on !COAP_TWT_TESTBENCH_SERVER
+  string "Resource on server for the tests"
+
 
 endmenu
 

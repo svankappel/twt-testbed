@@ -24,3 +24,4 @@ struct test_sensor_ps_settings {
 };
 
 #endif // TEST_SENSOR_PS_H
+

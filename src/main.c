@@ -68,14 +68,14 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
  
-
+    #ifdef CONFIG_COAP_TWT_TESTBENCH_SERVER
     ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-
+    #endif //CONFIG_COAP_TWT_TESTBENCH_SERVER
 
     ret = wifi_disconnect();
     if(ret != 0)

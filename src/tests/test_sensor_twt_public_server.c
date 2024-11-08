@@ -1,4 +1,4 @@
-#ifdef CONIFG_COAP_TWT_TESTBENCH_SERVER
+#ifndef CONIFG_COAP_TWT_TESTBENCH_SERVER
 
 #include "test_sensor_twt.h"
 
@@ -74,13 +74,8 @@ static void print_test_results(struct test_control *control) {
             "================================================================================\n"
             "=  Requests sent:                         %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
-            "=  Requests received on server:           %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "=  Request timed-out:                     %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Requests lost:                         %6d                               =\n"
-            "=  Responses lost:                        %6d                               =\n"
             "================================================================================\n"
             "=  Errors                                                                      =\n"
             "================================================================================\n"
@@ -94,11 +89,8 @@ static void print_test_results(struct test_control *control) {
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
             control->sent,
-            control->recv_serv,
             control->recv_resp,
             control->recv_err,
-            control->recv_serv < 0 ? -1 : control->sent - control->recv_serv,
-            control->recv_serv < 0 ? -1 : control->recv_serv - control->recv_resp,
             control->send_fails,
             control->send_err_11,
             control->send_err_120,
@@ -188,7 +180,7 @@ static void run_test(struct test_control * control)
 
         if(control->iter < test_settings.iterations){
             sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            ret = coap_put("test", buf, test_settings.twt_interval+1000);
+            ret = coap_put(CONFIG_COAP_TEST_RESOURCE, buf, test_settings.twt_interval+1000);
             if(ret == 0){
                 control->sent++;
             } else if(ret == -11){
@@ -240,13 +232,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     wifi_register_disconnected_cb(wifi_disconnected_event);
 
-    ret = coap_validate();
-    if(ret != 0){
-        LOG_ERR("Failed to validate CoAP client");
-        k_sleep(K_FOREVER);
-    }
-    LOG_DBG("CoAP validated");
-
     k_sleep(K_SECONDS(5));
 
     // configure TWT
@@ -272,13 +257,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         }
 
         k_sleep(K_SECONDS(2));
-
-        control.recv_serv = coap_get_stat();
-        if(control.recv_serv < 0)
-        {
-            LOG_WRN("Failed to get CoAP stats from server");
-            control.recv_serv = -1;
-        }
 
         ret = wifi_disconnect();
         if(ret != 0)
@@ -320,4 +298,5 @@ void test_sensor_twt(struct k_sem *sem, void * test_settings) {
     k_thread_abort(thread_id);  
 }
 
-#endif // CONIFG_COAP_TWT_TESTBENCH_SERVER
+
+#endif //CONIFG_COAP_TWT_TESTBENCH_SERVER
