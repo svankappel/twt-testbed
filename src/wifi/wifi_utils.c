@@ -30,7 +30,7 @@ LOG_MODULE_REGISTER(wifi_uti, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging
 
 // retrieves and logs the current status of the WiFi interface.
  
-int cmd_wifi_status(void)
+int print_wifi_status(void)
 {
 	struct net_if *iface = net_if_get_default(); // Get the default network interface
 	struct wifi_iface_status status = { 0 }; // Initialize the WiFi interface status structure

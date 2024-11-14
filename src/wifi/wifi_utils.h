@@ -21,7 +21,7 @@
  *
  * @return 0 on success, -ENOEXEC on failure.
  */
-int cmd_wifi_status(void); 
+int print_wifi_status(void); 
 
 
 /**

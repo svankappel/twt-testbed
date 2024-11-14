@@ -152,7 +152,7 @@ int wifi_connect(void)
 
 	// Print the connection status
 	if (context.connected) {
-		cmd_wifi_status();
+		print_wifi_status();
 	}
 	else {
 		LOG_ERR("Connection failed\n");
@@ -198,7 +198,7 @@ int wifi_disconnect(void)
 		return -ENOEXEC;
 	}
 	else {
-		cmd_wifi_status();
+		print_wifi_status();
 	}
 
 
