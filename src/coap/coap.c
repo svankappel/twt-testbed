@@ -172,14 +172,14 @@ static struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_
 	// allocate memory for the payload
     req->payload = k_heap_alloc(&coap_requests_heap, payload_len, K_NO_WAIT);
     if (!req->path) {
-		k_heap_free(&coap_requests_heap, req->path);
+		k_heap_free(&coap_requests_heap, (char*)req->path);
         k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP payload");
     }
 
 	req->user_data= k_heap_alloc(&coap_requests_heap, sizeof(struct request_user_data), K_NO_WAIT);
 	if (!req->user_data) {
-		k_heap_free(&coap_requests_heap, req->path);
+		k_heap_free(&coap_requests_heap, (char*)req->path);
 		k_heap_free(&coap_requests_heap, req->payload);
 		k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP user data");
@@ -189,7 +189,7 @@ static struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_
 	((struct request_user_data*)req->user_data)->req_params = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_transmission_parameters), K_NO_WAIT);
 	if (!((struct request_user_data*)req->user_data)->req_params) {
 		k_heap_free(&coap_requests_heap, req->user_data);
-		k_heap_free(&coap_requests_heap, req->path);
+		k_heap_free(&coap_requests_heap, (char*)req->path);
 		k_heap_free(&coap_requests_heap, req->payload);
 		k_heap_free(&coap_requests_heap, req);
 		LOG_ERR("Failed to allocate memory for CoAP transmission parameters");
@@ -208,7 +208,7 @@ static void free_coap_request(void * data) {
 		k_heap_free(&coap_requests_heap, req->user_data);
 	}
 	if (req->path) {
-		k_heap_free(&coap_requests_heap, req->path);
+		k_heap_free(&coap_requests_heap, (char*)req->path);
 	}
 	if (req->payload) {
 		k_heap_free(&coap_requests_heap, req->payload);
@@ -219,7 +219,7 @@ static void free_coap_request(void * data) {
 }
 
 
-static void response_cb(int16_t code, size_t offset, uint8_t *payload,
+static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
 	if (code >= 0) {
@@ -238,7 +238,7 @@ static void response_cb(int16_t code, size_t offset, uint8_t *payload,
 	}
 }
 
-static void valid_response_cb(int16_t code, size_t offset, uint8_t *payload,
+static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
 	if (code >= 0) {
@@ -282,12 +282,14 @@ static void stat_response_cb(int16_t code, size_t offset, const uint8_t *payload
 
 int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 {
-	struct coap_client_request* req = alloc_coap_request(strlen(resource)+1, strlen(payload)+1);
+	size_t resource_len = strlen(resource)+1;
+
+	struct coap_client_request* req = alloc_coap_request(resource_len, strlen(payload)+1);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
 	req->method = COAP_METHOD_PUT;
 	req->confirmable = true;
-	strcpy(req->path,resource);
+	strncpy((char*)req->path,resource,resource_len);
 	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
 	req->cb = response_cb;
 	strcpy(req->payload,payload);
@@ -320,12 +322,15 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 
 int coap_validate()
 {
-	struct coap_client_request* req = alloc_coap_request(strlen("validate")+1, 0);
+	char *resource_path = "validate";
+	size_t resource_path_len = strlen(resource_path)+1;
+
+	struct coap_client_request* req = alloc_coap_request(resource_path_len, 0);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
 	req->method = COAP_METHOD_GET;
 	req->confirmable = true;
-	strcpy(req->path,"validate");
+	strncpy((char*)req->path,resource_path,resource_path_len);
 	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
 	req->cb = valid_response_cb;
 	req->payload = NULL;
@@ -362,12 +367,15 @@ int coap_validate()
 
 int coap_get_stat()
 {
-	struct coap_client_request* req = alloc_coap_request(strlen("stat")+1, 0);
+	char *resource_path = "stat";
+	size_t resource_path_len = strlen(resource_path)+1;
+
+	struct coap_client_request* req = alloc_coap_request(resource_path_len, 0);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
 	req->method = COAP_METHOD_GET;
 	req->confirmable = true;
-	strcpy(req->path,"stat");
+	strncpy((char*)req->path,resource_path,resource_path_len);
 	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
 	req->cb = stat_response_cb;
 	req->payload = NULL;

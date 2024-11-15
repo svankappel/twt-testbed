@@ -17,7 +17,7 @@
  *
  * @return int Returns 0 on success, or a negative error code on failure.
  */
-int wifi_twt_init();
+void wifi_twt_init();
 
 /**
  * @brief Sets up a TWT session.

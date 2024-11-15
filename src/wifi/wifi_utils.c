@@ -18,8 +18,8 @@
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/net/net_event.h>
-
 #include <zephyr/net/net_core.h>
+#include <zephyr/net/net_pkt.h>
 
 #include <net/wifi_mgmt_ext.h>
 #include <net/wifi_ready.h>
@@ -27,6 +27,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_uti, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
+#include "net_private.h"
 
 // retrieves and logs the current status of the WiFi interface.
  
@@ -42,7 +43,7 @@ int print_wifi_status(void)
 	}
 	
 	struct in_addr *ipv4 = &iface->config.ip.ipv4->unicast[0].ipv4.address.in_addr; // Get the IPv4 address
-	struct in_addr6 *ipv6 = &iface->config.ip.ipv6->unicast[0].address.in6_addr; // Get the IPv6 address
+	struct in_addr6 *ipv6 = (struct in_addr6*)&iface->config.ip.ipv6->unicast[0].address.in6_addr; // Get the IPv6 address
 
 	char ipv4_addr[NET_IPV4_ADDR_LEN]; // Buffer to store the IP address
 	char ipv6_addr[NET_IPV6_ADDR_LEN]; // Buffer to store the IP address
@@ -60,7 +61,7 @@ int print_wifi_status(void)
 		LOG_INF("Interface Mode: %s", wifi_mode_txt(status.iface_mode));
 		LOG_INF("Link Mode: %s", wifi_link_mode_txt(status.link_mode));
 		LOG_INF("SSID: %.32s", status.ssid);
-		LOG_INF("BSSID: %s", net_sprint_ll_addr_buf(status.bssid, WIFI_MAC_ADDR_LEN, mac_string_buf, sizeof(mac_string_buf)));
+		LOG_INF("BSSID: %s", (char*)net_sprint_ll_addr_buf(status.bssid, WIFI_MAC_ADDR_LEN, mac_string_buf, sizeof(mac_string_buf)));
 		LOG_INF("Band: %s", wifi_band_txt(status.band));
 		LOG_INF("Channel: %d", status.channel);
 		LOG_INF("Security: %s", wifi_security_txt(status.security));

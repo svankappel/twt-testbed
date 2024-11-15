@@ -228,7 +228,7 @@ int wifi_twt_teardown()
 	return 0;
 }
 
-int wifi_twt_init()
+void wifi_twt_init()
 {
 	net_mgmt_init_event_callback(&twt_mgmt_cb, wifi_twt_mgmt_event_handler, TWT_MGMT_EVENTS);
 	net_mgmt_add_event_callback(&twt_mgmt_cb);
