@@ -1,25 +1,26 @@
 #ifdef CONFIG_COAP_TWT_TESTBENCH_SERVER
 
-#include "test_sensor_ps.h"
+#include "test_large_upload_ps.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
+#include <zephyr/random/rand32.h>
 
 #include "wifi_sta.h"
 #include "wifi_ps.h"
 #include "coap.h"
 #include "profiler.h"
-LOG_MODULE_REGISTER(test_sensor_ps, CONFIG_MY_TEST_LOG_LEVEL);
+LOG_MODULE_REGISTER(test_large_upload_ps, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 4096
+#define STACK_SIZE 32768    //increase stack size if tests stack overflows
 #define PRIORITY -2         //non preemptive priority
 static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 static void handle_timer_event();
 static K_TIMER_DEFINE(send_timer, handle_timer_event, NULL);
 
-static struct test_sensor_ps_settings test_settings;
+static struct test_large_upload_ps_settings test_settings;
 
 static K_SEM_DEFINE(end_sem, 0, 1);
 static K_SEM_DEFINE(timer_event_sem, 0, 1);
@@ -61,13 +62,13 @@ static void print_test_results(struct test_control *control) {
     // Print the results
     LOG_INF("\n\n"
             "================================================================================\n"
-            "=                           TEST RESULTS - SENSOR PS                           =\n"
+            "=                        TEST RESULTS - LARGE UPLOAD PS                        =\n"
             "================================================================================\n"
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
             "=  Iterations:                            %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
+            "=------------------------------------------------------------------------------=\n"
             "=  Power Save:                          %s                               =\n"
             "=  Mode:                                  %s                               =\n"
             "=  Wake-Up mode:                 %s                               =\n"
@@ -186,6 +187,19 @@ static void run_test(struct test_control * control)
 {
     k_timer_start(&send_timer, K_MSEC(test_settings.send_interval), K_NO_WAIT);
 
+    // Generate an array with random chars
+    char random_data[test_settings.bytes-21];
+    for (int i = 0; i < test_settings.bytes-21; i++) {
+        if(i%100 == 0 || i == test_settings.bytes-22){
+            random_data[i] = '\n'; 
+        }else{
+            random_data[i] = 'a' + (sys_rand32_get() % 26); // Random char
+        }
+    }
+
+    char buf[test_settings.bytes+20];
+
+
     while(true){
         k_sem_take(&timer_event_sem, K_FOREVER);
 
@@ -194,11 +208,10 @@ static void run_test(struct test_control * control)
             break;
         }
 
-        char buf[32];
         int ret;
 
         if(control->iter < test_settings.iterations){
-            sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
+            sprintf(buf, "/%06d/%s/largeupload/", control->iter++,random_data);
             ret = coap_put("test", buf, test_settings.send_interval+1000);
             if(ret == 0){
                 control->sent++;
@@ -303,7 +316,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 }
 
 // Function to initialize the test
-void test_sensor_ps(struct k_sem *sem, void * test_settings) {
+void test_large_upload_ps(struct k_sem *sem, void * test_settings) {
     
     struct k_thread thread_data;
 

@@ -35,6 +35,6 @@ target_sources(app PRIVATE
     src/tests/test_sensor_ps.c
     src/tests/test_sensor_twt_public_server.c
     src/tests/test_sensor_ps_public_server.c
-    #src/tests/test_large_upload_ps.c
+    src/tests/test_large_upload_ps.c
     src/tests/test_large_upload_ps_public_server.c
 )

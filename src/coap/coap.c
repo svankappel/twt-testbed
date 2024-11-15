@@ -225,7 +225,14 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 	if (code >= 0) {
 		if(len==0){
 			LOG_INF("CoAP response: code: 0x%x", code);
-		}else{
+		}else if(len > 50){
+			char payl[51];
+			strncpy(payl,(const char *)payload,50);
+			payl[50]='\0';
+			LOG_INF("CoAP response: code: 0x%x, payload: %s...", code, payl);
+
+		}
+		else{
 			LOG_INF("CoAP response: code: 0x%x, payload: %s", code, payload);
 		}
 	} else {
@@ -480,8 +487,9 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 			if(req->len==0){
 				LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path);
 			}else if(req->len>50){
-				char payload[50];
+				char payload[51];
 				strncpy(payload,req->payload,50);
+				payload[50]='\0';
 				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s...",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path,payload);
 			}
 			else{
