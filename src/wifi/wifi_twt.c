@@ -28,10 +28,13 @@ static bool twt_teardown_requested = false;
 static K_SEM_DEFINE(twt_setup_sem, 0, 1);
 
 static uint32_t twt_flow_id = 0;
+static uint16_t twt_dialog_token = 1;
 
 static uint32_t wake_ahead_ms = 0;
 static uint32_t twt_interval_ms = 0;
 static uint32_t twt_wake_interval_ms = 0;
+
+static struct wifi_twt_params params = {0};
 
 
 static struct net_mgmt_event_callback twt_mgmt_cb;
@@ -83,9 +86,24 @@ static void wifi_handle_wifi_twt_event(struct net_mgmt_event_callback *cb)
 		twt_enabled = true;
 		LOG_INF("TWT response: %s", wifi_twt_setup_cmd_txt(resp->setup_cmd));
 		print_twt_negotiated_params(resp);
+
+		//print warning if negotiated values are different from requested values
+		if(params.setup.implicit != resp->setup.implicit)
+		{
+			LOG_WRN("Implicit value negotiated is different from requested");
+		}
+		if(params.setup.announce != resp->setup.announce)
+		{
+			LOG_WRN("Announce value negotiated is different from requested");
+		}
+		if(params.setup.trigger != resp->setup.trigger)
+		{
+			LOG_WRN("Trigger value negotiated is different from requested");
+		}
+		LOG_INF("-------------------------------");
+
 		twt_interval_ms = resp->setup.twt_interval / USEC_PER_MSEC;
 		twt_wake_interval_ms = resp->setup.twt_wake_interval / USEC_PER_MSEC;
-		LOG_INF("-------------------------------");
 		k_sem_give(&twt_setup_sem);
 		return;
 	}
@@ -118,11 +136,10 @@ int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	struct net_if *iface = net_if_get_first_wifi();
 
 	// Define the TWT parameters struct wifi_twt_params and fill the parameters for TWT setup.
-	struct wifi_twt_params params = {0};
 
 	params.negotiation_type = WIFI_TWT_INDIVIDUAL;
 	params.flow_id = twt_flow_id;
-	params.dialog_token = 1;
+	params.dialog_token = twt_dialog_token > 255 ? 1 : twt_dialog_token++;
 	params.operation = WIFI_TWT_SETUP;
 	params.setup_cmd = WIFI_TWT_SETUP_CMD_REQUEST;
 	params.setup.responder = 0;
@@ -177,11 +194,10 @@ int wifi_twt_teardown()
 	struct net_if *iface = net_if_get_first_wifi();
 
 	// Define the TWT parameters struct wifi_twt_params and fill the parameters for TWT teardown.
-	struct wifi_twt_params params = {0};
 
 	params.negotiation_type = WIFI_TWT_INDIVIDUAL;
 	params.flow_id = twt_flow_id;
-	params.dialog_token = 1;
+	params.dialog_token = twt_dialog_token > 255 ? 1 : twt_dialog_token++;
 	params.operation = WIFI_TWT_TEARDOWN;
 	params.setup_cmd = WIFI_TWT_TEARDOWN;
 
