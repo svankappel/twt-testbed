@@ -219,7 +219,7 @@ static void free_coap_request(void * data) {
 }
 
 
-static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
+static void response_cb(int16_t code, size_t offset, uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
 	if (code >= 0) {
@@ -238,7 +238,7 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 	}
 }
 
-static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
+static void valid_response_cb(int16_t code, size_t offset, uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
 	if (code >= 0) {
