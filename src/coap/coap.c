@@ -12,7 +12,7 @@
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
-#define COAP_REQUESTS_HEAP_SIZE 512
+#define COAP_REQUESTS_HEAP_SIZE 32768  //increase heap size if using large payloads
 #define STACK_SIZE 4096
 #define PRIORITY 8
 
@@ -479,7 +479,12 @@ void coap_thread(void *arg1, void *arg2, void *arg3)
 		{
 			if(req->len==0){
 				LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path);
-			}else{
+			}else if(req->len>50){
+				char payload[50];
+				strncpy(payload,req->payload,50);
+				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s...",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path,payload);
+			}
+			else{
 				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path,req->payload);
 			}
 		}

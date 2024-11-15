@@ -19,7 +19,7 @@ static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 static void handle_timer_event();
 static K_TIMER_DEFINE(send_timer, handle_timer_event, NULL);
 
-struct test_sensor_ps_settings test_settings;
+static struct test_sensor_ps_settings test_settings;
 
 static K_SEM_DEFINE(end_sem, 0, 1);
 static K_SEM_DEFINE(timer_event_sem, 0, 1);

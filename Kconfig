@@ -333,6 +333,135 @@ config SENSOR_TWT_TEST_5_SESSION_DURATION
   int "TWT session duration for Test 5 (ms)"
   depends on SENSOR_TWT_TEST_5
 
+
+
+config LARGE_UPLOAD_TESTS_ENABLE
+  bool "Enable Large Upload tests"
+
+  config LARGE_UPLOAD_PS_TESTS_ENABLE
+    bool "Enable PS tests"
+    depends on LARGE_UPLOAD_TESTS_ENABLE
+
+  config LARGE_UPLOAD_PS_TEST_1
+    bool "Enable PS Test 1"
+    depends on LARGE_UPLOAD_PS_TESTS_ENABLE
+
+  config LARGE_UPLOAD_PS_TEST_1_PS_ENABLED
+    bool "PS enabled for Test 1"
+    depends on LARGE_UPLOAD_PS_TEST_1
+
+  config LARGE_UPLOAD_PS_TEST_1_ITERATIONS
+    int "Iterations for PS Test 1"
+    depends on LARGE_UPLOAD_PS_TEST_1
+
+  config LARGE_UPLOAD_PS_TEST_1_SEND_INTERVAL
+    int "Send interval for PS Test 1 (ms)"
+    depends on LARGE_UPLOAD_PS_TEST_1
+
+  config LARGE_UPLOAD_PS_TEST_1_NUM_BYTES
+    int "Number of bytes for PS Test 1"
+    depends on LARGE_UPLOAD_PS_TEST_1
+
+  choice LARGE_UPLOAD_PS_TEST_1_MODE
+    prompt "Mode for PS Test 1"
+    depends on LARGE_UPLOAD_PS_TEST_1 && LARGE_UPLOAD_PS_TEST_1_PS_ENABLED
+    config LARGE_UPLOAD_PS_TEST_1_MODE_LEGACY
+      bool "Legacy"
+    config LARGE_UPLOAD_PS_TEST_1_MODE_WMM
+      bool "WMM"
+  endchoice
+
+  choice LARGE_UPLOAD_PS_TEST_1_WAKEUP_MODE
+    prompt "Wakeup mode for PS Test 1"
+    depends on LARGE_UPLOAD_PS_TEST_1 && LARGE_UPLOAD_PS_TEST_1_PS_ENABLED
+    config LARGE_UPLOAD_PS_TEST_1_WAKEUP_MODE_DTIM
+      bool "DTIM"
+    config LARGE_UPLOAD_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+      bool "Listen Interval"
+  endchoice
+
+  config LARGE_UPLOAD_PS_TEST_2
+    bool "Enable PS Test 2"
+    depends on LARGE_UPLOAD_PS_TESTS_ENABLE
+
+  config LARGE_UPLOAD_PS_TEST_2_PS_ENABLED
+    bool "PS enabled for Test 2"
+    depends on LARGE_UPLOAD_PS_TEST_2
+
+  config LARGE_UPLOAD_PS_TEST_2_ITERATIONS
+    int "Iterations for PS Test 2"
+    depends on LARGE_UPLOAD_PS_TEST_2
+
+  config LARGE_UPLOAD_PS_TEST_2_SEND_INTERVAL
+    int "Send interval for PS Test 2 (ms)"
+    depends on LARGE_UPLOAD_PS_TEST_2
+
+  config LARGE_UPLOAD_PS_TEST_2_NUM_BYTES
+    int "Number of bytes for PS Test 2"
+    depends on LARGE_UPLOAD_PS_TEST_2
+
+  choice LARGE_UPLOAD_PS_TEST_2_MODE
+    prompt "Mode for PS Test 2"
+    depends on LARGE_UPLOAD_PS_TEST_2 && LARGE_UPLOAD_PS_TEST_2_PS_ENABLED
+    config LARGE_UPLOAD_PS_TEST_2_MODE_LEGACY
+      bool "Legacy"
+    config LARGE_UPLOAD_PS_TEST_2_MODE_WMM
+      bool "WMM"
+  endchoice
+
+  choice LARGE_UPLOAD_PS_TEST_2_WAKEUP_MODE
+    prompt "Wakeup mode for PS Test 2"
+    depends on LARGE_UPLOAD_PS_TEST_2 && LARGE_UPLOAD_PS_TEST_2_PS_ENABLED
+    config LARGE_UPLOAD_PS_TEST_2_WAKEUP_MODE_DTIM
+      bool "DTIM"
+    config LARGE_UPLOAD_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+      bool "Listen Interval"
+  endchoice
+
+  config LARGE_UPLOAD_TWT_TESTS_ENABLE
+    bool "Enable TWT tests"
+    depends on LARGE_UPLOAD_TESTS_ENABLE
+
+  config LARGE_UPLOAD_TWT_TEST_1
+    bool "Enable TWT Test 1"
+    depends on LARGE_UPLOAD_TWT_TESTS_ENABLE
+
+  config LARGE_UPLOAD_TWT_TEST_1_ITERATIONS
+    int "Iterations for TWT Test 1"
+    depends on LARGE_UPLOAD_TWT_TEST_1
+
+  config LARGE_UPLOAD_TWT_TEST_1_INTERVAL
+    int "TWT interval for Test 1 (ms)"
+    depends on LARGE_UPLOAD_TWT_TEST_1
+
+  config LARGE_UPLOAD_TWT_TEST_1_SESSION_DURATION
+    int "TWT session duration for Test 1 (ms)"
+    depends on LARGE_UPLOAD_TWT_TEST_1
+
+  config LARGE_UPLOAD_TWT_TEST_1_NUM_BYTES
+    int "Number of bytes for TWT Test 1"
+    depends on LARGE_UPLOAD_TWT_TEST_1
+
+  config LARGE_UPLOAD_TWT_TEST_2
+    bool "Enable TWT Test 2"
+    depends on LARGE_UPLOAD_TWT_TESTS_ENABLE
+
+  config LARGE_UPLOAD_TWT_TEST_2_ITERATIONS
+    int "Iterations for TWT Test 2"
+    depends on LARGE_UPLOAD_TWT_TEST_2
+
+  config LARGE_UPLOAD_TWT_TEST_2_INTERVAL
+    int "TWT interval for Test 2 (ms)"
+    depends on LARGE_UPLOAD_TWT_TEST_2
+
+  config LARGE_UPLOAD_TWT_TEST_2_SESSION_DURATION
+    int "TWT session duration for Test 2 (ms)"
+    depends on LARGE_UPLOAD_TWT_TEST_2
+
+  config LARGE_UPLOAD_TWT_TEST_2_NUM_BYTES
+    int "Number of bytes for TWT Test 2"
+    depends on LARGE_UPLOAD_TWT_TEST_2
+
 endmenu
 
 menu "Log Levels"
