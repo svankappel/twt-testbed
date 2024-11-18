@@ -143,7 +143,7 @@ static void handle_coap_response(int16_t code, void * user_data)
 
     control->received++;
 
-    if(code >= 0){
+    if(code == 0x44){
         control->recv_resp++;
     }else{
         control->recv_err++;

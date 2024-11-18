@@ -113,12 +113,9 @@ static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
 
-    //test to ignore disconnection
-    /*
     test_failed = true;
     k_sem_give(&wake_ahead_sem);
     k_sem_give(&end_sem);
-    */
 }
 
 //--------------------------------------------------------------------     
@@ -134,7 +131,7 @@ static void handle_coap_response(int16_t code, void * user_data)
 
     control->received++;
 
-    if(code >= 0){
+    if(code == 0x44){
         control->recv_resp++;
     }else{
         control->recv_err++;

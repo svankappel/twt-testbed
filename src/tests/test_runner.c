@@ -235,10 +235,14 @@ test_sensor_twt(&test_sem, &test_settings_5);
                     .test_id = 1,
                     .bytes = CONFIG_LARGE_PACKET_PS_TEST_1_NUM_BYTES,
 
-                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_ECHO
-                    .server_echo = true,
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_SREQ_LRES 
+                    .large_packet_config = SREQ_LRES,
                     #else
-                    .server_echo = false,
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_LREQ_LRES
+                    .large_packet_config = LREQ_LRES,
+                    #else
+                    .large_packet_config = LREQ_SRES,
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_ECHO
 
                     #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_PS_ENABLED
@@ -269,10 +273,14 @@ test_sensor_twt(&test_sem, &test_settings_5);
                     .test_id = 2,
                     .bytes = CONFIG_LARGE_PACKET_PS_TEST_2_NUM_BYTES,
 
-                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_ECHO
-                    .server_echo = true,
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_SREQ_LRES 
+                    .large_packet_config = SREQ_LRES,
                     #else
-                    .server_echo = false,
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_LREQ_LRES
+                    .large_packet_config = LREQ_LRES,
+                    #else
+                    .large_packet_config = LREQ_SRES,
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_ECHO
 
                     #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_PS_ENABLED
@@ -295,6 +303,44 @@ test_sensor_twt(&test_sem, &test_settings_5);
     };
     test_large_packet_ps(&test_sem, &test_settings_2);
     #endif //CONFIG_LARGE_PACKET_PS_TEST_2
+
+    #ifdef CONFIG_LARGE_PACKET_PS_TEST_3
+    struct test_large_packet_ps_settings test_settings_3 = {
+                    .iterations = CONFIG_LARGE_PACKET_PS_TEST_3_ITERATIONS,
+                    .send_interval = CONFIG_LARGE_PACKET_PS_TEST_3_SEND_INTERVAL,
+                    .test_id = 3,
+                    .bytes = CONFIG_LARGE_PACKET_PS_TEST_3_NUM_BYTES,
+
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_SREQ_LRES 
+                    .large_packet_config = SREQ_LRES,
+                    #else
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_LREQ_LRES
+                    .large_packet_config = LREQ_LRES,
+                    #else
+                    .large_packet_config = LREQ_SRES,                    
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_LREQ_LRES
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_ECHO
+
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_3_PS_ENABLED
+                    .ps_enabled = PS_MODE_ENABLED,
+                    #else
+                    .ps_enabled = PS_MODE_DISABLED,
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_3_PS_ENABLED
+
+                    #ifndef CONFIG_LARGE_PACKET_PS_TEST_3_MODE_WMM
+                    .ps_mode = PS_MODE_LEGACY,
+                    #else
+                    .ps_mode = PS_MODE_WMM,
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_3_MODE_WMM
+
+                    #ifndef CONFIG_LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
+                    #else
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+    };
+    test_large_packet_ps(&test_sem, &test_settings_3);
+    #endif //CONFIG_LARGE_PACKET_PS_TEST_3
 
     #endif //CONFIG_LARGE_PACKET_PS_TESTS_ENABLE
 }

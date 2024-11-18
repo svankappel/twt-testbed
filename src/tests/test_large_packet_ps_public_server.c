@@ -68,6 +68,8 @@ static void print_test_results(struct test_control *control) {
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
             "=  Iterations:                            %6d                               =\n"
+            "=------------------------------------------------------------------------------=\n"
+            "=  Request size (bytes):                  %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  Power Save:                          %s                               =\n"
             "=  Mode:                                  %s                               =\n"
@@ -90,6 +92,7 @@ static void print_test_results(struct test_control *control) {
             "================================================================================\n",
             test_settings.test_id,
             control->iter,
+            test_settings.bytes,
             test_settings.ps_enabled ? " Enabled" : "Disabled",
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
@@ -136,7 +139,7 @@ static void handle_coap_response(int16_t code, void * user_data)
 
     control->received++;
 
-    if(code >= 0){
+    if(code == 0x44){
         control->recv_resp++;
     }else{
         control->recv_err++;
@@ -179,16 +182,6 @@ static void run_test(struct test_control * control)
 {
     k_timer_start(&send_timer, K_MSEC(test_settings.send_interval), K_NO_WAIT);
 
-    // Generate an array with random chars
-    char random_data[test_settings.bytes-21];
-    for (int i = 0; i < test_settings.bytes-21; i++) {
-        if(i%100 == 0 || i == test_settings.bytes-22){
-            random_data[i] = '\n'; 
-        }else{
-            random_data[i] = 'a' + (sys_rand32_get() % 26); // Random char
-        }
-    }
-
     char buf[test_settings.bytes+20];
 
     while(true){
@@ -203,7 +196,19 @@ static void run_test(struct test_control * control)
         int ret;
 
         if(control->iter < test_settings.iterations){
+            
+                // Generate an array with random chars
+            char random_data[test_settings.bytes-21];
+            for (int i = 0; i < test_settings.bytes-21; i++) {
+                if(i%100 == 0 || i == test_settings.bytes-22){
+                    random_data[i] = '\n'; 
+                }else{
+                    random_data[i] = 'a' + (sys_rand32_get() % 26); // Random char
+                }
+            }
+
             sprintf(buf, "/%06d/%s/largeupload/", control->iter++,random_data);
+            
             ret = coap_put(CONFIG_COAP_TEST_RESOURCE, buf, test_settings.send_interval+1000);
             if(ret == 0){
                 control->sent++;

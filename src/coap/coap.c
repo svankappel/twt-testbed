@@ -219,7 +219,7 @@ static void free_coap_request(void * data) {
 }
 
 
-static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
+static void put_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
 	if (code >= 0) {
@@ -236,7 +236,7 @@ static void response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			LOG_INF("CoAP response: code: 0x%x, payload: %s", code, payload);
 		}
 	} else {
-		LOG_INF("Response received with error code: %d", code);
+		LOG_INF("Error received with code: %d", code);
 	}
 	free_coap_request(user_data);
 	if(coap_response_callback)
@@ -299,7 +299,7 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 	req->confirmable = true;
 	strncpy((char*)req->path,resource,resource_len);
 	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
-	req->cb = response_cb;
+	req->cb = put_response_cb;
 	strcpy(req->payload,payload);
 	req->len = strlen(payload);
 	req->num_options = 0;

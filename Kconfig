@@ -73,30 +73,30 @@ endmenu
 menu "Tests"
 
 config SENSOR_TESTS_ENABLE
-  bool "Enable sensor tests"
+  bool "Sensor Tests"
 
 config SENSOR_PS_TESTS_ENABLE
-  bool "Enable PS tests"
+  bool "PS"
   depends on SENSOR_TESTS_ENABLE
 
 config SENSOR_PS_TEST_1
-  bool "Enable PS Test 1"
+  bool "Test 1"
   depends on SENSOR_PS_TESTS_ENABLE
 
 config SENSOR_PS_TEST_1_PS_ENABLED
-  bool "PS enabled for Test 1"
+  bool "PS enabled"
   depends on SENSOR_PS_TEST_1
 
 config SENSOR_PS_TEST_1_ITERATIONS
-  int "Iterations for Test 1"
+  int "Iterations"
   depends on SENSOR_PS_TEST_1
 
 config SENSOR_PS_TEST_1_SEND_INTERVAL
-  int "Send interval for Test 1 (ms)"
+  int "Send interval (ms)"
   depends on SENSOR_PS_TEST_1
 
 choice SENSOR_PS_TEST_1_MODE
-  prompt "Mode for Test 1"
+  prompt "PS Mode"
   depends on SENSOR_PS_TEST_1 && SENSOR_PS_TEST_1_PS_ENABLED
   config SENSOR_PS_TEST_1_MODE_LEGACY
     bool "Legacy"
@@ -105,7 +105,7 @@ choice SENSOR_PS_TEST_1_MODE
 endchoice
 
 choice SENSOR_PS_TEST_1_WAKEUP_MODE
-  prompt "Wakeup mode for Test 1"
+  prompt "Wakeup mode"
   depends on SENSOR_PS_TEST_1 && SENSOR_PS_TEST_1_PS_ENABLED
   config SENSOR_PS_TEST_1_WAKEUP_MODE_DTIM
     bool "DTIM"
@@ -114,23 +114,23 @@ choice SENSOR_PS_TEST_1_WAKEUP_MODE
 endchoice
 
 config SENSOR_PS_TEST_2
-  bool "Enable PS Test 2"
+  bool "Test 2"
   depends on SENSOR_PS_TESTS_ENABLE
 
 config SENSOR_PS_TEST_2_PS_ENABLED
-  bool "PS enabled for Test 2"
+  bool "PS enabled"
   depends on SENSOR_PS_TEST_2
 
 config SENSOR_PS_TEST_2_ITERATIONS
-  int "Iterations for Test 2"
+  int "Iterations"
   depends on SENSOR_PS_TEST_2
 
 config SENSOR_PS_TEST_2_SEND_INTERVAL
-  int "Send interval for Test 2 (ms)"
+  int "Send interval (ms)"
   depends on SENSOR_PS_TEST_2
 
 choice SENSOR_PS_TEST_2_MODE
-  prompt "Mode for Test 2"
+  prompt "PS Mode"
   depends on SENSOR_PS_TEST_2 && SENSOR_PS_TEST_2_PS_ENABLED
   config SENSOR_PS_TEST_2_MODE_LEGACY
     bool "Legacy"
@@ -139,32 +139,31 @@ choice SENSOR_PS_TEST_2_MODE
 endchoice
 
 choice SENSOR_PS_TEST_2_WAKEUP_MODE
-  prompt "Wakeup mode for Test 2"
+  prompt "Wakeup mode"
   depends on SENSOR_PS_TEST_2 && SENSOR_PS_TEST_2_PS_ENABLED
   config SENSOR_PS_TEST_2_WAKEUP_MODE_DTIM
     bool "DTIM"
   config SENSOR_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
     bool "Listen Interval"
 endchoice
-
 config SENSOR_PS_TEST_3
-  bool "Enable PS Test 3"
+  bool "Test 3"
   depends on SENSOR_PS_TESTS_ENABLE
 
 config SENSOR_PS_TEST_3_PS_ENABLED
-  bool "PS enabled for Test 3"
+  bool "PS enabled"
   depends on SENSOR_PS_TEST_3
 
 config SENSOR_PS_TEST_3_ITERATIONS
-  int "Iterations for Test 3"
+  int "Iterations"
   depends on SENSOR_PS_TEST_3
 
 config SENSOR_PS_TEST_3_SEND_INTERVAL
-  int "Send interval for Test 3 (ms)"
+  int "Send interval (ms)"
   depends on SENSOR_PS_TEST_3
 
 choice SENSOR_PS_TEST_3_MODE
-  prompt "Mode for Test 3"
+  prompt "PS Mode"
   depends on SENSOR_PS_TEST_3 && SENSOR_PS_TEST_3_PS_ENABLED
   config SENSOR_PS_TEST_3_MODE_LEGACY
     bool "Legacy"
@@ -173,7 +172,7 @@ choice SENSOR_PS_TEST_3_MODE
 endchoice
 
 choice SENSOR_PS_TEST_3_WAKEUP_MODE
-  prompt "Wakeup mode for Test 3"
+  prompt "Wakeup mode"
   depends on SENSOR_PS_TEST_3 && SENSOR_PS_TEST_3_PS_ENABLED
   config SENSOR_PS_TEST_3_WAKEUP_MODE_DTIM
     bool "DTIM"
@@ -182,23 +181,23 @@ choice SENSOR_PS_TEST_3_WAKEUP_MODE
 endchoice
 
 config SENSOR_PS_TEST_4
-  bool "Enable PS Test 4"
+  bool "Test 4"
   depends on SENSOR_PS_TESTS_ENABLE
 
 config SENSOR_PS_TEST_4_PS_ENABLED
-  bool "PS enabled for Test 4"
+  bool "PS enabled"
   depends on SENSOR_PS_TEST_4
 
 config SENSOR_PS_TEST_4_ITERATIONS
-  int "Iterations for Test 4"
+  int "Iterations"
   depends on SENSOR_PS_TEST_4
 
 config SENSOR_PS_TEST_4_SEND_INTERVAL
-  int "Send interval for Test 4 (ms)"
+  int "Send interval (ms)"
   depends on SENSOR_PS_TEST_4
 
 choice SENSOR_PS_TEST_4_MODE
-  prompt "Mode for Test 4"
+  prompt "PS Mode"
   depends on SENSOR_PS_TEST_4 && SENSOR_PS_TEST_4_PS_ENABLED
   config SENSOR_PS_TEST_4_MODE_LEGACY
     bool "Legacy"
@@ -207,7 +206,7 @@ choice SENSOR_PS_TEST_4_MODE
 endchoice
 
 choice SENSOR_PS_TEST_4_WAKEUP_MODE
-  prompt "Wakeup mode for Test 4"
+  prompt "Wakeup mode"
   depends on SENSOR_PS_TEST_4 && SENSOR_PS_TEST_4_PS_ENABLED
   config SENSOR_PS_TEST_4_WAKEUP_MODE_DTIM
     bool "DTIM"
@@ -216,23 +215,23 @@ choice SENSOR_PS_TEST_4_WAKEUP_MODE
 endchoice
 
 config SENSOR_PS_TEST_5
-  bool "Enable PS Test 5"
+  bool "Test 5"
   depends on SENSOR_PS_TESTS_ENABLE
 
 config SENSOR_PS_TEST_5_PS_ENABLED
-  bool "PS enabled for Test 5"
+  bool "PS enabled"
   depends on SENSOR_PS_TEST_5
 
 config SENSOR_PS_TEST_5_ITERATIONS
-  int "Iterations for Test 5"
+  int "Iterations"
   depends on SENSOR_PS_TEST_5
 
 config SENSOR_PS_TEST_5_SEND_INTERVAL
-  int "Send interval for Test 5 (ms)"
+  int "Send interval (ms)"
   depends on SENSOR_PS_TEST_5
 
 choice SENSOR_PS_TEST_5_MODE
-  prompt "Mode for Test 5"
+  prompt "PS Mode"
   depends on SENSOR_PS_TEST_5 && SENSOR_PS_TEST_5_PS_ENABLED
   config SENSOR_PS_TEST_5_MODE_LEGACY
     bool "Legacy"
@@ -241,7 +240,7 @@ choice SENSOR_PS_TEST_5_MODE
 endchoice
 
 choice SENSOR_PS_TEST_5_WAKEUP_MODE
-  prompt "Wakeup mode for Test 5"
+  prompt "Wakeup mode"
   depends on SENSOR_PS_TEST_5 && SENSOR_PS_TEST_5_PS_ENABLED
   config SENSOR_PS_TEST_5_WAKEUP_MODE_DTIM
     bool "DTIM"
@@ -250,124 +249,131 @@ choice SENSOR_PS_TEST_5_WAKEUP_MODE
 endchoice
 
 config SENSOR_TWT_TESTS_ENABLE
-  bool "Enable TWT tests"
+  bool "TWT"
   depends on SENSOR_TESTS_ENABLE
 
 config SENSOR_TWT_TEST_1
-  bool "Enable TWT Test 1"
+  bool "Test 1"
   depends on SENSOR_TWT_TESTS_ENABLE
 
 config SENSOR_TWT_TEST_1_ITERATIONS
-  int "Iterations for TWT Test 1"
+  int "Iterations"
   depends on SENSOR_TWT_TEST_1
 
 config SENSOR_TWT_TEST_1_INTERVAL
-  int "TWT interval for Test 1 (ms)"
+  int "TWT interval (ms)"
   depends on SENSOR_TWT_TEST_1
 
 config SENSOR_TWT_TEST_1_SESSION_DURATION
-  int "TWT session duration for Test 1 (ms)"
+  int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_1
 
 config SENSOR_TWT_TEST_2
-  bool "Enable TWT Test 2"
+  bool "Test 2"
   depends on SENSOR_TWT_TESTS_ENABLE
 
 config SENSOR_TWT_TEST_2_ITERATIONS
-  int "Iterations for TWT Test 2"
+  int "Iterations"
   depends on SENSOR_TWT_TEST_2
 
 config SENSOR_TWT_TEST_2_INTERVAL
-  int "TWT interval for Test 2 (ms)"
+  int "TWT interval (ms)"
   depends on SENSOR_TWT_TEST_2
 
 config SENSOR_TWT_TEST_2_SESSION_DURATION
-  int "TWT session duration for Test 2 (ms)"
+  int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_2
 
 config SENSOR_TWT_TEST_3
-  bool "Enable TWT Test 3"
+  bool "Test 3"
   depends on SENSOR_TWT_TESTS_ENABLE
 
 config SENSOR_TWT_TEST_3_ITERATIONS
-  int "Iterations for TWT Test 3"
+  int "Iterations"
   depends on SENSOR_TWT_TEST_3
 
 config SENSOR_TWT_TEST_3_INTERVAL
-  int "TWT interval for Test 3 (ms)"
+  int "TWT interval (ms)"
   depends on SENSOR_TWT_TEST_3
 
 config SENSOR_TWT_TEST_3_SESSION_DURATION
-  int "TWT session duration for Test 3 (ms)"
+  int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_3
 
 config SENSOR_TWT_TEST_4
-  bool "Enable TWT Test 4"
+  bool "Test 4"
   depends on SENSOR_TWT_TESTS_ENABLE
 
 config SENSOR_TWT_TEST_4_ITERATIONS
-  int "Iterations for TWT Test 4"
+  int "Iterations"
   depends on SENSOR_TWT_TEST_4
 
 config SENSOR_TWT_TEST_4_INTERVAL
-  int "TWT interval for Test 4 (ms)"
+  int "TWT interval (ms)"
   depends on SENSOR_TWT_TEST_4
 
 config SENSOR_TWT_TEST_4_SESSION_DURATION
-  int "TWT session duration for Test 4 (ms)"
+  int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_4
 
 config SENSOR_TWT_TEST_5
-  bool "Enable TWT Test 5"
+  bool "Test 5"
   depends on SENSOR_TWT_TESTS_ENABLE
 
 config SENSOR_TWT_TEST_5_ITERATIONS
-  int "Iterations for TWT Test 5"
+  int "Iterations"
   depends on SENSOR_TWT_TEST_5
 
 config SENSOR_TWT_TEST_5_INTERVAL
-  int "TWT interval for Test 5 (ms)"
+  int "TWT interval (ms)"
   depends on SENSOR_TWT_TEST_5
 
 config SENSOR_TWT_TEST_5_SESSION_DURATION
-  int "TWT session duration for Test 5 (ms)"
+  int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_5
 
 
 
 config LARGE_PACKET_TESTS_ENABLE
-  bool "Enable Large Packet tests"
+  bool "Large Packet Tests"
 
   config LARGE_PACKET_PS_TESTS_ENABLE
-    bool "Enable PS tests"
+    bool "PS"
     depends on LARGE_PACKET_TESTS_ENABLE
 
   config LARGE_PACKET_PS_TEST_1
-    bool "Enable PS Test 1"
+    bool "Test 1"
     depends on LARGE_PACKET_PS_TESTS_ENABLE
 
-  config LARGE_PACKET_PS_TEST_1_SERVER_ECHO
-    bool "Server echos the data"
+  choice LARGE_PACKET_PS_TEST_1_SERVER_CONFIG
+    prompt "Large Packet Config"
     depends on LARGE_PACKET_PS_TEST_1 && COAP_TWT_TESTBENCH_SERVER
+    config LARGE_PACKET_PS_TEST_1_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_PS_TEST_1_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_PS_TEST_1_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
 
   config LARGE_PACKET_PS_TEST_1_PS_ENABLED
-    bool "PS enabled for Test 1"
+    bool "PS enabled"
     depends on LARGE_PACKET_PS_TEST_1
 
   config LARGE_PACKET_PS_TEST_1_ITERATIONS
-    int "Iterations for PS Test 1"
+    int "Iterations"
     depends on LARGE_PACKET_PS_TEST_1
 
   config LARGE_PACKET_PS_TEST_1_SEND_INTERVAL
-    int "Send interval for PS Test 1 (ms)"
+    int "Send interval (ms)"
     depends on LARGE_PACKET_PS_TEST_1
 
   config LARGE_PACKET_PS_TEST_1_NUM_BYTES
-    int "Number of bytes for PS Test 1"
+    int "Number of bytes"
     depends on LARGE_PACKET_PS_TEST_1
 
   choice LARGE_PACKET_PS_TEST_1_MODE
-    prompt "Mode for PS Test 1"
+    prompt "PS Mode"
     depends on LARGE_PACKET_PS_TEST_1 && LARGE_PACKET_PS_TEST_1_PS_ENABLED
     config LARGE_PACKET_PS_TEST_1_MODE_LEGACY
       bool "Legacy"
@@ -376,7 +382,7 @@ config LARGE_PACKET_TESTS_ENABLE
   endchoice
 
   choice LARGE_PACKET_PS_TEST_1_WAKEUP_MODE
-    prompt "Wakeup mode for PS Test 1"
+    prompt "Wakeup mode"
     depends on LARGE_PACKET_PS_TEST_1 && LARGE_PACKET_PS_TEST_1_PS_ENABLED
     config LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_DTIM
       bool "DTIM"
@@ -385,31 +391,38 @@ config LARGE_PACKET_TESTS_ENABLE
   endchoice
 
   config LARGE_PACKET_PS_TEST_2
-    bool "Enable PS Test 2"
+    bool "Test 2"
     depends on LARGE_PACKET_PS_TESTS_ENABLE
 
-  config LARGE_PACKET_PS_TEST_2_SERVER_ECHO
-    bool "Server echos the data"
+  choice LARGE_PACKET_PS_TEST_2_SERVER_CONFIG
+    prompt "Large Packets Config"
     depends on LARGE_PACKET_PS_TEST_2 && COAP_TWT_TESTBENCH_SERVER
+    config LARGE_PACKET_PS_TEST_2_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_PS_TEST_2_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_PS_TEST_2_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
 
   config LARGE_PACKET_PS_TEST_2_PS_ENABLED
-    bool "PS enabled for Test 2"
+    bool "PS enabled"
     depends on LARGE_PACKET_PS_TEST_2
 
   config LARGE_PACKET_PS_TEST_2_ITERATIONS
-    int "Iterations for PS Test 2"
+    int "Iterations"
     depends on LARGE_PACKET_PS_TEST_2
 
   config LARGE_PACKET_PS_TEST_2_SEND_INTERVAL
-    int "Send interval for PS Test 2 (ms)"
+    int "Send interval (ms)"
     depends on LARGE_PACKET_PS_TEST_2
 
   config LARGE_PACKET_PS_TEST_2_NUM_BYTES
-    int "Number of bytes for PS Test 2"
+    int "Number of bytes"
     depends on LARGE_PACKET_PS_TEST_2
 
   choice LARGE_PACKET_PS_TEST_2_MODE
-    prompt "Mode for PS Test 2"
+    prompt "PS Mode"
     depends on LARGE_PACKET_PS_TEST_2 && LARGE_PACKET_PS_TEST_2_PS_ENABLED
     config LARGE_PACKET_PS_TEST_2_MODE_LEGACY
       bool "Legacy"
@@ -418,7 +431,7 @@ config LARGE_PACKET_TESTS_ENABLE
   endchoice
 
   choice LARGE_PACKET_PS_TEST_2_WAKEUP_MODE
-    prompt "Wakeup mode for PS Test 2"
+    prompt "Wakeup mode"
     depends on LARGE_PACKET_PS_TEST_2 && LARGE_PACKET_PS_TEST_2_PS_ENABLED
     config LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_DTIM
       bool "DTIM"
@@ -426,49 +439,56 @@ config LARGE_PACKET_TESTS_ENABLE
       bool "Listen Interval"
   endchoice
 
-  config LARGE_PACKET_TWT_TESTS_ENABLE
-    bool "Enable TWT tests"
-    depends on LARGE_PACKET_TESTS_ENABLE
+  config LARGE_PACKET_PS_TEST_3
+    bool "Test 3"
+    depends on LARGE_PACKET_PS_TESTS_ENABLE
 
-  config LARGE_PACKET_TWT_TEST_1
-    bool "Enable TWT Test 1"
-    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+  choice LARGE_PACKET_PS_TEST_3_SERVER_CONFIG
+    prompt "Large Packets Config"
+    depends on LARGE_PACKET_PS_TEST_3 && COAP_TWT_TESTBENCH_SERVER
+    config LARGE_PACKET_PS_TEST_3_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_PS_TEST_3_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_PS_TEST_3_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
 
-  config LARGE_PACKET_TWT_TEST_1_ITERATIONS
-    int "Iterations for TWT Test 1"
-    depends on LARGE_PACKET_TWT_TEST_1
+  config LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    bool "PS enabled"
+    depends on LARGE_PACKET_PS_TEST_3
 
-  config LARGE_PACKET_TWT_TEST_1_INTERVAL
-    int "TWT interval for Test 1 (ms)"
-    depends on LARGE_PACKET_TWT_TEST_1
+  config LARGE_PACKET_PS_TEST_3_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_PS_TEST_3
 
-  config LARGE_PACKET_TWT_TEST_1_SESSION_DURATION
-    int "TWT session duration for Test 1 (ms)"
-    depends on LARGE_PACKET_TWT_TEST_1
+  config LARGE_PACKET_PS_TEST_3_SEND_INTERVAL
+    int "Send interval (ms)"
+    depends on LARGE_PACKET_PS_TEST_3
 
-  config LARGE_PACKET_TWT_TEST_1_NUM_BYTES
-    int "Number of bytes for TWT Test 1"
-    depends on LARGE_PACKET_TWT_TEST_1
+  config LARGE_PACKET_PS_TEST_3_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_PS_TEST_3
 
-  config LARGE_PACKET_TWT_TEST_2
-    bool "Enable TWT Test 2"
-    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+  choice LARGE_PACKET_PS_TEST_3_MODE
+    prompt "PS Mode"
+    depends on LARGE_PACKET_PS_TEST_3 && LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_3_MODE_LEGACY
+      bool "Legacy"
+    config LARGE_PACKET_PS_TEST_3_MODE_WMM
+      bool "WMM"
+  endchoice
 
-  config LARGE_PACKET_TWT_TEST_2_ITERATIONS
-    int "Iterations for TWT Test 2"
-    depends on LARGE_PACKET_TWT_TEST_2
+  choice LARGE_PACKET_PS_TEST_3_WAKEUP_MODE
+    prompt "Wakeup mode"
+    depends on LARGE_PACKET_PS_TEST_3 && LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_DTIM
+      bool "DTIM"
+    config LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+      bool "Listen Interval"
+  endchoice
 
-  config LARGE_PACKET_TWT_TEST_2_INTERVAL
-    int "TWT interval for Test 2 (ms)"
-    depends on LARGE_PACKET_TWT_TEST_2
-
-  config LARGE_PACKET_TWT_TEST_2_SESSION_DURATION
-    int "TWT session duration for Test 2 (ms)"
-    depends on LARGE_PACKET_TWT_TEST_2
-
-  config LARGE_PACKET_TWT_TEST_2_NUM_BYTES
-    int "Number of bytes for TWT Test 2"
-    depends on LARGE_PACKET_TWT_TEST_2
+  
 
 endmenu
 

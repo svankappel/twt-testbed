@@ -31,6 +31,7 @@
         "stdio.h": "c",
         "initializer_list": "c",
         "compare": "c",
-        "test_sensor_ps.h": "c"
+        "test_sensor_ps.h": "c",
+        "test_large_packet_ps.h": "c"
     }
 }
