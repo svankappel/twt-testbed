@@ -1,9 +1,9 @@
 #ifndef CONFIG_COAP_TWT_TESTBENCH_SERVER
 
-#include "test_large_upload_ps.h"
+#include "test_large_packet_ps.h"
 
 #include <zephyr/kernel.h>
-#include <zephyr/random/rand32.h>
+#include <zephyr/random/random.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
 
@@ -11,7 +11,7 @@
 #include "wifi_ps.h"
 #include "coap.h"
 #include "profiler.h"
-LOG_MODULE_REGISTER(test_large_upload_ps, CONFIG_MY_TEST_LOG_LEVEL);
+LOG_MODULE_REGISTER(test_large_packet_ps, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 32768    //increase stack size if tests stack overflows
 #define PRIORITY -2         //non preemptive priority
@@ -20,7 +20,7 @@ static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 static void handle_timer_event();
 static K_TIMER_DEFINE(send_timer, handle_timer_event, NULL);
 
-static struct test_large_upload_ps_settings test_settings;
+static struct test_large_packet_ps_settings test_settings;
 
 static K_SEM_DEFINE(end_sem, 0, 1);
 static K_SEM_DEFINE(timer_event_sem, 0, 1);
@@ -62,7 +62,7 @@ static void print_test_results(struct test_control *control) {
     // Print the results
     LOG_INF("\n\n"
             "================================================================================\n"
-            "=                        TEST RESULTS - LARGE UPLOAD PS                        =\n"
+            "=                        TEST RESULTS - LARGE PACKET PS                        =\n"
             "================================================================================\n"
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
@@ -293,7 +293,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 }
 
 // Function to initialize the test
-void test_large_upload_ps(struct k_sem *sem, void * test_settings) {
+void test_large_packet_ps(struct k_sem *sem, void * test_settings) {
     
     struct k_thread thread_data;
 

@@ -3,7 +3,7 @@
 #include "test_sensor_ps.h"
 #include "test_sensor_twt.h"
 
-#include "test_large_upload_ps.h"
+#include "test_large_packet_ps.h"
 
 K_SEM_DEFINE(test_sem, 0, 1);
 
@@ -221,82 +221,82 @@ test_sensor_twt(&test_sem, &test_settings_5);
 #endif //CONFIG_SENSOR_TESTS_ENABLE
 
 
-//large upload tests
-#ifdef CONFIG_LARGE_UPLOAD_TESTS_ENABLE
+//large packet tests
+#ifdef CONFIG_LARGE_PACKET_TESTS_ENABLE
 
 //PS Tests
 {
-    #ifdef CONFIG_LARGE_UPLOAD_PS_TESTS_ENABLE
+    #ifdef CONFIG_LARGE_PACKET_PS_TESTS_ENABLE
 
-    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_1
-    struct test_large_upload_ps_settings test_settings_1 = {
-                    .iterations = CONFIG_LARGE_UPLOAD_PS_TEST_1_ITERATIONS,
-                    .send_interval = CONFIG_LARGE_UPLOAD_PS_TEST_1_SEND_INTERVAL,
+    #ifdef CONFIG_LARGE_PACKET_PS_TEST_1
+    struct test_large_packet_ps_settings test_settings_1 = {
+                    .iterations = CONFIG_LARGE_PACKET_PS_TEST_1_ITERATIONS,
+                    .send_interval = CONFIG_LARGE_PACKET_PS_TEST_1_SEND_INTERVAL,
                     .test_id = 1,
-                    .bytes = CONFIG_LARGE_UPLOAD_PS_TEST_1_NUM_BYTES,
+                    .bytes = CONFIG_LARGE_PACKET_PS_TEST_1_NUM_BYTES,
 
-                    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_1_SERVER_ECHO
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_ECHO
                     .server_echo = true,
                     #else
                     .server_echo = false,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_1_SERVER_ECHO
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_ECHO
 
-                    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_1_PS_ENABLED
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_PS_ENABLED
                     .ps_enabled = PS_MODE_ENABLED,
                     #else
                     .ps_enabled = PS_MODE_DISABLED,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_1_PS_ENABLED
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_1_PS_ENABLED
 
-                    #ifndef CONFIG_LARGE_UPLOAD_PS_TEST_1_MODE_WMM
+                    #ifndef CONFIG_LARGE_PACKET_PS_TEST_1_MODE_WMM
                     .ps_mode = PS_MODE_LEGACY,
                     #else
                     .ps_mode = PS_MODE_WMM,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_1_MODE_WMM
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_1_MODE_WMM
 
-                    #ifndef CONFIG_LARGE_UPLOAD_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+                    #ifndef CONFIG_LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
                     .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
                     #else
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_large_upload_ps(&test_sem, &test_settings_1);
-    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_1
+    test_large_packet_ps(&test_sem, &test_settings_1);
+    #endif //CONFIG_LARGE_PACKET_PS_TEST_1
 
-    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_2
-    struct test_large_upload_ps_settings test_settings_2 = {
-                    .iterations = CONFIG_LARGE_UPLOAD_PS_TEST_2_ITERATIONS,
-                    .send_interval = CONFIG_LARGE_UPLOAD_PS_TEST_2_SEND_INTERVAL,
+    #ifdef CONFIG_LARGE_PACKET_PS_TEST_2
+    struct test_large_packet_ps_settings test_settings_2 = {
+                    .iterations = CONFIG_LARGE_PACKET_PS_TEST_2_ITERATIONS,
+                    .send_interval = CONFIG_LARGE_PACKET_PS_TEST_2_SEND_INTERVAL,
                     .test_id = 2,
-                    .bytes = CONFIG_LARGE_UPLOAD_PS_TEST_2_NUM_BYTES,
+                    .bytes = CONFIG_LARGE_PACKET_PS_TEST_2_NUM_BYTES,
 
-                    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_2_SERVER_ECHO
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_ECHO
                     .server_echo = true,
                     #else
                     .server_echo = false,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_2_SERVER_ECHO
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_ECHO
 
-                    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_2_PS_ENABLED
+                    #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_PS_ENABLED
                     .ps_enabled = PS_MODE_ENABLED,
                     #else
                     .ps_enabled = PS_MODE_DISABLED,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_2_PS_ENABLED
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_2_PS_ENABLED
 
-                    #ifndef CONFIG_LARGE_UPLOAD_PS_TEST_2_MODE_WMM
+                    #ifndef CONFIG_LARGE_PACKET_PS_TEST_2_MODE_WMM
                     .ps_mode = PS_MODE_LEGACY,
                     #else
                     .ps_mode = PS_MODE_WMM,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_2_MODE_WMM
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_2_MODE_WMM
 
-                    #ifndef CONFIG_LARGE_UPLOAD_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+                    #ifndef CONFIG_LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
                     .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
                     #else
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
-                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+                    #endif //CONFIG_LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_large_upload_ps(&test_sem, &test_settings_2);
-    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_2
+    test_large_packet_ps(&test_sem, &test_settings_2);
+    #endif //CONFIG_LARGE_PACKET_PS_TEST_2
 
-    #endif //CONFIG_LARGE_UPLOAD_PS_TESTS_ENABLE
+    #endif //CONFIG_LARGE_PACKET_PS_TESTS_ENABLE
 }
 
 //TWT Tests

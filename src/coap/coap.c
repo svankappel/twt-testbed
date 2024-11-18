@@ -294,6 +294,7 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 	struct coap_client_request* req = alloc_coap_request(resource_len, strlen(payload)+1);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
+
 	req->method = COAP_METHOD_PUT;
 	req->confirmable = true;
 	strncpy((char*)req->path,resource,resource_len);
