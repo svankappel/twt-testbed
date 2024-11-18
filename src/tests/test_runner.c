@@ -235,6 +235,12 @@ test_sensor_twt(&test_sem, &test_settings_5);
                     .test_id = 1,
                     .bytes = CONFIG_LARGE_UPLOAD_PS_TEST_1_NUM_BYTES,
 
+                    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_1_SERVER_ECHO
+                    .server_echo = true,
+                    #else
+                    .server_echo = false,
+                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_1_SERVER_ECHO
+
                     #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_1_PS_ENABLED
                     .ps_enabled = PS_MODE_ENABLED,
                     #else
@@ -262,6 +268,12 @@ test_sensor_twt(&test_sem, &test_settings_5);
                     .send_interval = CONFIG_LARGE_UPLOAD_PS_TEST_2_SEND_INTERVAL,
                     .test_id = 2,
                     .bytes = CONFIG_LARGE_UPLOAD_PS_TEST_2_NUM_BYTES,
+
+                    #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_2_SERVER_ECHO
+                    .server_echo = true,
+                    #else
+                    .server_echo = false,
+                    #endif //CONFIG_LARGE_UPLOAD_PS_TEST_2_SERVER_ECHO
 
                     #ifdef CONFIG_LARGE_UPLOAD_PS_TEST_2_PS_ENABLED
                     .ps_enabled = PS_MODE_ENABLED,

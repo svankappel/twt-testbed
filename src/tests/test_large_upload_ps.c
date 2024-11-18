@@ -212,7 +212,12 @@ static void run_test(struct test_control * control)
 
         if(control->iter < test_settings.iterations){
             sprintf(buf, "/%06d/%s/largeupload/", control->iter++,random_data);
-            ret = coap_put("test", buf, test_settings.send_interval+1000);
+            if(test_settings.server_echo){
+                ret = coap_put("largeuploadecho", buf, test_settings.send_interval+1000);
+            }else{
+                ret = coap_put("largeuploadack", buf, test_settings.send_interval+1000);
+            }
+            
             if(ret == 0){
                 control->sent++;
             } else if(ret == -11){

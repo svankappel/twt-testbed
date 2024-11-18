@@ -17,6 +17,7 @@ void test_large_upload_ps(struct k_sem *sem, void * test_settings);
 struct test_large_upload_ps_settings {
     uint32_t send_interval;
     uint8_t test_id;
+    bool server_echo;
     uint32_t bytes;
     uint32_t iterations;
     uint8_t ps_enabled;

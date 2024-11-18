@@ -188,7 +188,7 @@ static void run_test(struct test_control * control)
 
         if(control->iter < test_settings.iterations){
             sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            ret = coap_put("test", buf, test_settings.twt_interval+1000);
+            ret = coap_put("sensor", buf, test_settings.twt_interval+1000);
             if(ret == 0){
                 control->sent++;
             } else if(ret == -11){
