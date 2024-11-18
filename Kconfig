@@ -488,6 +488,103 @@ config LARGE_PACKET_TESTS_ENABLE
       bool "Listen Interval"
   endchoice
 
+  config LARGE_PACKET_TWT_TESTS_ENABLE
+    bool "TWT"
+    depends on LARGE_PACKET_TESTS_ENABLE
+
+  config LARGE_PACKET_TWT_TEST_1
+    bool "Test 1"
+    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+
+  choice LARGE_PACKET_TWT_TEST_1_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_TWT_TEST_1 && COAP_TWT_TESTBENCH_SERVER
+    config LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_TWT_TEST_1_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_1_INTERVAL
+    int "TWT interval (ms)"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_1_SESSION_DURATION
+    int "TWT session duration (ms)"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_1_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_2
+    bool "Test 2"
+    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+
+  choice LARGE_PACKET_TWT_TEST_2_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_TWT_TEST_2 && COAP_TWT_TESTBENCH_SERVER
+    config LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_TWT_TEST_2_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_2_INTERVAL
+    int "TWT interval (ms)"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_2_SESSION_DURATION
+    int "TWT session duration (ms)"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_2_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_3
+    bool "Test 3"
+    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+
+  choice LARGE_PACKET_TWT_TEST_3_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_TWT_TEST_3 && COAP_TWT_TESTBENCH_SERVER
+    config LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_TWT_TEST_3_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  config LARGE_PACKET_TWT_TEST_3_INTERVAL
+    int "TWT interval (ms)"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  config LARGE_PACKET_TWT_TEST_3_SESSION_DURATION
+    int "TWT session duration (ms)"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  config LARGE_PACKET_TWT_TEST_3_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_TWT_TEST_3
+
   
 
 endmenu

@@ -1,29 +1,29 @@
 #ifndef CONFIG_COAP_TWT_TESTBENCH_SERVER
 
-#include "test_large_packet_ps.h"
+#include "test_large_packet_twt.h"
 
 #include <zephyr/kernel.h>
-#include <zephyr/random/random.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
+#include <zephyr/random/random.h>
 
 #include "wifi_sta.h"
 #include "wifi_ps.h"
+#include "wifi_twt.h"
 #include "coap.h"
 #include "profiler.h"
-LOG_MODULE_REGISTER(test_large_packet_ps, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 32768    //increase stack size if tests stack overflows
+LOG_MODULE_REGISTER(test_large_packet_twt, CONFIG_MY_TEST_LOG_LEVEL);
+
+#define STACK_SIZE 32768
 #define PRIORITY -2         //non preemptive priority
 static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
-static void handle_timer_event();
-static K_TIMER_DEFINE(send_timer, handle_timer_event, NULL);
 
-static struct test_large_packet_ps_settings test_settings;
+static struct test_large_packet_twt_settings test_settings;
 
 static K_SEM_DEFINE(end_sem, 0, 1);
-static K_SEM_DEFINE(timer_event_sem, 0, 1);
+static K_SEM_DEFINE(wake_ahead_sem, 0, 1);
 
 static bool test_failed = false;
 
@@ -62,7 +62,7 @@ static void print_test_results(struct test_control *control) {
     // Print the results
     LOG_INF("\n\n"
             "================================================================================\n"
-            "=                        TEST RESULTS - LARGE PACKET PS                        =\n"
+            "=                       TEST RESULTS - Large Packet TWT                        =\n"
             "================================================================================\n"
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
@@ -70,16 +70,14 @@ static void print_test_results(struct test_control *control) {
             "=  Iterations:                            %6d                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Request size (bytes):                  %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Power Save:                          %s                               =\n"
-            "=  Mode:                                  %s                               =\n"
-            "=  Wake-Up mode:                 %s                               =\n"
-            "=  Listen Interval:                       %6d                               =\n"
+            "=------------------------------------------------------------------------------=\n"
+            "=  Negotiated TWT Interval:               %6d s                             =\n"
+            "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
             "================================================================================\n"
             "=  Stats                                                                       =\n"
             "================================================================================\n"
             "=  Requests sent:                         %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
+            "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "=  Request timed-out:                     %6d                               =\n"
             "================================================================================\n"
@@ -93,10 +91,8 @@ static void print_test_results(struct test_control *control) {
             test_settings.test_id,
             control->iter,
             test_settings.bytes,
-            test_settings.ps_enabled ? " Enabled" : "Disabled",
-            test_settings.ps_mode ? "   WMM" : "Legacy",
-            test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
-            CONFIG_PS_LISTEN_INTERVAL,
+            wifi_twt_get_interval_ms() / 1000,
+            wifi_twt_get_wake_interval_ms(),
             control->sent,
             control->recv_resp,
             control->recv_err,
@@ -108,12 +104,11 @@ static void print_test_results(struct test_control *control) {
 
 
 //--------------------------------------------------------------------     
-// Callback function to handle timer event
+// Callback function to handle TWT session wake ahead event
 //--------------------------------------------------------------------
-static void handle_timer_event()
+static void handle_twt_event()
 {
-    k_timer_start(&send_timer, K_MSEC(test_settings.send_interval), K_NO_WAIT);
-    k_sem_give(&timer_event_sem);
+    k_sem_give(&wake_ahead_sem);
 }
 
 //--------------------------------------------------------------------     
@@ -122,8 +117,9 @@ static void handle_timer_event()
 static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
+
     test_failed = true;
-    k_sem_give(&timer_event_sem);
+    k_sem_give(&wake_ahead_sem);
     k_sem_give(&end_sem);
 }
 
@@ -135,6 +131,7 @@ static void handle_coap_response(int16_t code, void * user_data)
     if(test_failed){
         return;
     }
+
     struct test_control * control = (struct test_control *)user_data;
 
     control->received++;
@@ -156,23 +153,15 @@ static void handle_coap_response(int16_t code, void * user_data)
 //--------------------------------------------------------------------
 static void configure_ps()
 {
-    if(test_settings.ps_mode == PS_MODE_LEGACY){
-        wifi_ps_mode_legacy();
-    }else{
-        wifi_ps_mode_wmm();
-    }
+    
+}
 
-    if(test_settings.ps_wakeup_mode == PS_WAKEUP_MODE_DTIM){
-        wifi_ps_wakeup_dtim();
-    }else{
-        wifi_ps_wakeup_listen_interval();
-    }
-
-    if(test_settings.ps_enabled == PS_MODE_ENABLED){
-        wifi_ps_enable();
-    }else{
-        wifi_ps_disable();
-    }
+//--------------------------------------------------------------------
+// Function to configure TWT (Target Wake Time)
+//--------------------------------------------------------------------
+static void configure_twt()
+{
+    wifi_twt_setup(test_settings.twt_wake_interval, test_settings.twt_interval);
 }
 
 //--------------------------------------------------------------------
@@ -180,23 +169,18 @@ static void configure_ps()
 //--------------------------------------------------------------------
 static void run_test(struct test_control * control)
 {
-    k_timer_start(&send_timer, K_MSEC(test_settings.send_interval), K_NO_WAIT);
-
-    char buf[test_settings.bytes+20];
-
     while(true){
-        k_sem_take(&timer_event_sem, K_FOREVER);
-
+        k_sem_take(&wake_ahead_sem, K_FOREVER);
+   
         if(test_failed){
             k_sleep(K_SECONDS(10));
             break;
         }
 
-        
         int ret;
 
         if(control->iter < test_settings.iterations){
-            
+
             // Generate an array with random chars
             char random_data[test_settings.bytes-21];
             for (int i = 0; i < test_settings.bytes-21; i++) {
@@ -206,11 +190,12 @@ static void run_test(struct test_control * control)
                     random_data[i] = 'a' + (sys_rand32_get() % 26); // Random char
                 }
             }
+            char buf[test_settings.bytes+20];
 
             sprintf(buf, "/%06d/%s/largeupload/", control->iter++,random_data);
             
-            ret = coap_put(CONFIG_COAP_TEST_RESOURCE, buf, test_settings.send_interval+1000);
-            
+            ret = coap_put(CONFIG_COAP_TEST_RESOURCE, buf, test_settings.twt_interval+1000);
+
             if(ret == 0){
                 control->sent++;
             } else if(ret == -11){
@@ -264,6 +249,10 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     k_sleep(K_SECONDS(5));
 
+    // configure TWT
+    wifi_twt_register_event_callback(handle_twt_event,test_settings.wake_ahead_ms);
+    configure_twt(&test_settings);
+    LOG_DBG("TWT configured");
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
@@ -275,6 +264,12 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     if(!test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
+
+        // tear down TWT and disconnect from wifi
+        if(wifi_twt_is_enabled())
+        {
+            wifi_twt_teardown();
+        }
 
         k_sleep(K_SECONDS(2));
 
@@ -299,7 +294,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 }
 
 // Function to initialize the test
-void test_large_packet_ps(struct k_sem *sem, void * test_settings) {
+void test_large_packet_twt(struct k_sem *sem, void * test_settings) {
     
     struct k_thread thread_data;
 
@@ -319,4 +314,4 @@ void test_large_packet_ps(struct k_sem *sem, void * test_settings) {
 }
 
 
-#endif // CONFIG_COAP_TWT_TESTBENCH_SERVER
+#endif //CONFIG_COAP_TWT_TESTBENCH_SERVER

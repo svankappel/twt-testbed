@@ -2,6 +2,7 @@
 #define TEST_LARGE_PACKET_PS_H
 
 #include <zephyr/kernel.h>
+#include "test_global.h"
 
 #define PS_MODE_DISABLED 0
 #define PS_MODE_ENABLED 1
@@ -14,11 +15,6 @@
 
 void test_large_packet_ps(struct k_sem *sem, void * test_settings);
 
-enum large_packet_config {
-    LREQ_SRES,
-    SREQ_LRES,
-    LREQ_LRES
-};
 
 struct test_large_packet_ps_settings {
     uint32_t send_interval;

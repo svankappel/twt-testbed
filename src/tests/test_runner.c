@@ -4,6 +4,7 @@
 #include "test_sensor_twt.h"
 
 #include "test_large_packet_ps.h"
+#include "test_large_packet_twt.h"
 
 K_SEM_DEFINE(test_sem, 0, 1);
 
@@ -347,8 +348,75 @@ test_sensor_twt(&test_sem, &test_settings_5);
 
 //TWT Tests
 {
+    #ifdef CONFIG_LARGE_PACKET_TWT_TESTS_ENABLE
+
+    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_1
+    struct test_large_packet_twt_settings test_settings_1 = {
+                    .iterations = CONFIG_LARGE_PACKET_TWT_TEST_1_ITERATIONS,
+                    .twt_interval = CONFIG_LARGE_PACKET_TWT_TEST_1_INTERVAL,
+                    .twt_wake_interval = CONFIG_LARGE_PACKET_TWT_TEST_1_SESSION_DURATION,
+                    .test_id = 1,
+                    .wake_ahead_ms = 1000,
+                    .bytes = CONFIG_LARGE_PACKET_TWT_TEST_1_NUM_BYTES,
+                    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES 
+                    .large_packet_config = SREQ_LRES,
+                    #else
+                    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_LRES
+                    .large_packet_config = LREQ_LRES,
+                    #else
+                    .large_packet_config = LREQ_SRES,
+                    #endif //CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_LRES
+                    #endif //CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES
+    };
+    test_large_packet_twt(&test_sem, &test_settings_1);
+    #endif //CONFIG_LARGE_PACKET_TWT_TEST_1
+    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_2
+    struct test_large_packet_twt_settings test_settings_2 = {
+                    .iterations = CONFIG_LARGE_PACKET_TWT_TEST_2_ITERATIONS,
+                    .twt_interval = CONFIG_LARGE_PACKET_TWT_TEST_2_INTERVAL,
+                    .twt_wake_interval = CONFIG_LARGE_PACKET_TWT_TEST_2_SESSION_DURATION,
+                    .test_id = 2,
+                    .wake_ahead_ms = 1000,
+                    .bytes = CONFIG_LARGE_PACKET_TWT_TEST_2_NUM_BYTES,
+                    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES 
+                    .large_packet_config = SREQ_LRES,
+                    #else
+                    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_LRES
+                    .large_packet_config = LREQ_LRES,
+                    #else
+                    .large_packet_config = LREQ_SRES,
+                    #endif //CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_LRES
+                    #endif //CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES
+    };
+    test_large_packet_twt(&test_sem, &test_settings_2);
+    #endif //CONFIG_LARGE_PACKET_TWT_TEST_2
+
+    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_3
+    struct test_large_packet_twt_settings test_settings_3 = {
+                    .iterations = CONFIG_LARGE_PACKET_TWT_TEST_3_ITERATIONS,
+                    .twt_interval = CONFIG_LARGE_PACKET_TWT_TEST_3_INTERVAL,
+                    .twt_wake_interval = CONFIG_LARGE_PACKET_TWT_TEST_3_SESSION_DURATION,
+                    .test_id = 3,
+                    .wake_ahead_ms = 1000,
+                    .bytes = CONFIG_LARGE_PACKET_TWT_TEST_3_NUM_BYTES,
+                    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES 
+                    .large_packet_config = SREQ_LRES,
+                    #else
+                    #ifdef CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_LRES
+                    .large_packet_config = LREQ_LRES,
+                    #else
+                    .large_packet_config = LREQ_SRES,
+                    #endif //CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_LRES
+                    #endif //CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES
+    };
+    test_large_packet_twt(&test_sem, &test_settings_3);
+    #endif //CONFIG_LARGE_PACKET_TWT_TEST_3
+
+
+    #endif //CONFIG_LARGE_PACKET_TWT_TESTS_ENABLE
+
 }
 
-#endif //CONFIG_SENSOR_TESTS_ENABLE
+#endif //CONFIG_LARGE_PACKET_TESTS_ENABLE
 
 }
