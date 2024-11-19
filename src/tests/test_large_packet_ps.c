@@ -203,7 +203,7 @@ static void run_test(struct test_control * control)
             break;
         }
 
-        int ret;
+        int ret=0;
 
         if(control->iter < test_settings.iterations){
 

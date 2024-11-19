@@ -33,6 +33,8 @@
         "compare": "c",
         "test_sensor_ps.h": "c",
         "test_large_packet_ps.h": "c",
-        "test_large_packet_twt.h": "c"
+        "test_large_packet_twt.h": "c",
+        "log_ctrl.h": "c",
+        "test_global.h": "c"
     }
 }

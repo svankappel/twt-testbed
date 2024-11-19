@@ -62,7 +62,7 @@ static void print_test_results(struct test_control *control) {
     // Print the results
     LOG_INF("\n\n"
             "================================================================================\n"
-            "=                       TEST RESULTS - Large Packet TWT                        =\n"
+            "=                       TEST RESULTS - LARGE PACKET TWT                        =\n"
             "================================================================================\n"
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
@@ -177,7 +177,7 @@ static void run_test(struct test_control * control)
             break;
         }
 
-        int ret;
+        int ret=0;
 
         if(control->iter < test_settings.iterations){
 
