@@ -1,4 +1,4 @@
-#ifndef CONFIG_COAP_TWT_TESTBENCH_SERVER
+#ifndef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_large_packet_twt.h"
 
@@ -314,4 +314,4 @@ void test_large_packet_twt(struct k_sem *sem, void * test_settings) {
 }
 
 
-#endif //CONFIG_COAP_TWT_TESTBENCH_SERVER
+#endif //CONFIG_COAP_TWT_TESTBED_SERVER

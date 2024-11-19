@@ -6,7 +6,7 @@
 
 menu "CoAP client"
 
-config COAP_TWT_TESTBENCH_SERVER
+config COAP_TWT_TESTBED_SERVER
   bool "Using TWT testbench server"
 
 config COAP_TEST_SERVER_HOSTNAME
@@ -16,7 +16,7 @@ config COAP_TEST_SERVER_PORT
 	int "CoAP server port"
 
 config COAP_TEST_RESOURCE
-  depends on !COAP_TWT_TESTBENCH_SERVER
+  depends on !COAP_TWT_TESTBED_SERVER
   string "Resource on server for the tests"
 
 
@@ -347,7 +347,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_1_SERVER_CONFIG
     prompt "Large Packet Config"
-    depends on LARGE_PACKET_PS_TEST_1 && COAP_TWT_TESTBENCH_SERVER
+    depends on LARGE_PACKET_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
     config LARGE_PACKET_PS_TEST_1_SERVER_LREQ_SRES
       bool "Large request, small response"
     config LARGE_PACKET_PS_TEST_1_SERVER_SREQ_LRES
@@ -396,7 +396,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_2_SERVER_CONFIG
     prompt "Large Packets Config"
-    depends on LARGE_PACKET_PS_TEST_2 && COAP_TWT_TESTBENCH_SERVER
+    depends on LARGE_PACKET_PS_TEST_2 && COAP_TWT_TESTBED_SERVER
     config LARGE_PACKET_PS_TEST_2_SERVER_LREQ_SRES
       bool "Large request, small response"
     config LARGE_PACKET_PS_TEST_2_SERVER_SREQ_LRES
@@ -445,7 +445,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_3_SERVER_CONFIG
     prompt "Large Packets Config"
-    depends on LARGE_PACKET_PS_TEST_3 && COAP_TWT_TESTBENCH_SERVER
+    depends on LARGE_PACKET_PS_TEST_3 && COAP_TWT_TESTBED_SERVER
     config LARGE_PACKET_PS_TEST_3_SERVER_LREQ_SRES
       bool "Large request, small response"
     config LARGE_PACKET_PS_TEST_3_SERVER_SREQ_LRES
@@ -498,7 +498,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_TWT_TEST_1_SERVER_CONFIG
     prompt "Large Packet Config"
-    depends on LARGE_PACKET_TWT_TEST_1 && COAP_TWT_TESTBENCH_SERVER
+    depends on LARGE_PACKET_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
     config LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_SRES
       bool "Large request, small response"
     config LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES
@@ -529,7 +529,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_TWT_TEST_2_SERVER_CONFIG
     prompt "Large Packet Config"
-    depends on LARGE_PACKET_TWT_TEST_2 && COAP_TWT_TESTBENCH_SERVER
+    depends on LARGE_PACKET_TWT_TEST_2 && COAP_TWT_TESTBED_SERVER
     config LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_SRES
       bool "Large request, small response"
     config LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES
@@ -560,7 +560,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_TWT_TEST_3_SERVER_CONFIG
     prompt "Large Packet Config"
-    depends on LARGE_PACKET_TWT_TEST_3 && COAP_TWT_TESTBENCH_SERVER
+    depends on LARGE_PACKET_TWT_TEST_3 && COAP_TWT_TESTBED_SERVER
     config LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_SRES
       bool "Large request, small response"
     config LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES

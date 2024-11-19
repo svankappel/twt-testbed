@@ -30,7 +30,7 @@ int main(void)
 {
     int ret;
 
-    LOG_INF("Starting TWT testbench ...");
+    LOG_INF("Starting TWT testbed ...");
 
     // initialize setup
     ret = profiler_init();
@@ -68,14 +68,14 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
  
-    #ifdef CONFIG_COAP_TWT_TESTBENCH_SERVER
+    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
     ret = coap_validate();
     if(ret != 0)
     {
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-    #endif //CONFIG_COAP_TWT_TESTBENCH_SERVER
+    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
     ret = wifi_disconnect();
     if(ret != 0)
@@ -86,7 +86,7 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
 
-    LOG_INF("TWT testbench initialized. Running tests ...");
+    LOG_INF("TWT testbed initialized. Running tests ...");
 
     //run tests
 
