@@ -1,3 +1,10 @@
+/**
+ * @file wifi_ps.h
+ * @brief Wi-Fi Power Save Mode 
+ *
+ * This header file provides functions for configuring Wi-Fi power save modes.
+ */
+
 #include "wifi_ps.h"
 
 #include <nrfx_clock.h>
@@ -17,6 +24,9 @@
 #include <net/wifi_ready.h>
 
 LOG_MODULE_REGISTER(wifi_ps, CONFIG_MY_WIFI_LOG_LEVEL);
+
+
+
 
 int wifi_ps_mode_legacy()
 {

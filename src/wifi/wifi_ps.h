@@ -1,8 +1,8 @@
 /**
  * @file wifi_ps.h
- * @brief Wi-Fi Power Save Mode API
+ * @brief Wi-Fi Power Save Mode 
  *
- * This header file provides the API for configuring Wi-Fi power save modes.
+ * This header file provides functions for configuring Wi-Fi power save modes.
  */
 #ifndef WIFI_PS_H
 #define WIFI_PS_H

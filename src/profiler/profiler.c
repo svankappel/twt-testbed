@@ -11,20 +11,6 @@
  *
  * @note The GPIO pins are configured as output and set to inactive state
  *       during initialization.
- *
- * Functions:
- * - int profiler_init(): Initialize the GPIO pins.
- * - void profiler_ch0_set(): Set GPIO channel 0.
- * - void profiler_ch0_clear(): Clear GPIO channel 0.
- * - void profiler_ch1_set(): Set GPIO channel 1.
- * - void profiler_ch1_clear(): Clear GPIO channel 1.
- * - void profiler_ch2_set(): Set GPIO channel 2.
- * - void profiler_ch2_clear(): Clear GPIO channel 2.
- * - void profiler_ch3_set(): Set GPIO channel 3.
- * - void profiler_ch3_clear(): Clear GPIO channel 3.
- * - void profiler_output_binary(int value): Output a binary value to the GPIO channels.
- * - void profiler_all_clear(): Clear all GPIO channels.
- * - void profiler_all_set(): Set all GPIO channels.
  */
 #include "profiler.h"
 

@@ -49,11 +49,7 @@ static struct {
 	};
 } context;
 
-/**
- * @brief Handle WiFi connection result events
- *
- * @param cb Pointer to the net_mgmt_event_callback structure
- */
+
 static void handle_wifi_connect_result(struct net_mgmt_event_callback *cb)
 {
 	// set the connection status
@@ -63,34 +59,27 @@ static void handle_wifi_connect_result(struct net_mgmt_event_callback *cb)
 	k_sem_give(&connect_sem);
 }
 
-/**
- * @brief Handle WiFi disconnection result events
- *
- * @param cb Pointer to the net_mgmt_event_callback structure
- */
+
 static void handle_wifi_disconnect_result(struct net_mgmt_event_callback *cb)
 {
 	// Check if the disconnection was requested or not
 	if (context.disconnect_requested) {
 		context.disconnect_requested = false;
+		context.connected = false;
+		
+		//give semaphore to return from the disconnect function
+		k_sem_give(&disconnect_sem);
+
 	} else {
 		LOG_WRN("Received Disconnected");
 		if (wifi_disconnected_cb) {
 			wifi_disconnected_cb();
 		}
+		context.connected = false;
 	}
-	context.connected = false;
-
-	k_sem_give(&disconnect_sem);
 }
 
-/**
- * @brief Handle WiFi management events
- *
- * @param cb Pointer to the net_mgmt_event_callback structure
- * @param mgmt_event Management event type
- * @param iface Pointer to the network interface
- */
+
 static void wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event, struct net_if *iface)
 {
 	// Handle WiFi connection and disconnection events

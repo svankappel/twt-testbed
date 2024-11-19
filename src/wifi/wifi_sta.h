@@ -1,10 +1,10 @@
-/**
- * @file wifi_sta.h
- * @brief Header file for WiFi station initialization.
- *
- * This file contains the declaration for the WiFi station initialization function.
- */
 
+/**
+ * @file
+ * @brief WiFi station mode header file.
+ *
+ * This file contains the functions to connect and disconnect from a WiFi network.
+ */
 
 #ifndef WIFI_STA_H
 #define WIFI_STA_H

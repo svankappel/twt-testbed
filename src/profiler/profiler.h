@@ -1,9 +1,16 @@
 /**
- * @file profiler.h
- * @brief Header file for profiler functions.
+ * @file profiler.c
+ * @brief Profiler module for GPIO control.
  *
- * This file contains the declarations for functions to set and clear
- * profiler.
+ * This module provides functions to initialize and control GPIO pins
+ * for profiling purposes. It includes functions to set, clear, and
+ * output binary values to the GPIO pins.
+ *
+ * The GPIO pins are configured based on the device tree specifications.
+ * The module supports four GPIO channels.
+ *
+ * @note The GPIO pins are configured as output and set to inactive state
+ *       during initialization.
  */
 #ifndef PROFILER_H
 #define PROFILER_H
