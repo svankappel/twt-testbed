@@ -15,7 +15,10 @@ target_include_directories(app PRIVATE
 target_sources(app PRIVATE src/main.c)
 
 # CoAP module
-target_sources(app PRIVATE src/coap/coap.c)
+target_sources(app PRIVATE 
+    src/coap/coap.c
+    src/coap/coap_utils.c
+    )
 
 # Profiler module
 target_sources(app PRIVATE src/profiler/profiler.c)
