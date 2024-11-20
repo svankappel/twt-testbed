@@ -7,7 +7,7 @@
 menu "CoAP client"
 
 config COAP_TWT_TESTBED_SERVER
-  bool "Using TWT testbench server"
+  bool "Using TWT testbed server"
 
 config COAP_TEST_SERVER_HOSTNAME
 	string "CoAP server hostname or address"
