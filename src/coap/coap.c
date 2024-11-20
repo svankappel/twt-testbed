@@ -174,6 +174,7 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 		LOG_ERR("Failed to retrieve return value from message queue");
 		return -ENOEXEC;
 	}
+
 	return ret;
 }
 
@@ -217,6 +218,43 @@ int coap_observe(char *resource,uint8_t *payload, bool start_observe)
 		LOG_ERR("Failed to retrieve return value from message queue");
 		return -ENOEXEC;
 	}
+
+	//test
+	k_sleep(K_SECONDS(20));
+	req->method = COAP_METHOD_GET;
+	req->confirmable = true;
+	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	strcpy(req->payload,payload);
+	req->len = strlen(payload);
+	req->cb = observe_response_cb;
+	strncpy((char*)req->path, resource, resource_len);
+	req->options->code = COAP_OPTION_OBSERVE;
+	req->options->len = 1;
+	req->options->value[0] = start_observe ? 0 : 1 ;
+	req->num_options = 1;
+
+	req_params->ack_timeout = 1000;
+	req_params->coap_backoff_percent = 100;
+	req_params->max_retransmission = 5;
+
+	if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+        LOG_ERR("Failed to enqueue CoAP request");
+        free_coap_request(req->user_data);
+        return -ENOMEM;
+    }
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+
+
+	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
+		LOG_ERR("Failed to retrieve return value from message queue");
+		return -ENOEXEC;
+	}
+
+	//end test
+
+
 	return ret;
 }
 

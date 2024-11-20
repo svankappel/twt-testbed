@@ -64,11 +64,10 @@ int main(void)
 
     //test code
     coap_validate();
-    coap_observe("observe","10",true);
 
-    k_sleep(K_SECONDS(30));
+    k_sleep(K_SECONDS(10));
 
-    coap_observe("observe","test",false);
+    coap_observe("observe","/5/2/10/",true);
 
 
     k_sleep(K_FOREVER);
