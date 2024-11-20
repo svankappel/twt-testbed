@@ -69,6 +69,32 @@ static void put_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 	}
 }
 
+static void observe_response_cb(int16_t code, size_t offset, const uint8_t *payload,
+			size_t len, bool last_block, void *user_data)
+{
+	if (code >= 0) {
+		if(len==0){
+			LOG_INF("CoAP response: code: 0x%x", code);
+		}else if(len > 50){
+			char payl[51];
+			strncpy(payl,(const char *)payload,50);
+			payl[50]='\0';
+			LOG_INF("CoAP response: code: 0x%x, payload: %s...", code, payl);
+
+		}
+		else{
+			LOG_INF("CoAP response: code: 0x%x, payload: %s", code, payload);
+		}
+	} else {
+		LOG_INF("Error received with code: %d", code);
+	}
+	//free_coap_request(user_data);
+	if(coap_response_callback)
+	{
+		(*coap_response_callback)(code, coap_response_callback_user_data);
+	}
+}
+
 static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 			size_t len, bool last_block, void *user_data)
 {
@@ -115,7 +141,7 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 {
 	size_t resource_len = strlen(resource)+1;
 
-	struct coap_client_request* req = alloc_coap_request(resource_len, strlen(payload)+1);
+	struct coap_client_request* req = alloc_coap_request(resource_len, strlen(payload)+1,false);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
 
@@ -151,13 +177,56 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 	return ret;
 }
 
+int coap_observe(char *resource,uint8_t *payload, bool start_observe)
+{
+
+	size_t resource_len = strlen(resource)+1;
+
+	struct coap_client_request* req = alloc_coap_request(resource_len, strlen(payload)+1,true);
+	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
+
+ 
+	req->method = COAP_METHOD_GET;
+	req->confirmable = true;
+	req->fmt = COAP_CONTENT_FORMAT_TEXT_PLAIN;
+	strcpy(req->payload,payload);
+	req->len = strlen(payload);
+	req->cb = observe_response_cb;
+	strncpy((char*)req->path, resource, resource_len);
+	req->options->code = COAP_OPTION_OBSERVE;
+	req->options->len = 1;
+	req->options->value[0] = start_observe ? 0 : 1 ;
+	req->num_options = 1;
+
+	req_params->ack_timeout = 1000;
+	req_params->coap_backoff_percent = 100;
+	req_params->max_retransmission = 5;
+
+    if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
+        LOG_ERR("Failed to enqueue CoAP request");
+        free_coap_request(req->user_data);
+        return -ENOMEM;
+    }
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+
+	int ret;
+
+	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
+		LOG_ERR("Failed to retrieve return value from message queue");
+		return -ENOEXEC;
+	}
+	return ret;
+}
+
 
 int coap_validate()
 {
 	char *resource_path = "validate";
 	size_t resource_path_len = strlen(resource_path)+1;
 
-	struct coap_client_request* req = alloc_coap_request(resource_path_len, 0);
+	struct coap_client_request* req = alloc_coap_request(resource_path_len, 0,false);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
 	req->method = COAP_METHOD_GET;
@@ -202,7 +271,7 @@ int coap_get_stat()
 	char *resource_path = "stat";
 	size_t resource_path_len = strlen(resource_path)+1;
 
-	struct coap_client_request* req = alloc_coap_request(resource_path_len, 0);
+	struct coap_client_request* req = alloc_coap_request(resource_path_len, 0,false);
 	struct coap_transmission_parameters* req_params = ((struct request_user_data*)req->user_data)->req_params;
 
 	req->method = COAP_METHOD_GET;

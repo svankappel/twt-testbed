@@ -122,52 +122,69 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 }
 #endif // CONFIG_IP_PROTO_IPV6
 
-struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len) {
+struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len, bool is_observe) {
 	//allocate memory for the request
 	struct coap_client_request *req = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_client_request), K_NO_WAIT);
     if (!req) {
 		LOG_ERR("Failed to allocate memory for CoAP request");
+		return NULL;
     }
 
 	// allocate memory for the path
     req->path = k_heap_alloc(&coap_requests_heap, path_len, K_NO_WAIT);
     if (!req->path) {
-        k_heap_free(&coap_requests_heap, req);
+        free_coap_request(req);
 		LOG_ERR("Failed to allocate memory for CoAP request path");
+		return NULL;
     }
 
 	// allocate memory for the payload
     req->payload = k_heap_alloc(&coap_requests_heap, payload_len, K_NO_WAIT);
     if (!req->path) {
-		k_heap_free(&coap_requests_heap, (char*)req->path);
-        k_heap_free(&coap_requests_heap, req);
+		free_coap_request(req);
 		LOG_ERR("Failed to allocate memory for CoAP payload");
+		return NULL;
     }
 
+	//user data (request + transmission params)
 	req->user_data= k_heap_alloc(&coap_requests_heap, sizeof(struct request_user_data), K_NO_WAIT);
 	if (!req->user_data) {
-		k_heap_free(&coap_requests_heap, (char*)req->path);
-		k_heap_free(&coap_requests_heap, req->payload);
-		k_heap_free(&coap_requests_heap, req);
+		free_coap_request(req);
 		LOG_ERR("Failed to allocate memory for CoAP user data");
+		return NULL;
 	}
 	((struct request_user_data*)req->user_data)->req = req;
 
+	//transmission params
 	((struct request_user_data*)req->user_data)->req_params = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_transmission_parameters), K_NO_WAIT);
 	if (!((struct request_user_data*)req->user_data)->req_params) {
-		k_heap_free(&coap_requests_heap, req->user_data);
-		k_heap_free(&coap_requests_heap, (char*)req->path);
-		k_heap_free(&coap_requests_heap, req->payload);
-		k_heap_free(&coap_requests_heap, req);
+		free_coap_request(req);
 		LOG_ERR("Failed to allocate memory for CoAP transmission parameters");
+		return NULL;
 	}
+
+	if(is_observe)
+	{
+		req->options = k_heap_alloc(&coap_requests_heap, sizeof(struct coap_client_option),K_NO_WAIT);
+		if(!req->options)
+		{
+			free_coap_request(req);
+			LOG_ERR("Failed to allocate memory for CoAP option");
+			return NULL;
+		}
+	}
+
 	return req;
 }
 
 void free_coap_request(void * data) {
 	struct coap_client_request *req = ((struct request_user_data*)data)->req;
 	struct coap_transmission_parameters *req_params = ((struct request_user_data*)data)->req_params;
-	
+
+	if(req->options)
+	{
+		k_heap_free(&coap_requests_heap, req->options);
+	}
 	if (req_params) {
 		k_heap_free(&coap_requests_heap, req_params);
 	}

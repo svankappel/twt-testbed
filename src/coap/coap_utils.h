@@ -19,7 +19,7 @@ int server_resolve(struct sockaddr_in* server_ptr);
 int server_resolve(struct sockaddr_in6* server_ptr);
 #endif // CONFIG_IP_PROTO_IPV6
 
-struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len);
+struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t payload_len, bool is_observe);
 
 void free_coap_request(void * data);
 

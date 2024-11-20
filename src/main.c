@@ -62,6 +62,21 @@ int main(void)
         k_sleep(K_FOREVER);
     }
 
+    //test code
+    coap_validate();
+    coap_observe("observe","10",true);
+
+    k_sleep(K_SECONDS(30));
+
+    coap_observe("observe","test",false);
+
+
+    k_sleep(K_FOREVER);
+
+    //end test code
+
+
+
     k_sleep(K_SECONDS(1));
  
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
