@@ -1,0 +1,650 @@
+#
+# Copyright (c) 2019 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+menu "CoAP client"
+
+config COAP_TWT_TESTBED_SERVER
+  bool "Using TWT testbed server"
+
+config COAP_TEST_SERVER_HOSTNAME
+	string "CoAP server hostname or address"
+
+config COAP_TEST_SERVER_PORT
+	int "CoAP server port"
+
+config COAP_TEST_RESOURCE
+  depends on !COAP_TWT_TESTBED_SERVER
+  string "Resource on server for the tests"
+
+
+endmenu
+
+
+choice
+prompt "Select IP protocol"
+
+config IP_PROTO_IPV4
+  bool "IPv4"
+
+config IP_PROTO_IPV6
+  bool "IPv6"
+
+endchoice
+
+
+
+menu "Wi-Fi config"
+
+menu "Wi-Fi credentials"
+config WIFI_CREDENTIALS_STATIC_SSID
+	string "Wi-Fi SSID"
+
+config WIFI_CREDENTIALS_STATIC_PASSWORD
+	string "Wi-Fi Password"
+
+endmenu
+
+menu "TWT config"
+
+config TWT_ANNOUNCED_MODE
+  bool "Enable TWT announced mode"
+
+config TWT_TRIGGER
+  bool "Enable TWT trigger"
+
+config TWT_IMPLICIT
+  bool "Enable TWT implicit"
+
+endmenu
+
+menu "PS settings"
+
+config PS_LISTEN_INTERVAL
+  int "Listen interval"
+  help
+    Listen Interval (used when PS is enabled and wakeup mode is listen interval)
+
+endmenu
+endmenu
+
+menu "Tests"
+
+config SENSOR_TESTS_ENABLE
+  bool "Sensor Tests"
+
+config SENSOR_PS_TESTS_ENABLE
+  bool "PS"
+  depends on SENSOR_TESTS_ENABLE
+
+config SENSOR_PS_TEST_1
+  bool "Test 1"
+  depends on SENSOR_PS_TESTS_ENABLE
+
+config SENSOR_PS_TEST_1_PS_ENABLED
+  bool "PS enabled"
+  depends on SENSOR_PS_TEST_1
+
+config SENSOR_PS_TEST_1_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_PS_TEST_1
+
+config SENSOR_PS_TEST_1_SEND_INTERVAL
+  int "Send interval (ms)"
+  depends on SENSOR_PS_TEST_1
+
+choice SENSOR_PS_TEST_1_MODE
+  prompt "PS Mode"
+  depends on SENSOR_PS_TEST_1 && SENSOR_PS_TEST_1_PS_ENABLED
+  config SENSOR_PS_TEST_1_MODE_LEGACY
+    bool "Legacy"
+  config SENSOR_PS_TEST_1_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice SENSOR_PS_TEST_1_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on SENSOR_PS_TEST_1 && SENSOR_PS_TEST_1_PS_ENABLED
+  config SENSOR_PS_TEST_1_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config SENSOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config SENSOR_PS_TEST_2
+  bool "Test 2"
+  depends on SENSOR_PS_TESTS_ENABLE
+
+config SENSOR_PS_TEST_2_PS_ENABLED
+  bool "PS enabled"
+  depends on SENSOR_PS_TEST_2
+
+config SENSOR_PS_TEST_2_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_PS_TEST_2
+
+config SENSOR_PS_TEST_2_SEND_INTERVAL
+  int "Send interval (ms)"
+  depends on SENSOR_PS_TEST_2
+
+choice SENSOR_PS_TEST_2_MODE
+  prompt "PS Mode"
+  depends on SENSOR_PS_TEST_2 && SENSOR_PS_TEST_2_PS_ENABLED
+  config SENSOR_PS_TEST_2_MODE_LEGACY
+    bool "Legacy"
+  config SENSOR_PS_TEST_2_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice SENSOR_PS_TEST_2_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on SENSOR_PS_TEST_2 && SENSOR_PS_TEST_2_PS_ENABLED
+  config SENSOR_PS_TEST_2_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config SENSOR_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+config SENSOR_PS_TEST_3
+  bool "Test 3"
+  depends on SENSOR_PS_TESTS_ENABLE
+
+config SENSOR_PS_TEST_3_PS_ENABLED
+  bool "PS enabled"
+  depends on SENSOR_PS_TEST_3
+
+config SENSOR_PS_TEST_3_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_PS_TEST_3
+
+config SENSOR_PS_TEST_3_SEND_INTERVAL
+  int "Send interval (ms)"
+  depends on SENSOR_PS_TEST_3
+
+choice SENSOR_PS_TEST_3_MODE
+  prompt "PS Mode"
+  depends on SENSOR_PS_TEST_3 && SENSOR_PS_TEST_3_PS_ENABLED
+  config SENSOR_PS_TEST_3_MODE_LEGACY
+    bool "Legacy"
+  config SENSOR_PS_TEST_3_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice SENSOR_PS_TEST_3_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on SENSOR_PS_TEST_3 && SENSOR_PS_TEST_3_PS_ENABLED
+  config SENSOR_PS_TEST_3_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config SENSOR_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config SENSOR_PS_TEST_4
+  bool "Test 4"
+  depends on SENSOR_PS_TESTS_ENABLE
+
+config SENSOR_PS_TEST_4_PS_ENABLED
+  bool "PS enabled"
+  depends on SENSOR_PS_TEST_4
+
+config SENSOR_PS_TEST_4_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_PS_TEST_4
+
+config SENSOR_PS_TEST_4_SEND_INTERVAL
+  int "Send interval (ms)"
+  depends on SENSOR_PS_TEST_4
+
+choice SENSOR_PS_TEST_4_MODE
+  prompt "PS Mode"
+  depends on SENSOR_PS_TEST_4 && SENSOR_PS_TEST_4_PS_ENABLED
+  config SENSOR_PS_TEST_4_MODE_LEGACY
+    bool "Legacy"
+  config SENSOR_PS_TEST_4_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice SENSOR_PS_TEST_4_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on SENSOR_PS_TEST_4 && SENSOR_PS_TEST_4_PS_ENABLED
+  config SENSOR_PS_TEST_4_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config SENSOR_PS_TEST_4_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config SENSOR_PS_TEST_5
+  bool "Test 5"
+  depends on SENSOR_PS_TESTS_ENABLE
+
+config SENSOR_PS_TEST_5_PS_ENABLED
+  bool "PS enabled"
+  depends on SENSOR_PS_TEST_5
+
+config SENSOR_PS_TEST_5_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_PS_TEST_5
+
+config SENSOR_PS_TEST_5_SEND_INTERVAL
+  int "Send interval (ms)"
+  depends on SENSOR_PS_TEST_5
+
+choice SENSOR_PS_TEST_5_MODE
+  prompt "PS Mode"
+  depends on SENSOR_PS_TEST_5 && SENSOR_PS_TEST_5_PS_ENABLED
+  config SENSOR_PS_TEST_5_MODE_LEGACY
+    bool "Legacy"
+  config SENSOR_PS_TEST_5_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice SENSOR_PS_TEST_5_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on SENSOR_PS_TEST_5 && SENSOR_PS_TEST_5_PS_ENABLED
+  config SENSOR_PS_TEST_5_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config SENSOR_PS_TEST_5_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config SENSOR_TWT_TESTS_ENABLE
+  bool "TWT"
+  depends on SENSOR_TESTS_ENABLE
+
+config SENSOR_TWT_TEST_1
+  bool "Test 1"
+  depends on SENSOR_TWT_TESTS_ENABLE
+
+config SENSOR_TWT_TEST_1_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_TWT_TEST_1
+
+config SENSOR_TWT_TEST_1_INTERVAL
+  int "TWT interval (ms)"
+  depends on SENSOR_TWT_TEST_1
+
+config SENSOR_TWT_TEST_1_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_1
+
+config SENSOR_TWT_TEST_2
+  bool "Test 2"
+  depends on SENSOR_TWT_TESTS_ENABLE
+
+config SENSOR_TWT_TEST_2_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_TWT_TEST_2
+
+config SENSOR_TWT_TEST_2_INTERVAL
+  int "TWT interval (ms)"
+  depends on SENSOR_TWT_TEST_2
+
+config SENSOR_TWT_TEST_2_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_2
+
+config SENSOR_TWT_TEST_3
+  bool "Test 3"
+  depends on SENSOR_TWT_TESTS_ENABLE
+
+config SENSOR_TWT_TEST_3_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_TWT_TEST_3
+
+config SENSOR_TWT_TEST_3_INTERVAL
+  int "TWT interval (ms)"
+  depends on SENSOR_TWT_TEST_3
+
+config SENSOR_TWT_TEST_3_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_3
+
+config SENSOR_TWT_TEST_4
+  bool "Test 4"
+  depends on SENSOR_TWT_TESTS_ENABLE
+
+config SENSOR_TWT_TEST_4_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_TWT_TEST_4
+
+config SENSOR_TWT_TEST_4_INTERVAL
+  int "TWT interval (ms)"
+  depends on SENSOR_TWT_TEST_4
+
+config SENSOR_TWT_TEST_4_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_4
+
+config SENSOR_TWT_TEST_5
+  bool "Test 5"
+  depends on SENSOR_TWT_TESTS_ENABLE
+
+config SENSOR_TWT_TEST_5_ITERATIONS
+  int "Iterations"
+  depends on SENSOR_TWT_TEST_5
+
+config SENSOR_TWT_TEST_5_INTERVAL
+  int "TWT interval (ms)"
+  depends on SENSOR_TWT_TEST_5
+
+config SENSOR_TWT_TEST_5_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_5
+
+
+
+config LARGE_PACKET_TESTS_ENABLE
+  bool "Large Packet Tests"
+
+  config LARGE_PACKET_PS_TESTS_ENABLE
+    bool "PS"
+    depends on LARGE_PACKET_TESTS_ENABLE
+
+  config LARGE_PACKET_PS_TEST_1
+    bool "Test 1"
+    depends on LARGE_PACKET_PS_TESTS_ENABLE
+
+  choice LARGE_PACKET_PS_TEST_1_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
+    config LARGE_PACKET_PS_TEST_1_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_PS_TEST_1_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_PS_TEST_1_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_PS_TEST_1_PS_ENABLED
+    bool "PS enabled"
+    depends on LARGE_PACKET_PS_TEST_1
+
+  config LARGE_PACKET_PS_TEST_1_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_PS_TEST_1
+
+  config LARGE_PACKET_PS_TEST_1_SEND_INTERVAL
+    int "Send interval (ms)"
+    depends on LARGE_PACKET_PS_TEST_1
+
+  config LARGE_PACKET_PS_TEST_1_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_PS_TEST_1
+
+  choice LARGE_PACKET_PS_TEST_1_MODE
+    prompt "PS Mode"
+    depends on LARGE_PACKET_PS_TEST_1 && LARGE_PACKET_PS_TEST_1_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_1_MODE_LEGACY
+      bool "Legacy"
+    config LARGE_PACKET_PS_TEST_1_MODE_WMM
+      bool "WMM"
+  endchoice
+
+  choice LARGE_PACKET_PS_TEST_1_WAKEUP_MODE
+    prompt "Wakeup mode"
+    depends on LARGE_PACKET_PS_TEST_1 && LARGE_PACKET_PS_TEST_1_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_DTIM
+      bool "DTIM"
+    config LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+      bool "Listen Interval"
+  endchoice
+
+  config LARGE_PACKET_PS_TEST_2
+    bool "Test 2"
+    depends on LARGE_PACKET_PS_TESTS_ENABLE
+
+  choice LARGE_PACKET_PS_TEST_2_SERVER_CONFIG
+    prompt "Large Packets Config"
+    depends on LARGE_PACKET_PS_TEST_2 && COAP_TWT_TESTBED_SERVER
+    config LARGE_PACKET_PS_TEST_2_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_PS_TEST_2_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_PS_TEST_2_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_PS_TEST_2_PS_ENABLED
+    bool "PS enabled"
+    depends on LARGE_PACKET_PS_TEST_2
+
+  config LARGE_PACKET_PS_TEST_2_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_PS_TEST_2
+
+  config LARGE_PACKET_PS_TEST_2_SEND_INTERVAL
+    int "Send interval (ms)"
+    depends on LARGE_PACKET_PS_TEST_2
+
+  config LARGE_PACKET_PS_TEST_2_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_PS_TEST_2
+
+  choice LARGE_PACKET_PS_TEST_2_MODE
+    prompt "PS Mode"
+    depends on LARGE_PACKET_PS_TEST_2 && LARGE_PACKET_PS_TEST_2_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_2_MODE_LEGACY
+      bool "Legacy"
+    config LARGE_PACKET_PS_TEST_2_MODE_WMM
+      bool "WMM"
+  endchoice
+
+  choice LARGE_PACKET_PS_TEST_2_WAKEUP_MODE
+    prompt "Wakeup mode"
+    depends on LARGE_PACKET_PS_TEST_2 && LARGE_PACKET_PS_TEST_2_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_DTIM
+      bool "DTIM"
+    config LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+      bool "Listen Interval"
+  endchoice
+
+  config LARGE_PACKET_PS_TEST_3
+    bool "Test 3"
+    depends on LARGE_PACKET_PS_TESTS_ENABLE
+
+  choice LARGE_PACKET_PS_TEST_3_SERVER_CONFIG
+    prompt "Large Packets Config"
+    depends on LARGE_PACKET_PS_TEST_3 && COAP_TWT_TESTBED_SERVER
+    config LARGE_PACKET_PS_TEST_3_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_PS_TEST_3_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_PS_TEST_3_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    bool "PS enabled"
+    depends on LARGE_PACKET_PS_TEST_3
+
+  config LARGE_PACKET_PS_TEST_3_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_PS_TEST_3
+
+  config LARGE_PACKET_PS_TEST_3_SEND_INTERVAL
+    int "Send interval (ms)"
+    depends on LARGE_PACKET_PS_TEST_3
+
+  config LARGE_PACKET_PS_TEST_3_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_PS_TEST_3
+
+  choice LARGE_PACKET_PS_TEST_3_MODE
+    prompt "PS Mode"
+    depends on LARGE_PACKET_PS_TEST_3 && LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_3_MODE_LEGACY
+      bool "Legacy"
+    config LARGE_PACKET_PS_TEST_3_MODE_WMM
+      bool "WMM"
+  endchoice
+
+  choice LARGE_PACKET_PS_TEST_3_WAKEUP_MODE
+    prompt "Wakeup mode"
+    depends on LARGE_PACKET_PS_TEST_3 && LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    config LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_DTIM
+      bool "DTIM"
+    config LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+      bool "Listen Interval"
+  endchoice
+
+  config LARGE_PACKET_TWT_TESTS_ENABLE
+    bool "TWT"
+    depends on LARGE_PACKET_TESTS_ENABLE
+
+  config LARGE_PACKET_TWT_TEST_1
+    bool "Test 1"
+    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+
+  choice LARGE_PACKET_TWT_TEST_1_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
+    config LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_TWT_TEST_1_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_1_INTERVAL
+    int "TWT interval (ms)"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_1_SESSION_DURATION
+    int "TWT session duration (ms)"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_1_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_TWT_TEST_1
+
+  config LARGE_PACKET_TWT_TEST_2
+    bool "Test 2"
+    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+
+  choice LARGE_PACKET_TWT_TEST_2_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_TWT_TEST_2 && COAP_TWT_TESTBED_SERVER
+    config LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_TWT_TEST_2_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_2_INTERVAL
+    int "TWT interval (ms)"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_2_SESSION_DURATION
+    int "TWT session duration (ms)"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_2_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_TWT_TEST_2
+
+  config LARGE_PACKET_TWT_TEST_3
+    bool "Test 3"
+    depends on LARGE_PACKET_TWT_TESTS_ENABLE
+
+  choice LARGE_PACKET_TWT_TEST_3_SERVER_CONFIG
+    prompt "Large Packet Config"
+    depends on LARGE_PACKET_TWT_TEST_3 && COAP_TWT_TESTBED_SERVER
+    config LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_SRES
+      bool "Large request, small response"
+    config LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES
+      bool "Small request, large response"
+    config LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_LRES
+      bool "Large request, large response"
+  endchoice
+
+  config LARGE_PACKET_TWT_TEST_3_ITERATIONS
+    int "Iterations"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  config LARGE_PACKET_TWT_TEST_3_INTERVAL
+    int "TWT interval (ms)"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  config LARGE_PACKET_TWT_TEST_3_SESSION_DURATION
+    int "TWT session duration (ms)"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  config LARGE_PACKET_TWT_TEST_3_NUM_BYTES
+    int "Number of bytes"
+    depends on LARGE_PACKET_TWT_TEST_3
+
+  
+
+endmenu
+
+menu "Log Levels"
+config MY_MAIN_LOG_LEVEL
+    int "Main log level"
+    range 0 4
+    depends on LOG
+    help
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config MY_WIFI_LOG_LEVEL
+    int "Wi-Fi log level"
+    range 0 4
+    depends on LOG
+    help
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config MY_COAP_LOG_LEVEL
+    int "CoAP log level"
+    range 0 4
+    depends on LOG
+    help
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config MY_TEST_LOG_LEVEL
+    int "Test log level"
+    range 0 4
+    depends on LOG
+    help
+      Levels are:
+
+      - 0 OFF, do not write by default
+      - 1 ERROR, default to only write LOG_LEVEL_ERR
+      - 2 WARNING, default to write LOG_LEVEL_WRN
+      - 3 INFO, default to write LOG_LEVEL_INFO
+      - 4 DEBUG, default to write LOG_LEVEL_DBG
+endmenu
+
+
+
+menu "Zephyr Kernel"
+source "Kconfig.zephyr"
+endmenu
