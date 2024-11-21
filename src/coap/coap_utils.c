@@ -139,7 +139,6 @@ struct coap_client_request *alloc_coap_request(uint16_t path_len, uint16_t paylo
     }
 
 	// allocate memory for the payload
-	
     req->payload = k_heap_alloc(&coap_requests_heap, payload_len, K_NO_WAIT);
     if (!req->path) {
 		free_coap_request(req);
