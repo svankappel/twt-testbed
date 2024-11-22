@@ -61,7 +61,7 @@ int main(void)
         LOG_ERR("Failed to initialize CoAP client");
         k_sleep(K_FOREVER);
     }
-
+/*
     //test code
     coap_validate();
     coap_observe("observe","10",true);
@@ -74,7 +74,7 @@ int main(void)
     k_sleep(K_FOREVER);
 
     //end test code
-
+*/
 
 
     k_sleep(K_SECONDS(1));
