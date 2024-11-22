@@ -62,7 +62,6 @@ static void put_response_cb(int16_t code, size_t offset, const uint8_t *payload,
 	} else {
 		LOG_INF("Error received with code: %d", code);
 	}
-	//free_coap_request(user_data);
 	if(coap_response_callback)
 	{
 		(*coap_response_callback)(code, coap_response_callback_user_data);
@@ -88,7 +87,6 @@ static void observe_response_cb(int16_t code, size_t offset, const uint8_t *payl
 	} else {
 		LOG_INF("Error received with code: %d", code);
 	}
-	free_coap_request(user_data);
 	if(coap_response_callback)
 	{
 		(*coap_response_callback)(code, coap_response_callback_user_data);
@@ -107,7 +105,6 @@ static void valid_response_cb(int16_t code, size_t offset, const uint8_t *payloa
 	} else {
 		LOG_INF("CoAP validate request timed out: error code: %d", code);
 	}
-	free_coap_request(user_data);
 	if (code >= 0 && len > 0) {
 		if(strcmp(payload,"valid")==0){
 			k_sem_give(&validate_sem);
@@ -127,7 +124,6 @@ static void stat_response_cb(int16_t code, size_t offset, const uint8_t *payload
 	} else {
 		LOG_INF("CoAP stat request timed out: error code: %d", code);
 	}
-	free_coap_request(user_data);
 	if (code >= 0 && len > 0) {
 		int stat_value = atoi((const char *)payload);
 		if (k_msgq_put(&coap_stat_msgq, &stat_value, K_NO_WAIT) != 0) {
@@ -172,14 +168,12 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 
 	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
 		LOG_ERR("Failed to retrieve return value from message queue");
+		free_coap_request(req->user_data);
 		return -ENOEXEC;
 	}
-	if(ret==0)
-	{
-		free_coap_request(req->user_data);
-	}
 
-
+	
+	free_coap_request(req->user_data);
 	return ret;
 }
 
@@ -221,8 +215,10 @@ int coap_observe(char *resource,uint8_t *payload, bool start_observe)
 
 	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
 		LOG_ERR("Failed to retrieve return value from message queue");
+		free_coap_request(req->user_data);
 		return -ENOEXEC;
 	}
+	free_coap_request(req->user_data);
 	return ret;
 }
 
@@ -262,13 +258,16 @@ int coap_validate()
 
 	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
 		LOG_ERR("Failed to retrieve return value from message queue");
+		free_coap_request(req->user_data);
 		return -ENOEXEC;
 	}
 
 	if (k_sem_take(&validate_sem, K_SECONDS(10)) != 0) {
 		LOG_ERR("Validation timed out");
+		free_coap_request(req->user_data);
 		return -ETIMEDOUT;
 	}
+	free_coap_request(req->user_data);
 	return ret;
 }
 
@@ -297,6 +296,7 @@ int coap_get_stat()
 
 	if (k_msgq_put(&coap_req_msgq, &(req->user_data), K_NO_WAIT) != 0) {
         LOG_ERR("Failed to enqueue CoAP request");
+		free_coap_request(req->user_data);
         return -ENOMEM;
     }
 
@@ -307,13 +307,17 @@ int coap_get_stat()
 
 	if (k_msgq_get(&coap_ret_msgq, &ret, K_NO_WAIT) != 0) {
 		LOG_ERR("Failed to retrieve return value from message queue");
+		free_coap_request(req->user_data);
 		return -ENOEXEC;
 	}
 
 	if (k_msgq_get(&coap_stat_msgq, &ret, K_SECONDS(10)) != 0) {
 		LOG_ERR("Failed to retrieve stat from message queue");
+		free_coap_request(req->user_data);
 		return -1;
 	}
+
+	free_coap_request(req->user_data);
 
 	return ret;
 }
