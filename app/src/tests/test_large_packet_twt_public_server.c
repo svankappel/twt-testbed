@@ -247,6 +247,10 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     wifi_register_disconnected_cb(wifi_disconnected_event);
 
+    k_sleep(K_SECONDS(1));
+
+    //send a first message before activating TWT
+    ret = coap_put(CONFIG_COAP_TEST_RESOURCE, "{init-message}", test_settings.twt_interval+1000);
     k_sleep(K_SECONDS(5));
 
     // configure TWT
