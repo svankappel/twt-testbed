@@ -13,7 +13,7 @@
 #include "profiler.h"
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 4096
+#define STACK_SIZE 8192
 #define PRIORITY -2         //non preemptive priority
 static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 

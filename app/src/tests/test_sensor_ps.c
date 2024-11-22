@@ -12,7 +12,7 @@
 #include "profiler.h"
 LOG_MODULE_REGISTER(test_sensor_ps, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 4096
+#define STACK_SIZE 8192
 #define PRIORITY -2         //non preemptive priority
 static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
@@ -314,6 +314,7 @@ void test_sensor_ps(struct k_sem *sem, void * test_settings) {
                                         PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
+
 
     //wait for the test to finish
     k_sem_take(sem, K_FOREVER);

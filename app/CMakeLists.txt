@@ -3,6 +3,8 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(twt-testbed)
 
+target_include_directories(app PUBLIC ${ZEPHYR_BASE}/subsys/net/ip)
+
 # Include directories for each module
 target_include_directories(app PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/coap

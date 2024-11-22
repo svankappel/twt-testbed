@@ -6,7 +6,7 @@
 #include "test_large_packet_ps.h"
 #include "test_large_packet_twt.h"
 
-K_SEM_DEFINE(test_sem, 0, 1);
+static K_SEM_DEFINE(test_sem, 0, 1);
 
 
 
