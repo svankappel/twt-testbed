@@ -57,33 +57,6 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
 
-    //test code
-
-    coap_validate();
-
-    coap_observe("observe","testpayload1");
-    coap_observe("observe","testpayload2");
-    coap_observe("observe","testpayload3");
-    coap_observe("observe","testpayload4");
-    coap_observe("observe","testpayload5");
-    coap_observe("observe","testpayload6");
-
-    k_sleep(K_SECONDS(30));
-
-    coap_cancel_observers();
-
-    k_sleep(K_SECONDS(10));
-
-    coap_observe("observe","testpayload1");
-
-    k_sleep(K_SECONDS(30));
-
-    coap_cancel_observers();
-
-
-    k_sleep(K_FOREVER);
-
-    //end test code
  
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
     ret = coap_validate();

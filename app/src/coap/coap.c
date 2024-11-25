@@ -26,7 +26,7 @@ struct k_thread coap_send_thread_data;
 
 static K_SEM_DEFINE(send_sem, 0, 1);
 static K_SEM_DEFINE(sent_sem, 0, 1);
-
+static K_SEM_DEFINE(stat_sem, 0, 1);
 static K_SEM_DEFINE(validate_sem, 0, 1);
 
 static int sock;
@@ -41,17 +41,23 @@ static struct sockaddr_in6 server = { 0 };
 #define COAP_MAX_MSG_LEN 1280
 
 #define TOKEN_LEN 8
-static uint8_t next_token[TOKEN_LEN];
+static uint8_t coap_send_token[TOKEN_LEN];
 static uint8_t validate_token[TOKEN_LEN];
+static uint8_t stat_token[TOKEN_LEN];
 
 static struct coap_packet coap_request = { 0 };
 static int send_return_code = 0;
 static uint8_t coap_send_buf[COAP_MAX_MSG_LEN];
-static uint8_t coap_send_payload[30];
+
+//used for logging
+static char coap_send_payload[30];
+static char coap_send_resource[30];
 
 #define MAXOBSERVERS 5
 static uint8_t observers = 0;
 static uint8_t observer_tokens[MAXOBSERVERS][TOKEN_LEN];
+
+static int coap_stat = 0;
 
 
 static void (*coap_response_callback)(int16_t code, void * user_data) = NULL;
@@ -71,7 +77,6 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 
 	uint8_t token[TOKEN_LEN];
 	random_token(token, TOKEN_LEN);
-	memcpy(next_token, token, TOKEN_LEN);
 
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
@@ -110,13 +115,17 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 		LOG_ERR("Failed to append payload, %d\n", err);
 		return err;
 	}
+
+	//set variables to be printed in log
+	memcpy(coap_send_token, token, TOKEN_LEN);
 	if (strlen((const char *)payload) > 29) {
-		strncpy((char*)coap_send_payload, (const char *)payload, 26);
-		strcpy((char*)coap_send_payload + 26, "...");
+		strncpy(coap_send_payload, (const char *)payload, 26);
+		strcpy(coap_send_payload + 26, "...");
 	} else {
-		strncpy((char*)coap_send_payload, (const char *)payload, 29);
+		strncpy(coap_send_payload, (const char *)payload, 29);
 		coap_send_payload[29] = '\0';
 	}
+	strcpy(coap_send_resource, resource);
 
 
 	k_sem_give(&send_sem);
@@ -138,7 +147,6 @@ int coap_observe(char *resource, uint8_t *payload)
 
 	uint8_t token[TOKEN_LEN];
 	random_token(token, TOKEN_LEN);
-	memcpy(next_token, token, TOKEN_LEN);
 
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
@@ -176,6 +184,9 @@ int coap_observe(char *resource, uint8_t *payload)
 		LOG_ERR("Failed to append payload, %d\n", err);
 		return err;
 	}
+
+	//set variables to be printed in log
+	memcpy(coap_send_token, token, TOKEN_LEN);
 	if (strlen((const char *)payload) > 29) {
 		strncpy((char*)coap_send_payload, (const char *)payload, 26);
 		strcpy((char*)coap_send_payload + 26, "...");
@@ -183,7 +194,7 @@ int coap_observe(char *resource, uint8_t *payload)
 		strncpy((char*)coap_send_payload, (const char *)payload, 29);
 		coap_send_payload[29] = '\0';
 	}
-
+	strcpy(coap_send_resource, resource);
 
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
@@ -227,6 +238,11 @@ int coap_cancel_observers()
 			return err;
 		}
 
+		//set variables to be printed in log
+		memcpy(coap_send_token, &observer_tokens[i], TOKEN_LEN);
+		coap_send_payload[0] = '\0';
+		strcpy(coap_send_resource, "observe");
+
 		k_sem_give(&send_sem);
 		k_sem_take(&sent_sem, K_FOREVER);
 	}
@@ -239,7 +255,6 @@ int coap_validate()
 	uint8_t token[TOKEN_LEN];
 	random_token(token, TOKEN_LEN);
 	memcpy(validate_token, token, TOKEN_LEN);
-	memcpy(next_token, token, TOKEN_LEN);
 
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
@@ -260,7 +275,11 @@ int coap_validate()
 		LOG_ERR("Failed to encode CoAP option, %d\n", err);
 		return err;
 	}
+
+	//set variables to be printed in log
+	memcpy(coap_send_token, token, TOKEN_LEN);
 	coap_send_payload[0] = '\0';
+	strcpy(coap_send_resource, "validate");
 
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
@@ -276,35 +295,70 @@ int coap_validate()
 
 int coap_get_stat()
 {
+	uint8_t token[TOKEN_LEN];
+	random_token(token, TOKEN_LEN);
+	memcpy(stat_token, token, TOKEN_LEN);
 
-	return 0;
+	memset(coap_send_buf, 0, sizeof(coap_send_buf));
+	memset(&coap_request, 0, sizeof(coap_request));
+
+	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
+				1, COAP_TYPE_NON_CON,
+				sizeof(token), (uint8_t *)&token,
+				COAP_METHOD_GET, coap_next_id());
+	if (err < 0) {
+		LOG_ERR("Failed to create CoAP request, %d\n", err);
+		return err;
+	}
+
+	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
+				(uint8_t *)"stat",
+				strlen("stat"));
+	if (err < 0) {
+		LOG_ERR("Failed to encode CoAP option, %d\n", err);
+		return err;
+	}
+
+	//set variables to be printed in log
+	coap_send_payload[0] = '\0';
+	strcpy(coap_send_resource, "stat");
+	memcpy(coap_send_token, token, TOKEN_LEN);
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
+
+
+	if (k_sem_take(&stat_sem, K_SECONDS(10)) != 0) {
+		LOG_ERR("Validation timed out");
+		return -ETIMEDOUT;
+	}
+
+	return coap_stat;
 }
 
 
 void send_coap_thread(void *arg1, void *arg2, void *arg3)
 {
-	int err;
-
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
 
 
 		send_return_code = sendto(sock, coap_request.data, coap_request.offset, 0, (struct sockaddr *)&server, sizeof(server));
-		if (err < 0) {
+		if (send_return_code < 0) {
 			LOG_ERR("Failed to send CoAP request, %d\n", errno);
 		}
 
 		char token_str[TOKEN_LEN * 3 + 1] = {0};
 		for (int i = 0; i < TOKEN_LEN; i++) {
-			snprintf(&token_str[i * 3], sizeof(token_str) - i * 3, " %02x", next_token[i]);
+			snprintf(&token_str[i * 3], sizeof(token_str) - i * 3, " %02x", coap_send_token[i]);
 		}
 		token_str[TOKEN_LEN * 3] = '\0';
 
 		if (coap_send_payload[0] != '\0') {
-			LOG_INF("CoAP request sent to: %s, Token:%s, Payload: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_payload);
+			LOG_INF("CoAP request sent to: %s, Token:%s, Resource: %s, Payload: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_resource, coap_send_payload);
 		} else {
-			LOG_INF("CoAP request sent to: %s, Token:%s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str);
+			LOG_INF("CoAP request sent to: %s, Token:%s, Resource: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_resource);
 		}
 		k_sem_give(&sent_sem);
 	}
@@ -316,42 +370,62 @@ static int client_handle_response(uint8_t *buf, int received)
 	uint8_t token[TOKEN_LEN];
 	const uint8_t *payload;
 	uint16_t payload_len;
-	uint8_t temp_buf[128];
-	/* STEP 9.1 - Parse the received CoAP packet */
+	uint8_t temp_buf[30];
+
+	// Parse the received CoAP packet
 	int err = coap_packet_parse(&reply, buf, received, NULL, 0);
 	if (err < 0) {
 		LOG_ERR("Malformed response received: %d\n", err);
 		return err;
 	}
 
-	/* STEP 9.2 - Confirm the token in the response matches the token sent */
+	//Retrieve the token
 	int token_len = coap_header_get_token(&reply, token);
 	if ((token_len != TOKEN_LEN)) {
 		LOG_ERR("Invalid token received");
 		return 0;
 	}
 
-	/* STEP 9.3 - Retrieve the payload and confirm it's nonzero */
+	//Retrieve the payload and confirm it's nonzero
 	payload = coap_packet_get_payload(&reply, &payload_len);
 
 	if (payload_len > 0) {
-		snprintf(temp_buf, MIN(payload_len + 1, sizeof(temp_buf)), "%s", payload);
+		if (payload_len > 29) {
+			strncpy((char*)temp_buf, (const char *)payload, 26);
+			strcpy((char*)temp_buf + 26, "...");
+		} else {
+			strncpy((char*)temp_buf, (const char *)payload, payload_len);
+			temp_buf[payload_len] = '\0';
+		}
 	} else {
-		strcpy(temp_buf, "EMPTY");
+		temp_buf[0] = '\0';
 	}
 
-	/* STEP 9.4 - Log the header code, token and payload of the response */
+
+	//Log the header code, token and payload of the response
 	char token_str[TOKEN_LEN * 3 + 1] = {0};
 	for (int i = 0; i < TOKEN_LEN; i++) {
 		snprintf(&token_str[i * 3], sizeof(token_str) - i * 3, " %02x", token[i]);
 	}
 	token_str[TOKEN_LEN * 3] = '\0';
-	LOG_INF("CoAP response: Code 0x%x, Token:%s, Payload: %s",
+
+	if (payload_len > 0) {
+		LOG_INF("CoAP response: Code 0x%x, Token:%s, Payload: %s",
 	       coap_header_get_code(&reply), token_str, (char *)temp_buf);
+	} else {
+		LOG_INF("CoAP response: Code 0x%x, Token:%s",
+	       coap_header_get_code(&reply), token_str);
+	}
 
-
+	//Check if the response is a validation response
 	if(memcmp(&validate_token, token, TOKEN_LEN) == 0){
 		k_sem_give(&validate_sem);
+	}
+
+	//check if the response is a stat response
+	if (memcmp(&stat_token, token, TOKEN_LEN) == 0) {
+		coap_stat = atoi((const char *)payload);
+		k_sem_give(&stat_sem);
 	}
 
 	return 0;
