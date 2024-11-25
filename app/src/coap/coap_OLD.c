@@ -10,7 +10,6 @@
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/coap.h>
 #include <zephyr/net/coap_client.h>
-#include <zephyr/random/rand32.h>
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
@@ -18,29 +17,15 @@ LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 #define STACK_SIZE 4096
 #define PRIORITY 8
 
-static K_THREAD_STACK_DEFINE(recv_thread_stack, STACK_SIZE);
-struct k_thread coap_recv_thread_data;
-
-static K_THREAD_STACK_DEFINE(send_thread_stack, STACK_SIZE);
-struct k_thread coap_send_thread_data;
+static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
+struct k_thread coap_thread_data;
 
 static K_SEM_DEFINE(send_sem, 0, 1);
 static K_SEM_DEFINE(sent_sem, 0, 1);
 
+static K_SEM_DEFINE(init_sem, 0, 1);
 static K_SEM_DEFINE(validate_sem, 0, 1);
 
-static int sock;
-
-#ifndef CONFIG_IP_PROTO_IPV6
-static struct sockaddr_in server = { 0 };
-#else // CONFIG_IP_PROTO_IPV6
-static struct sockaddr_in6 server = { 0 };
-#endif // CONFIG_IP_PROTO_IPV6
-
-// Define the macros for the CoAP version and message length
-#define COAP_MAX_MSG_LEN 1280
-
-uint16_t next_token;
 
 #define MSGQ_SIZE 1
 K_MSGQ_DEFINE(coap_req_msgq, sizeof(struct coap_client_request*), MSGQ_SIZE, 4);
@@ -337,153 +322,18 @@ int coap_get_stat()
 }
 
 
-void send_coap_thread(void *arg1, void *arg2, void *arg3)
+void coap_thread(void *arg1, void *arg2, void *arg3)
 {
-	int err;
-
-	uint8_t coap_buf[COAP_MAX_MSG_LEN];
-
-	while (1) {
-		//wait for semaphore
-		k_sem_take(&send_sem, K_FOREVER);
-
-		struct request_user_data *item;
-        if (k_msgq_get(&coap_req_msgq, &item, K_NO_WAIT) != 0) {
-            LOG_ERR("Failed to retrieve request from message queue");
-			k_sem_give(&sent_sem);
-            continue;
-        }
-
-		struct coap_client_request* req = ((struct request_user_data*)item)->req;
-		struct coap_transmission_parameters* req_params = ((struct request_user_data*)item)->req_params;
-
-		struct coap_packet request;
-		uint16_t token = sys_rand32_get();
-		next_token = token;
-		err = coap_packet_init(&request, coap_buf, sizeof(coap_buf),
-			       1, COAP_TYPE_NON_CON,
-			       sizeof(token), (uint8_t *)&token,
-			       COAP_METHOD_PUT, coap_next_id());
-		if (err < 0) {
-			LOG_ERR("Failed to create CoAP request, %d\n", err);
-			return err;
-		}
-
-		err = coap_packet_append_option(&request, COAP_OPTION_URI_PATH,
-					(uint8_t *)"sensor",
-					strlen("sensor"));
-		if (err < 0) {
-			LOG_ERR("Failed to encode CoAP option, %d\n", err);
-			return err;
-		}
-
-		const uint8_t text_plain = COAP_CONTENT_FORMAT_TEXT_PLAIN;
-		err = coap_packet_append_option(&request, COAP_OPTION_CONTENT_FORMAT,
-					&text_plain,
-					sizeof(text_plain));
-		if (err < 0) {
-			LOG_ERR("Failed to encode CoAP option, %d\n", err);
-			return err;
-		}
-
-		err = coap_packet_append_payload_marker(&request);
-		if (err < 0) {
-			LOG_ERR("Failed to append payload marker, %d\n", err);
-			return err;
-		}
-
-		err = coap_packet_append_payload(&request, (uint8_t *)"test", sizeof("test"));
-		if (err < 0) {
-			LOG_ERR("Failed to append payload, %d\n", err);
-			return err;
-		}
-
-		err = sendto(sock, request.data, request.offset, 0, (struct sockaddr *)&server, sizeof(server));
-		if (err < 0) {
-			LOG_ERR("Failed to send CoAP request, %d\n", errno);
-			return -errno;
-		}
-
-
-		if (k_msgq_put(&coap_ret_msgq, &err, K_NO_WAIT) != 0) {
-			LOG_ERR("Failed to enqueue CoAP return value");
-		}
-
-		k_sem_give(&sent_sem);
-
-	}
-}
-
-static int client_handle_response(uint8_t *buf, int received)
-{
-	struct coap_packet reply;
-	uint8_t token[8];
-	uint16_t token_len;
-	const uint8_t *payload;
-	uint16_t payload_len;
-	uint8_t temp_buf[128];
-	/* STEP 9.1 - Parse the received CoAP packet */
-	int err = coap_packet_parse(&reply, buf, received, NULL, 0);
-	if (err < 0) {
-		LOG_ERR("Malformed response received: %d\n", err);
-		return err;
-	}
-
-	/* STEP 9.2 - Confirm the token in the response matches the token sent */
-	token_len = coap_header_get_token(&reply, token);
-	if ((token_len != sizeof(uint16_t)) ||
-	    (memcmp(&next_token, token, sizeof(next_token)) != 0)) {
-		LOG_ERR("Invalid token received: 0x%02x%02x\n",
-		       token[1], token[0]);
-		return 0;
-	}
-
-	/* STEP 9.3 - Retrieve the payload and confirm it's nonzero */
-	payload = coap_packet_get_payload(&reply, &payload_len);
-
-	if (payload_len > 0) {
-		snprintf(temp_buf, MIN(payload_len + 1, sizeof(temp_buf)), "%s", payload);
-	} else {
-		strcpy(temp_buf, "EMPTY");
-	}
-
-	/* STEP 9.4 - Log the header code, token and payload of the response */
-	LOG_INF("CoAP response: Code 0x%x, Token 0x%02x%02x, Payload: %s\n",
-	       coap_header_get_code(&reply), token[1], token[0], (char *)temp_buf);
-
-	return 0;
-}
-
-
-void recv_coap_thread(void *arg1, void *arg2, void *arg3)
-{
-	struct pollfd fds;
-    fds.fd = sock;
-    fds.events = POLLIN;
 	
+	static int sock;
 
-	uint8_t coap_buf[COAP_MAX_MSG_LEN];
+	#ifndef CONFIG_IP_PROTO_IPV6
+	static struct sockaddr_in server = { 0 };
+	#else // CONFIG_IP_PROTO_IPV6
+	static struct sockaddr_in6 server = { 0 };
+	#endif // CONFIG_IP_PROTO_IPV6
 
-    while (1) {
-        int ret = poll(&fds, 1, -1); // Use -1 for infinite timeout
-        if (ret > 0) {
-            if (fds.revents & POLLIN) {
-				socklen_t server_len = sizeof(server);
-                int len = recvfrom(sock, coap_buf, sizeof(coap_buf), 0, (struct sockaddr *)&server, &server_len);
-                int err = client_handle_response(coap_buf, len);
-				if (err < 0) {
-					LOG_ERR("Invalid response, exit\n");
-					break;
-				}
-            }
-        } else if (ret < 0) {
-            LOG_ERR("Poll error");
-        }
-    }
-}
-
-// Function to initialize the test
-int coap_init() {
+	static struct coap_client coap_client = { 0 };
 
 	//initialize server
 
@@ -506,21 +356,77 @@ int coap_init() {
 		k_sleep(K_FOREVER);
 	}
 
+	LOG_INF("Initializing CoAP client");
 
+	err = coap_client_init(&coap_client, NULL);
+	if (err) {
+		LOG_ERR("Failed to initialize CoAP client: %d", err);
+		k_sleep(K_FOREVER);
+	}
+
+	k_sem_give(&init_sem);
+
+
+	while (1) {
+		//wait for semaphore
+		k_sem_take(&send_sem, K_FOREVER);
+
+		struct request_user_data *item;
+        if (k_msgq_get(&coap_req_msgq, &item, K_NO_WAIT) != 0) {
+            LOG_ERR("Failed to retrieve request from message queue");
+			k_sem_give(&sent_sem);
+            continue;
+        }
+
+		struct coap_client_request* req = ((struct request_user_data*)item)->req;
+		struct coap_transmission_parameters* req_params = ((struct request_user_data*)item)->req_params;
+
+		err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, req, req_params);
+		if (err) {
+			LOG_ERR("Cancel and retry request");
+			coap_client_cancel_requests(&coap_client);
+			err = coap_client_req(&coap_client, sock, (struct sockaddr *)&server, req, req_params);
+		}
+		if (err) {
+			LOG_ERR("Failed to send request: %d", err);
+		}
+		else
+		{
+			if(req->len==0){
+				LOG_INF("CoAP request sent to %s, resource: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path);
+			}else if(req->len>50){
+				char payload[51];
+				strncpy(payload,req->payload,50);
+				payload[50]='\0';
+				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s...",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path,payload);
+			}
+			else{
+				LOG_INF("CoAP request sent to %s, resource: %s, payload: %s",CONFIG_COAP_TEST_SERVER_HOSTNAME, req->path,req->payload);
+			}
+		}
+		if (k_msgq_put(&coap_ret_msgq, &err, K_NO_WAIT) != 0) {
+			LOG_ERR("Failed to enqueue CoAP return value");
+		}
+
+		k_sem_give(&sent_sem);
+
+	}
+	
+}
+
+// Function to initialize the test
+int coap_init() {
 	
 	//start thread to handle CoAP 
-    k_tid_t send_thread_id = k_thread_create(&coap_send_thread_data, send_thread_stack,
-                                        K_THREAD_STACK_SIZEOF(send_thread_stack),
-                                        send_coap_thread,
+    k_tid_t thread_id = k_thread_create(&coap_thread_data, thread_stack,
+                                        K_THREAD_STACK_SIZEOF(thread_stack),
+                                        coap_thread,
                                         NULL, NULL, NULL,
                                         PRIORITY, 0, K_NO_WAIT);
-	k_tid_t recv_thread_id = k_thread_create(&coap_recv_thread_data, recv_thread_stack,
-                                        K_THREAD_STACK_SIZEOF(recv_thread_stack),
-                                        recv_coap_thread,
-                                        NULL, NULL, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
-    
+    k_thread_name_set(thread_id, "coap_thread");
+    k_thread_start(thread_id);
 
+	k_sem_take(&init_sem, K_FOREVER);
 
 	return 0;
 }

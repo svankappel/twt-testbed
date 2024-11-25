@@ -121,18 +121,18 @@ int wifi_connect(void)
 {
 	// Get the WiFi network interface
 	struct net_if *iface = net_if_get_first_wifi();
-	//struct wifi_connect_req_params cnx_params = { 0 };
+	struct wifi_connect_req_params cnx_params = { 0 };
 	int ret;
 
-	//wifi_args_to_params(&cnx_params);
+	wifi_args_to_params(&cnx_params);
 
 	context.connected = false;
 	context.connect_requested = true;
-/*
+
 	ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, iface,
 			   &cnx_params, sizeof(struct wifi_connect_req_params));
-			   */
-	ret = net_mgmt(NET_REQUEST_WIFI_CONNECT_STORED, iface, NULL, 0);
+			   
+	//ret = net_mgmt(NET_REQUEST_WIFI_CONNECT_STORED, iface, NULL, 0);
 	if (ret) {
 		printk("Connection request failed with error: %d\n", ret);
 		context.connect_requested = false;

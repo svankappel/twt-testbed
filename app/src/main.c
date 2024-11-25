@@ -40,13 +40,6 @@ int main(void)
 
     wifi_ps_set_listen_interval(CONFIG_PS_LISTEN_INTERVAL);
 
-    ret = wifi_ps_disable();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to disable power save mode");
-        k_sleep(K_FOREVER);
-    }
-
     ret = wifi_connect();
     if(ret != 0)
     {
@@ -61,23 +54,17 @@ int main(void)
         LOG_ERR("Failed to initialize CoAP client");
         k_sleep(K_FOREVER);
     }
-/*
+
+    k_sleep(K_SECONDS(1));
+
     //test code
-    coap_validate();
-    coap_observe("observe","10",true);
 
-    k_sleep(K_SECONDS(30));
-
-    coap_observe("observe","test",false);
+    coap_put("observe","10",12);
 
 
     k_sleep(K_FOREVER);
 
     //end test code
-*/
-
-
-    k_sleep(K_SECONDS(1));
  
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
     ret = coap_validate();
@@ -98,6 +85,8 @@ int main(void)
     k_sleep(K_SECONDS(1));
 
     LOG_INF("TWT testbed initialized. Running tests ...");
+
+
 
     //run tests
 
