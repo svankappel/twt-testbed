@@ -59,7 +59,13 @@ int main(void)
 
     //test code
 
-    coap_put("observe","10",12);
+    coap_validate();
+
+    while(true)
+    {
+        k_sleep(K_SECONDS(5));
+        coap_put("sensor","10",12);
+    }
 
 
     k_sleep(K_FOREVER);
