@@ -61,11 +61,24 @@ int main(void)
 
     coap_validate();
 
-    while(true)
-    {
-        k_sleep(K_SECONDS(5));
-        coap_put("sensor","10",12);
-    }
+    coap_observe("observe","testpayload1");
+    coap_observe("observe","testpayload2");
+    coap_observe("observe","testpayload3");
+    coap_observe("observe","testpayload4");
+    coap_observe("observe","testpayload5");
+    coap_observe("observe","testpayload6");
+
+    k_sleep(K_SECONDS(30));
+
+    coap_cancel_observers();
+
+    k_sleep(K_SECONDS(10));
+
+    coap_observe("observe","testpayload1");
+
+    k_sleep(K_SECONDS(30));
+
+    coap_cancel_observers();
 
 
     k_sleep(K_FOREVER);
