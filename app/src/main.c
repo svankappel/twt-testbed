@@ -57,6 +57,33 @@ int main(void)
 
     k_sleep(K_SECONDS(1));
 
+    //test code
+
+    coap_validate();
+
+
+    coap_observe("obs", "");
+
+    k_sleep(K_SECONDS(20));
+
+    coap_cancel_observers();
+
+    k_sleep(K_SECONDS(1));
+
+    coap_validate();
+
+    for(int i = 0; i < 10; i++)
+    {
+        coap_put("validate", "test", 1000);
+        k_sleep(K_SECONDS(2));
+    }
+
+    LOG_INF("Stat: %d", coap_get_stat());
+
+
+    k_sleep(K_FOREVER);
+
+    //end test code
  
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
     ret = coap_validate();

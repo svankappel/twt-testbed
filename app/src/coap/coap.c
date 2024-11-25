@@ -56,6 +56,7 @@ static char coap_send_resource[30];
 #define MAXOBSERVERS 5
 static uint8_t observers = 0;
 static uint8_t observer_tokens[MAXOBSERVERS][TOKEN_LEN];
+static char observer_resources[MAXOBSERVERS][30];
 
 static int coap_stat = 0;
 
@@ -200,6 +201,7 @@ int coap_observe(char *resource, uint8_t *payload)
 	k_sem_take(&sent_sem, K_FOREVER);
 
 	memcpy(observer_tokens[observers], token, TOKEN_LEN);
+	strcpy(observer_resources[observers], resource);
 	observers++;
 
 
@@ -223,8 +225,8 @@ int coap_cancel_observers()
 		}
 
 		err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
-					(uint8_t *)"observe",
-					strlen("observe"));
+					(uint8_t *)observer_resources[i],
+					strlen(observer_resources[i]));
 		if (err < 0) {
 			LOG_ERR("Failed to encode CoAP option, %d\n", err);
 			return err;
@@ -241,7 +243,7 @@ int coap_cancel_observers()
 		//set variables to be printed in log
 		memcpy(coap_send_token, &observer_tokens[i], TOKEN_LEN);
 		coap_send_payload[0] = '\0';
-		strcpy(coap_send_resource, "observe");
+		strcpy(coap_send_resource, observer_resources[i]);
 
 		k_sem_give(&send_sem);
 		k_sem_take(&sent_sem, K_FOREVER);
@@ -281,13 +283,21 @@ int coap_validate()
 	coap_send_payload[0] = '\0';
 	strcpy(coap_send_resource, "validate");
 
-	k_sem_give(&send_sem);
-	k_sem_take(&sent_sem, K_FOREVER);
+	for(int i = 0; i < 3; i++)
+	{
+		k_sem_give(&send_sem);
+		k_sem_take(&sent_sem, K_FOREVER);
 
-
-	if (k_sem_take(&validate_sem, K_SECONDS(10)) != 0) {
-		LOG_ERR("Validation timed out");
-		return -ETIMEDOUT;
+		if (k_sem_take(&validate_sem, K_SECONDS(5)) != 0) {
+			if(i == 2)
+			{
+				LOG_ERR("Validation timed out!");
+				return -ETIMEDOUT;
+			}
+			LOG_WRN("Validation timed out, Retrying ...");
+			continue;
+		}
+		break;
 	}
 
 	return send_return_code;
@@ -295,6 +305,7 @@ int coap_validate()
 
 int coap_get_stat()
 {
+	coap_stat = 0;
 	uint8_t token[TOKEN_LEN];
 	random_token(token, TOKEN_LEN);
 	memcpy(stat_token, token, TOKEN_LEN);
@@ -324,13 +335,21 @@ int coap_get_stat()
 	strcpy(coap_send_resource, "stat");
 	memcpy(coap_send_token, token, TOKEN_LEN);
 
-	k_sem_give(&send_sem);
-	k_sem_take(&sent_sem, K_FOREVER);
+	for(int i = 0; i < 3; i++)
+	{
+		k_sem_give(&send_sem);
+		k_sem_take(&sent_sem, K_FOREVER);
 
-
-	if (k_sem_take(&stat_sem, K_SECONDS(10)) != 0) {
-		LOG_ERR("Validation timed out");
-		return -ETIMEDOUT;
+		if (k_sem_take(&stat_sem, K_SECONDS(5)) != 0) {
+			if(i == 2)
+			{
+				LOG_ERR("Validation timed out!");
+				return -ETIMEDOUT;
+			}
+			LOG_WRN("Validation timed out, Retrying ...");
+			continue;
+		}
+		break;
 	}
 
 	return coap_stat;
