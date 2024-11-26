@@ -50,7 +50,7 @@ static int send_return_code = 0;
 static uint8_t coap_send_buf[COAP_MAX_MSG_LEN];
 
 //used for logging
-static char coap_send_payload[30];
+static char coap_send_payload[50];
 static char coap_send_resource[30];
 
 #define MAXOBSERVERS 5
@@ -122,12 +122,12 @@ int coap_put(char *resource,uint8_t *payload)
 
 	//set variables to be printed in log
 	memcpy(coap_send_token, token, TOKEN_LEN);
-	if (strlen((const char *)payload) > 29) {
-		strncpy(coap_send_payload, (const char *)payload, 26);
-		strcpy(coap_send_payload + 26, "...");
+	if (strlen((const char *)payload) > 49) {
+		strncpy(coap_send_payload, (const char *)payload, 46);
+		strcpy(coap_send_payload + 46, "...");
 	} else {
-		strncpy(coap_send_payload, (const char *)payload, 29);
-		coap_send_payload[29] = '\0';
+		strncpy(coap_send_payload, (const char *)payload, 49);
+		coap_send_payload[49] = '\0';
 	}
 	strcpy(coap_send_resource, resource);
 
@@ -200,12 +200,12 @@ int coap_observe(char *resource, uint8_t *payload)
 
 	//set variables to be printed in log
 	memcpy(coap_send_token, token, TOKEN_LEN);
-	if (strlen((const char *)payload) > 29) {
-		strncpy((char*)coap_send_payload, (const char *)payload, 26);
-		strcpy((char*)coap_send_payload + 26, "...");
+	if (strlen((const char *)payload) > 49) {
+		strncpy(coap_send_payload, (const char *)payload, 46);
+		strcpy(coap_send_payload + 46, "...");
 	} else {
-		strncpy((char*)coap_send_payload, (const char *)payload, 29);
-		coap_send_payload[29] = '\0';
+		strncpy(coap_send_payload, (const char *)payload, 49);
+		coap_send_payload[49] = '\0';
 	}
 	strcpy(coap_send_resource, resource);
 
@@ -261,6 +261,7 @@ int coap_cancel_observers()
 		k_sem_take(&sent_sem, K_FOREVER);
 	}
 	observers = 0;
+	return 0;
 }
 
 
@@ -401,7 +402,7 @@ static int client_handle_response(uint8_t *buf, int received)
 	uint8_t token[TOKEN_LEN];
 	const uint8_t *payload;
 	uint16_t payload_len;
-	uint8_t temp_buf[30];
+	uint8_t temp_buf[50];
 
 	// Parse the received CoAP packet
 	int err = coap_packet_parse(&reply, buf, received, NULL, 0);
@@ -421,9 +422,9 @@ static int client_handle_response(uint8_t *buf, int received)
 	payload = coap_packet_get_payload(&reply, &payload_len);
 
 	if (payload_len > 0) {
-		if (payload_len > 29) {
-			strncpy((char*)temp_buf, (const char *)payload, 26);
-			strcpy((char*)temp_buf + 26, "...");
+		if (payload_len > 49) {
+			strncpy((char*)temp_buf, (const char *)payload, 46);
+			strcpy((char*)temp_buf + 46, "...");
 		} else {
 			strncpy((char*)temp_buf, (const char *)payload, payload_len);
 			temp_buf[payload_len] = '\0';

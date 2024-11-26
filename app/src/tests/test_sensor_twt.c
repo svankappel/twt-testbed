@@ -17,6 +17,8 @@ LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 #define PRIORITY -2         //non preemptive priority
 static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
+#define MAX_INTERVALS_BUFFERED 50
+
 
 static struct test_sensor_twt_settings test_settings;
 
@@ -31,6 +33,7 @@ struct test_control{
     int received;
     int received_serv;
     uint32_t latency_sum;
+    uint16_t latency_hist[MAX_INTERVALS_BUFFERED];
 };
 
 static struct test_control control = { 0 };
@@ -82,6 +85,21 @@ static void print_test_results() {
             control.received_serv < 0 ? -1 : control.sent - control.received_serv,
             control.received_serv < 0 ? -1 : control.received_serv - control.received,
             control.latency_sum/control.received);
+        
+
+    // Print the latency histogram
+    char hist_str[1024] = {0};
+    char temp[32];
+    for (int i = 0; i < MAX_INTERVALS_BUFFERED; i++) {
+        
+        snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, control.latency_hist[i]);
+        strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
+        
+    }
+    snprintf(temp, sizeof(temp), "lost;%d\n", control.sent - control.received);
+    strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
+    LOG_INF("Latency Histogram:\n%s", hist_str);
+
 }
 
 
@@ -120,6 +138,12 @@ static void handle_coap_response(uint32_t time)
     control.received++;
 
     control.latency_sum += time/1000;
+
+    int index = (time+(test_settings.twt_interval/2)) / test_settings.twt_interval;
+    if (index < MAX_INTERVALS_BUFFERED) {
+        control.latency_hist[index]++;
+    }
+    
 
     if((control.iter>=test_settings.iterations) && (control.received == control.sent))
     {
@@ -203,7 +227,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     k_sleep(K_SECONDS(5));
 
-    coap_init_pool(1000);  // init coap request pool with 1s request timeout
+    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
 
 
     // configure TWT
