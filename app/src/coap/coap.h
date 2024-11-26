@@ -14,9 +14,11 @@ int coap_observe(char *resource, uint8_t *payload);
 
 int coap_cancel_observers();
 
-void coap_register_response_callback(void (*callback)(int16_t code, void * user_data),void * callback_user_data);
+void coap_register_response_callback(void (*callback)(uint32_t time));
 
-int coap_put(char *resource,uint8_t *payload, uint32_t timeout);
+int coap_put(char *resource,uint8_t *payload);
+
+void coap_init_pool(uint32_t requests_timeout);
 
 
 #endif

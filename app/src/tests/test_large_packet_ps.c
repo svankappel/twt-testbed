@@ -40,21 +40,23 @@ struct test_control{
     int recv_serv;
 };
 
-static void print_test_results(struct test_control *control) {
+static struct test_control control = { 0 };
+
+static void print_test_results() {
     // Check for inconsistencies and print warnings
-    if ((control->send_err_11 + control->send_err_120 + control->send_err_other) != control->send_fails) {
+    if ((control.send_err_11 + control.send_err_120 + control.send_err_other) != control.send_fails) {
         LOG_WRN("Warning: Sum of send errors does not match send fails");
     }
-    if (control->sent != control->received) {
+    if (control.sent != control.received) {
         LOG_WRN("Warning: Sent messages do not match received messages");
     }
-    if ((control->recv_resp + control->recv_err) != control->received) {
+    if ((control.recv_resp + control.recv_err) != control.received) {
         LOG_WRN("Warning: Sum of received responses and errors does not match received messages");
     }
-    if ((control->sent + control->send_fails) != control->iter) {
+    if ((control.sent + control.send_fails) != control.iter) {
         LOG_WRN("Warning: Sent messages plus send fails do not match iterations");
     }
-    if (control->recv_serv < 0) {
+    if (control.recv_serv < 0) {
         LOG_WRN("Warning: Could not receive server stats");
     }
 
@@ -72,9 +74,8 @@ static void print_test_results(struct test_control *control) {
             "=  Request size (bytes):                  %6d                               =\n"
             "=  Response size (bytes):                 %6d                               =\n"
             "=------------------------------------------------------------------------------=\n"
-            "=  Power Save:                          %s                               =\n"
-            "=  Mode:                                  %s                               =\n"
-            "=  Wake-Up mode:                 %s                               =\n"
+            "=  PS Mode:                               %s                               =\n"
+            "=  PS Wake-Up mode:              %s                               =\n"
             "=  Listen Interval:                       %6d                               =\n"
             "================================================================================\n"
             "=  Stats                                                                       =\n"
@@ -97,23 +98,22 @@ static void print_test_results(struct test_control *control) {
             "=    Other Send Errors:                   %6d                               =\n"
             "================================================================================\n",
             test_settings.test_id,
-            control->iter,
+            control.iter,
             test_settings.large_packet_config == LREQ_LRES || test_settings.large_packet_config == LREQ_SRES ? test_settings.bytes : 16,
             test_settings.large_packet_config == LREQ_LRES || test_settings.large_packet_config == SREQ_LRES ? test_settings.bytes : 9,
-            test_settings.ps_enabled ? " Enabled" : "Disabled",
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
-            control->sent,
-            control->recv_serv,
-            control->recv_resp,
-            control->recv_err,
-            control->recv_serv < 0 ? -1 : control->sent - control->recv_serv,
-            control->recv_serv < 0 ? -1 : control->recv_serv - control->recv_resp,
-            control->send_fails,
-            control->send_err_11,
-            control->send_err_120,
-            control->send_err_other);
+            control.sent,
+            control.recv_serv,
+            control.recv_resp,
+            control.recv_err,
+            control.recv_serv < 0 ? -1 : control.sent - control.recv_serv,
+            control.recv_serv < 0 ? -1 : control.recv_serv - control.recv_resp,
+            control.send_fails,
+            control.send_err_11,
+            control.send_err_120,
+            control.send_err_other);
 }
 
 
@@ -140,25 +140,24 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
-static void handle_coap_response(int16_t code, void * user_data)
-{
+static void handle_coap_response(uint32_t time)
+{/*
     if(test_failed){
         return;
     }
-    struct test_control * control = (struct test_control *)user_data;
 
-    control->received++;
+    control.received++;
 
     if(code == 0x44){
-        control->recv_resp++;
+        control.recv_resp++;
     }else{
-        control->recv_err++;
+        control.recv_err++;
     }
 
-    if((control->iter>=test_settings.iterations) && (control->received == control->sent))
+    if((control.iter>=test_settings.iterations) && (control.received == control.sent))
     {
         k_sem_give(&end_sem);
-    }
+    }*/
 }
 
 //--------------------------------------------------------------------
@@ -177,24 +176,16 @@ static void configure_ps()
     }else{
         wifi_ps_wakeup_listen_interval();
     }
-
-    if(test_settings.ps_enabled == PS_MODE_ENABLED){
-        wifi_ps_enable();
-    }else{
-        wifi_ps_disable();
-    }
 }
 
 //--------------------------------------------------------------------
 // Function to run the test
 //--------------------------------------------------------------------
-static void run_test(struct test_control * control)
+static void run_test()
 {
     k_timer_start(&send_timer, K_MSEC(test_settings.send_interval), K_NO_WAIT);
 
     
-
-
     while(true){
         k_sem_take(&timer_event_sem, K_FOREVER);
 
@@ -205,7 +196,7 @@ static void run_test(struct test_control * control)
 
         int ret=0;
 
-        if(control->iter < test_settings.iterations){
+        if(control.iter < test_settings.iterations){
 
             // Generate an array with random chars
             char random_data[test_settings.bytes-21];
@@ -219,31 +210,31 @@ static void run_test(struct test_control * control)
 
             char buf[test_settings.bytes+20];
 
-            sprintf(buf, "/%06d/%s/largeupload/", control->iter++,random_data);
+            sprintf(buf, "/%06d/%s/largeupload/", control.iter++,random_data);
 
             if(test_settings.large_packet_config == LREQ_LRES){
-                ret = coap_put("largeuploadecho", buf, test_settings.send_interval+1000);
+                ret = coap_put("largeuploadecho", buf);
             }else if (test_settings.large_packet_config == LREQ_SRES){
-                ret = coap_put("largeuploadack", buf, test_settings.send_interval+1000);
+                ret = coap_put("largeuploadack", buf);
             }else if (test_settings.large_packet_config == SREQ_LRES){
                 char buf2[16];
                 strncpy(buf2, buf, 8);
                 sprintf(buf2+8, "%06d/", test_settings.bytes);
                 buf2[15] = '\0';
-                ret = coap_put("largedownload", buf2, test_settings.send_interval+1000);
+                ret = coap_put("largedownload", buf2);
             }
             
             if(ret == 0){
-                control->sent++;
+                control.sent++;
             } else if(ret == -11){
-                control->send_err_11++;
-                control->send_fails++;
+                control.send_err_11++;
+                control.send_fails++;
             }else if(ret == -120){  
-                control->send_err_120++;
-                control->send_fails++;
+                control.send_err_120++;
+                control.send_fails++;
             }else{
-                control->send_err_other++;
-                control->send_fails++;
+                control.send_err_other++;
+                control.send_fails++;
             }
         }else{
             break;
@@ -257,7 +248,7 @@ static void run_test(struct test_control * control)
 // Thread function that runs the test
 static void thread_function(void *arg1, void *arg2, void *arg3) 
 {
-    struct test_control control = { 0 };
+    memset(&control, 0, sizeof(control));
 
     // Extract the semaphore and test settings
     struct k_sem *test_sem = (struct k_sem *)arg1;
@@ -266,7 +257,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
     //register coap response callback
-    coap_register_response_callback(handle_coap_response,(void*)&control);
+    coap_register_response_callback(handle_coap_response);
 
     // configure power save mode 
     configure_ps();
@@ -298,7 +289,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     LOG_INF("Starting test %d", test_settings.test_id);
     profiler_output_binary(test_settings.test_id);
 
-    run_test(&control);
+    run_test();
 
     profiler_all_clear();
 
@@ -327,7 +318,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         control.recv_serv = -1;
     }
 
-    print_test_results(&control);
+    print_test_results();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 

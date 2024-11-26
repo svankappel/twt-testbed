@@ -40,7 +40,7 @@ static struct sockaddr_in6 server = { 0 };
 // Define the macros for the CoAP version and message length
 #define COAP_MAX_MSG_LEN 1280
 
-#define TOKEN_LEN 8
+
 static uint8_t coap_send_token[TOKEN_LEN];
 static uint8_t validate_token[TOKEN_LEN];
 static uint8_t stat_token[TOKEN_LEN];
@@ -61,23 +61,26 @@ static char observer_resources[MAXOBSERVERS][30];
 static int coap_stat = 0;
 
 
-static void (*coap_response_callback)(int16_t code, void * user_data) = NULL;
-static void * coap_response_callback_user_data = NULL;
+static void (*coap_response_callback)(uint32_t time) = NULL;
 
-void coap_register_response_callback(void (*callback)(int16_t code, void * user_data),void * callback_user_data) {
-	coap_response_callback_user_data = callback_user_data;
+void coap_register_response_callback(void (*callback)(uint32_t time)) {
 	coap_response_callback = callback;
 }
 
+void coap_init_pool(uint32_t requests_timeout)
+{
+	//initialize pending request pool
+	init_pending_request_pool(requests_timeout);
+}
 
 
-int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
+int coap_put(char *resource,uint8_t *payload)
 {
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
 	uint8_t token[TOKEN_LEN];
-	random_token(token, TOKEN_LEN);
+	random_token(token);
 
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
@@ -132,6 +135,15 @@ int coap_put(char *resource,uint8_t *payload, uint32_t timeout)
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
 
+	if (send_return_code >= 0)
+	{
+		err = add_pending_request(token);
+		if (err < 0) {
+			LOG_ERR("Failed to add pending request, %d\n", err);
+			return err;
+		}
+	}
+
 	return send_return_code;
 }
 
@@ -147,7 +159,7 @@ int coap_observe(char *resource, uint8_t *payload)
 	memset(&coap_request, 0, sizeof(coap_request));
 
 	uint8_t token[TOKEN_LEN];
-	random_token(token, TOKEN_LEN);
+	random_token(token);
 
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
@@ -255,7 +267,7 @@ int coap_cancel_observers()
 int coap_validate()
 {
 	uint8_t token[TOKEN_LEN];
-	random_token(token, TOKEN_LEN);
+	random_token(token);
 	memcpy(validate_token, token, TOKEN_LEN);
 
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
@@ -300,14 +312,14 @@ int coap_validate()
 		break;
 	}
 
-	return send_return_code;
+	return 0;
 }
 
 int coap_get_stat()
 {
 	coap_stat = 0;
 	uint8_t token[TOKEN_LEN];
-	random_token(token, TOKEN_LEN);
+	random_token(token);
 	memcpy(stat_token, token, TOKEN_LEN);
 
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
@@ -437,16 +449,50 @@ static int client_handle_response(uint8_t *buf, int received)
 	}
 
 	//Check if the response is a validation response
-	if(memcmp(&validate_token, token, TOKEN_LEN) == 0){
+	if(memcmp(&validate_token, token, TOKEN_LEN) == 0 &&
+		coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT &&
+		strncmp((const char *)payload, "valid", 5) == 0) 
+	{
 		k_sem_give(&validate_sem);
+		return 0;
 	}
 
 	//check if the response is a stat response
-	if (memcmp(&stat_token, token, TOKEN_LEN) == 0) {
+	if (memcmp(&stat_token, token, TOKEN_LEN) == 0 &&
+		coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT)
+	{
 		coap_stat = atoi((const char *)payload);
 		k_sem_give(&stat_sem);
+		return 0;
 	}
 
+	//check if the response is an observer response
+	for(int i = 0; i < observers; i++)
+	{
+		if(memcmp(observer_tokens[i], token, TOKEN_LEN) == 0 &&
+			coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT)
+		{
+			if (coap_response_callback != NULL) {
+				coap_response_callback(0);
+			}
+			return 0;
+		}
+	}
+
+	//check if the response is a put response
+	if(coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CHANGED)
+	{
+		uint32_t time = remove_pending_request(token);
+		if(time > 0)
+		{
+			if (coap_response_callback != NULL) {
+				coap_response_callback(time);
+			}
+			return 0;
+		}
+	}
+	
+	
 	return 0;
 }
 
@@ -466,11 +512,13 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
             if (fds.revents & POLLIN) {
 				socklen_t server_len = sizeof(server);
                 int len = recvfrom(sock, coap_buf, sizeof(coap_buf), 0, (struct sockaddr *)&server, &server_len);
-                int err = client_handle_response(coap_buf, len);
+				
+				int err = client_handle_response(coap_buf, len);
 				if (err < 0) {
 					LOG_ERR("Invalid response, exit\n");
 					break;
 				}
+				
             }
         } else if (ret < 0) {
             LOG_ERR("Poll error");

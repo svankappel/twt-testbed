@@ -22,7 +22,6 @@ struct test_large_packet_ps_settings {
     uint8_t large_packet_config; // LREQ_SREP, SREQ_LREP, or LREQ_LREP
     uint32_t bytes;
     uint32_t iterations;
-    uint8_t ps_enabled;
     uint8_t ps_mode;
     uint8_t ps_wakeup_mode;
 };

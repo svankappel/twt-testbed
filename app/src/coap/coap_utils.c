@@ -12,8 +12,19 @@
 
 LOG_MODULE_REGISTER(coap_utils, CONFIG_MY_COAP_LOG_LEVEL);
 
-#define COAP_REQUESTS_HEAP_SIZE 32768  //increase heap size if using large payloads
-static K_HEAP_DEFINE(coap_requests_heap, COAP_REQUESTS_HEAP_SIZE);
+#define COAP_CLIENT_POOL_SIZE 100
+
+struct request_entry {
+	uint8_t token[TOKEN_LEN];
+	uint32_t timestamp;
+	uint8_t used;
+};
+
+static struct request_entry pending_requests_pool[COAP_CLIENT_POOL_SIZE];
+
+static uint32_t timeout;
+
+static uint8_t token_len;
 
 #ifndef CONFIG_IP_PROTO_IPV6
 int server_resolve(struct sockaddr_in* server_ptr)
@@ -124,9 +135,65 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 #endif // CONFIG_IP_PROTO_IPV6
 
 
-void random_token(uint8_t *token, uint8_t token_len)
+void random_token(uint8_t *token)
 {
-	for (int i = 0; i < token_len; i++) {
+	for (int i = 0; i < TOKEN_LEN; i++) {
 		token[i] = sys_rand32_get();
 	}
+}
+
+
+
+void init_pending_request_pool(uint32_t max_timeout)
+{
+	memset(pending_requests_pool, 0, sizeof(pending_requests_pool));
+	timeout = max_timeout;
+}
+
+
+void remove_timedout_requests()
+{
+	uint32_t current_time = k_uptime_get_32();
+	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
+	{
+		if (pending_requests_pool[i].used == 1 && current_time - pending_requests_pool[i].timestamp > timeout)
+		{
+			LOG_WRN("Request timed out, removing token from pending request pool");
+			pending_requests_pool[i].used = 0;
+		}
+	}
+}
+
+
+
+int add_pending_request(uint8_t * token)
+{
+	remove_timedout_requests();
+	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
+	{
+		if (pending_requests_pool[i].used == 0)
+		{
+			memcpy(pending_requests_pool[i].token, token, TOKEN_LEN);
+			pending_requests_pool[i].timestamp = k_uptime_get_32();
+			pending_requests_pool[i].used = 1;
+			return 0;
+		}
+	}
+	LOG_ERR("No available slots in pending request pool");
+	return -1;
+}
+
+uint32_t remove_pending_request(uint8_t * token)
+{
+	remove_timedout_requests();
+	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
+	{
+		if (pending_requests_pool[i].used == 1 && memcmp(pending_requests_pool[i].token, token, TOKEN_LEN) == 0)
+		{
+			pending_requests_pool[i].used = 0;
+			return k_uptime_get_32() - pending_requests_pool[i].timestamp;
+		}
+	}
+	LOG_ERR("Token not found in pending request pool");
+	return 0;
 }
