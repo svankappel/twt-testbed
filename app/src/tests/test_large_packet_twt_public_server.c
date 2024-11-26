@@ -74,7 +74,7 @@ static void print_test_results() {
             wifi_twt_get_wake_interval_ms(),
             control.sent,
             control.received,
-            control.control.received == 0 ? -1 : control.latency_sum/control.received);
+            control.received == 0 ? -1 : control.latency_sum/control.received);
     
 
     // Print the latency histogram

@@ -461,8 +461,8 @@ static int client_handle_response(uint8_t *buf, int received)
 	if (memcmp(&stat_token, token, TOKEN_LEN) == 0 &&
 		coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT)
 	{
-		const char temp_payload[payload_len + 1];
-		strncpy(temp_payload, (char *)payload, payload_len);
+		char temp_payload[payload_len + 1];
+		strncpy(temp_payload, (const char *)payload, payload_len);
 		coap_stat = atoi(temp_payload);
 		k_sem_give(&stat_sem);
 		return 0;

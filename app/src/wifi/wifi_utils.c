@@ -27,6 +27,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(wifi_uti, CONFIG_MY_WIFI_LOG_LEVEL); // Register the logging module
 
+#include "net_private.h"
 
 // retrieves and logs the current status of the WiFi interface.
  
