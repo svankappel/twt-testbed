@@ -117,8 +117,6 @@ static void handle_twt_event()
 static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
-
-    //test to ignore disconnection
     
     test_failed = true;
     k_sem_give(&wake_ahead_sem);

@@ -5,19 +5,20 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
-#include <zephyr/random/random.h>
+#include <zephyr/random/rand32.h>
 
 #include "wifi_sta.h"
 #include "wifi_ps.h"
 #include "wifi_twt.h"
 #include "coap.h"
 #include "profiler.h"
-
 LOG_MODULE_REGISTER(test_large_packet_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 32768
+#define STACK_SIZE 8192
 #define PRIORITY -2         //non preemptive priority
 static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
+
+#define MAX_INTERVALS_BUFFERED 50
 
 
 static struct test_large_packet_twt_settings test_settings;
@@ -31,32 +32,20 @@ struct test_control{
     int iter;
     int sent;
     int received;
-    int send_fails;
-    int send_err_11;
-    int send_err_120;
-    int send_err_other;
-    int recv_resp;
-    int recv_err;
-    int recv_serv;
+    int received_serv;
+    uint32_t latency_sum;
+    uint16_t latency_hist[MAX_INTERVALS_BUFFERED];
 };
 
 static struct test_control control = { 0 };
 
 static void print_test_results() {
     // Check for inconsistencies and print warnings
-    if ((control.send_err_11 + control.send_err_120 + control.send_err_other) != control.send_fails) {
-        LOG_WRN("Warning: Sum of send errors does not match send fails");
+    if ((control.iter != test_settings.iterations)) {
+        LOG_WRN("Warning: Test could not complete all iterations");
     }
-    if (control.sent != control.received) {
-        LOG_WRN("Warning: Sent messages do not match received messages");
-    }
-    if ((control.recv_resp + control.recv_err) != control.received) {
-        LOG_WRN("Warning: Sum of received responses and errors does not match received messages");
-    }
-    if ((control.sent + control.send_fails) != control.iter) {
-        LOG_WRN("Warning: Sent messages plus send fails do not match iterations");
-    }
-    if (control.recv_serv < 0) {
+    
+    if (control.received_serv < 0) {
         LOG_WRN("Warning: Could not receive server stats");
     }
 
@@ -71,8 +60,8 @@ static void print_test_results() {
             "=  Test Number:                           %6d                               =\n"
             "=  Iterations:                            %6d                               =\n"
             "=------------------------------------------------------------------------------=\n"
-            "=  Request size (bytes):                  %6d                               =\n"
-            "=  Response size (bytes):                 %6d                               =\n"
+            "=  Request payload size (bytes):          %6d                               =\n"
+            "=  Response payload size (bytes):         %6d                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Negotiated TWT Interval:               %6d s                             =\n"
             "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
@@ -84,17 +73,11 @@ static void print_test_results() {
             "=  Requests received on server:           %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
-            "=  Request timed-out:                     %6d                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Requests lost:                         %6d                               =\n"
             "=  Responses lost:                        %6d                               =\n"
-            "================================================================================\n"
-            "=  Errors                                                                      =\n"
-            "================================================================================\n"
-            "=  Send Fails:                            %6d                               =\n"
-            "=    Send Error -11:                      %6d                               =\n"
-            "=    Send Error -120:                     %6d                               =\n"
-            "=    Other Send Errors:                   %6d                               =\n"
+            "=------------------------------------------------------------------------------=\n"
+            "=  Average latency:                       %6d s                             =\n"
             "================================================================================\n",
             test_settings.test_id,
             control.iter,
@@ -103,15 +86,26 @@ static void print_test_results() {
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
             control.sent,
-            control.recv_serv,
-            control.recv_resp,
-            control.recv_err,
-            control.recv_serv < 0 ? -1 : control.sent - control.recv_serv,
-            control.recv_serv < 0 ? -1 : control.recv_serv - control.recv_resp,
-            control.send_fails,
-            control.send_err_11,
-            control.send_err_120,
-            control.send_err_other);
+            control.received_serv,
+            control.received,
+            control.received_serv < 0 ? -1 : control.sent - control.received_serv,
+            control.received_serv < 0 ? -1 : control.received_serv - control.received,
+            control.latency_sum/control.received);
+        
+
+    // Print the latency histogram
+    char hist_str[1024] = {0};
+    char temp[32];
+    for (int i = 0; i < MAX_INTERVALS_BUFFERED; i++) {
+        
+        snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, control.latency_hist[i]);
+        strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
+        
+    }
+    snprintf(temp, sizeof(temp), "lost;%d\n", control.sent - control.received);
+    strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
+    LOG_INF("Latency Histogram:\n%s", hist_str);
+
 }
 
 
@@ -129,13 +123,11 @@ static void handle_twt_event()
 static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
-
-    //test to ignore disconnection
-    /*
+    
     test_failed = true;
     k_sem_give(&wake_ahead_sem);
     k_sem_give(&end_sem);
-    */
+    
 }
 
 //--------------------------------------------------------------------     
@@ -143,32 +135,26 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------
 static void handle_coap_response(uint32_t time)
 {
-    /*
     if(test_failed){
         return;
     }
 
     control.received++;
 
-    if(code == 0x44){
-        control.recv_resp++;
-    }else{
-        control.recv_err++;
+    control.latency_sum += time/1000;
+
+    int index = (time+(test_settings.twt_interval/2)) / test_settings.twt_interval;
+    if (index < MAX_INTERVALS_BUFFERED) {
+        control.latency_hist[index]++;
     }
+    
 
     if((control.iter>=test_settings.iterations) && (control.received == control.sent))
     {
         k_sem_give(&end_sem);
-    }*/
+    }
 }
 
-//--------------------------------------------------------------------
-// Function to configure power save mode
-//--------------------------------------------------------------------
-static void configure_ps()
-{
-    
-}
 
 //--------------------------------------------------------------------
 // Function to configure TWT (Target Wake Time)
@@ -187,13 +173,13 @@ static void run_test()
         k_sem_take(&wake_ahead_sem, K_FOREVER);
 
         if(test_failed){
-            k_sleep(K_SECONDS(10));
             break;
         }
-        int ret=0;
 
+        int ret;
 
         if(control.iter < test_settings.iterations){
+
 
             // Generate an array with random chars
             char random_data[test_settings.bytes-21];
@@ -221,23 +207,15 @@ static void run_test()
                 ret = coap_put("largedownload", buf2);
             }
 
-            if(ret == 0){
+
+            if(ret >= 0){
                 control.sent++;
-            } else if(ret == -11){
-                control.send_err_11++;
-                control.send_fails++;
-            }else if(ret == -120){  
-                control.send_err_120++;
-                control.send_fails++;
-            }else{
-                control.send_err_other++;
-                control.send_fails++;
-            }
+            } 
         }else{
             break;
         }
     }
-    k_sem_take(&end_sem, K_FOREVER);
+    k_sem_take(&end_sem, K_MSEC(test_settings.twt_interval*2));
 }
 //--------------------------------------------------------------------
 
@@ -256,10 +234,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     //register coap response callback
     coap_register_response_callback(handle_coap_response);
 
-    // configure power save mode 
-    configure_ps();
-    LOG_DBG("Power save mode configured");
     int ret;
+
     // connect to wifi
     ret = wifi_connect();
     if(ret != 0){
@@ -281,6 +257,9 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     k_sleep(K_SECONDS(5));
 
+    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
+
+
     // configure TWT
     wifi_twt_register_event_callback(handle_twt_event,test_settings.wake_ahead_ms);
     configure_twt(&test_settings);
@@ -294,6 +273,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     profiler_all_clear();
 
+    coap_register_response_callback(NULL);
+
     if(!test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
@@ -305,12 +286,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         k_sleep(K_SECONDS(2));
 
-        control.recv_serv = coap_get_stat();
-        if(control.recv_serv < 0)
-        {
-            LOG_WRN("Failed to get CoAP stats from server");
-            control.recv_serv = -1;
-        }
+        control.received_serv = coap_get_stat();
 
         ret = wifi_disconnect();
         if(ret != 0)
@@ -321,7 +297,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     }
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
-        control.recv_serv = -1;
+        control.received_serv = -1;
     }
 
     print_test_results();

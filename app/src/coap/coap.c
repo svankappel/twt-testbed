@@ -37,7 +37,6 @@ static struct sockaddr_in server = { 0 };
 static struct sockaddr_in6 server = { 0 };
 #endif // CONFIG_IP_PROTO_IPV6
 
-// Define the macros for the CoAP version and message length
 #define COAP_MAX_MSG_LEN 1280
 
 
@@ -462,7 +461,9 @@ static int client_handle_response(uint8_t *buf, int received)
 	if (memcmp(&stat_token, token, TOKEN_LEN) == 0 &&
 		coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT)
 	{
-		coap_stat = atoi((const char *)payload);
+		const char temp_payload[payload_len + 1];
+		strncpy(temp_payload, (const char *)payload, payload_len);
+		coap_stat = atoi(temp_payload);
 		k_sem_give(&stat_sem);
 		return 0;
 	}

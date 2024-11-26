@@ -158,7 +158,7 @@ static void run_test()
             break;
         }
     }
-    k_sem_take(&end_sem, K_MSEC(settings.send_interval));
+    k_sem_take(&end_sem, K_MSEC(test_settings.send_interval));
 }
 
 //--------------------------------------------------------------------
