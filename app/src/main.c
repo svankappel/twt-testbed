@@ -14,7 +14,9 @@
 
 #include "coap.h"
 
+#ifdef CONFIG_PROFILER_ENABLE
 #include "profiler.h"
+#endif //CONFIG_PROFILER_ENABLE
 
 #include "test_runner.h"
 
@@ -29,12 +31,15 @@ int main(void)
     LOG_INF("Starting TWT testbed ...");
 
     // initialize setup
+
+    #ifdef CONFIG_PROFILER_ENABLE
     ret = profiler_init();
     if(ret != 0)
     {
         LOG_ERR("Failed to initialize profiler");
         k_sleep(K_FOREVER);
     }
+    #endif //CONFIG_PROFILER_ENABLE
 
     wifi_init();
 

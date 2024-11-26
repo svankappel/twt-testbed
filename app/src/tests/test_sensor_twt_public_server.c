@@ -10,7 +10,11 @@
 #include "wifi_ps.h"
 #include "wifi_twt.h"
 #include "coap.h"
+
+#ifdef CONFIG_PROFILER_ENABLE
 #include "profiler.h"
+#endif //CONFIG_PROFILER_ENABLE
+
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 8192
@@ -211,13 +215,18 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
+
+    #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
+    #endif //CONFIG_PROFILER_ENABLE
 
     memset(&control, 0, sizeof(control));
 
     run_test();
 
+    #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
+    #endif //CONFIG_PROFILER_ENABLE
 
     coap_register_response_callback(NULL);
 
