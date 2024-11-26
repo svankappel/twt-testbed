@@ -83,9 +83,6 @@ config SENSOR_PS_TEST_1
   bool "Test 1"
   depends on SENSOR_PS_TESTS_ENABLE
 
-config SENSOR_PS_TEST_1_PS_ENABLED
-  bool "PS enabled"
-  depends on SENSOR_PS_TEST_1
 
 config SENSOR_PS_TEST_1_ITERATIONS
   int "Iterations"
@@ -97,7 +94,7 @@ config SENSOR_PS_TEST_1_SEND_INTERVAL
 
 choice SENSOR_PS_TEST_1_MODE
   prompt "PS Mode"
-  depends on SENSOR_PS_TEST_1 && SENSOR_PS_TEST_1_PS_ENABLED
+  depends on SENSOR_PS_TEST_1
   config SENSOR_PS_TEST_1_MODE_LEGACY
     bool "Legacy"
   config SENSOR_PS_TEST_1_MODE_WMM
@@ -106,7 +103,7 @@ endchoice
 
 choice SENSOR_PS_TEST_1_WAKEUP_MODE
   prompt "Wakeup mode"
-  depends on SENSOR_PS_TEST_1 && SENSOR_PS_TEST_1_PS_ENABLED
+  depends on SENSOR_PS_TEST_1
   config SENSOR_PS_TEST_1_WAKEUP_MODE_DTIM
     bool "DTIM"
   config SENSOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
@@ -117,9 +114,6 @@ config SENSOR_PS_TEST_2
   bool "Test 2"
   depends on SENSOR_PS_TESTS_ENABLE
 
-config SENSOR_PS_TEST_2_PS_ENABLED
-  bool "PS enabled"
-  depends on SENSOR_PS_TEST_2
 
 config SENSOR_PS_TEST_2_ITERATIONS
   int "Iterations"
@@ -131,7 +125,7 @@ config SENSOR_PS_TEST_2_SEND_INTERVAL
 
 choice SENSOR_PS_TEST_2_MODE
   prompt "PS Mode"
-  depends on SENSOR_PS_TEST_2 && SENSOR_PS_TEST_2_PS_ENABLED
+  depends on SENSOR_PS_TEST_2
   config SENSOR_PS_TEST_2_MODE_LEGACY
     bool "Legacy"
   config SENSOR_PS_TEST_2_MODE_WMM
@@ -140,7 +134,7 @@ endchoice
 
 choice SENSOR_PS_TEST_2_WAKEUP_MODE
   prompt "Wakeup mode"
-  depends on SENSOR_PS_TEST_2 && SENSOR_PS_TEST_2_PS_ENABLED
+  depends on SENSOR_PS_TEST_2
   config SENSOR_PS_TEST_2_WAKEUP_MODE_DTIM
     bool "DTIM"
   config SENSOR_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
@@ -150,9 +144,6 @@ config SENSOR_PS_TEST_3
   bool "Test 3"
   depends on SENSOR_PS_TESTS_ENABLE
 
-config SENSOR_PS_TEST_3_PS_ENABLED
-  bool "PS enabled"
-  depends on SENSOR_PS_TEST_3
 
 config SENSOR_PS_TEST_3_ITERATIONS
   int "Iterations"
@@ -164,7 +155,7 @@ config SENSOR_PS_TEST_3_SEND_INTERVAL
 
 choice SENSOR_PS_TEST_3_MODE
   prompt "PS Mode"
-  depends on SENSOR_PS_TEST_3 && SENSOR_PS_TEST_3_PS_ENABLED
+  depends on SENSOR_PS_TEST_3
   config SENSOR_PS_TEST_3_MODE_LEGACY
     bool "Legacy"
   config SENSOR_PS_TEST_3_MODE_WMM
@@ -173,7 +164,7 @@ endchoice
 
 choice SENSOR_PS_TEST_3_WAKEUP_MODE
   prompt "Wakeup mode"
-  depends on SENSOR_PS_TEST_3 && SENSOR_PS_TEST_3_PS_ENABLED
+  depends on SENSOR_PS_TEST_3
   config SENSOR_PS_TEST_3_WAKEUP_MODE_DTIM
     bool "DTIM"
   config SENSOR_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
@@ -184,9 +175,6 @@ config SENSOR_PS_TEST_4
   bool "Test 4"
   depends on SENSOR_PS_TESTS_ENABLE
 
-config SENSOR_PS_TEST_4_PS_ENABLED
-  bool "PS enabled"
-  depends on SENSOR_PS_TEST_4
 
 config SENSOR_PS_TEST_4_ITERATIONS
   int "Iterations"
@@ -198,7 +186,7 @@ config SENSOR_PS_TEST_4_SEND_INTERVAL
 
 choice SENSOR_PS_TEST_4_MODE
   prompt "PS Mode"
-  depends on SENSOR_PS_TEST_4 && SENSOR_PS_TEST_4_PS_ENABLED
+  depends on SENSOR_PS_TEST_4
   config SENSOR_PS_TEST_4_MODE_LEGACY
     bool "Legacy"
   config SENSOR_PS_TEST_4_MODE_WMM
@@ -207,46 +195,14 @@ endchoice
 
 choice SENSOR_PS_TEST_4_WAKEUP_MODE
   prompt "Wakeup mode"
-  depends on SENSOR_PS_TEST_4 && SENSOR_PS_TEST_4_PS_ENABLED
+  depends on SENSOR_PS_TEST_4
   config SENSOR_PS_TEST_4_WAKEUP_MODE_DTIM
     bool "DTIM"
   config SENSOR_PS_TEST_4_WAKEUP_MODE_LISTENINTERVAL
     bool "Listen Interval"
 endchoice
 
-config SENSOR_PS_TEST_5
-  bool "Test 5"
-  depends on SENSOR_PS_TESTS_ENABLE
 
-config SENSOR_PS_TEST_5_PS_ENABLED
-  bool "PS enabled"
-  depends on SENSOR_PS_TEST_5
-
-config SENSOR_PS_TEST_5_ITERATIONS
-  int "Iterations"
-  depends on SENSOR_PS_TEST_5
-
-config SENSOR_PS_TEST_5_SEND_INTERVAL
-  int "Send interval (ms)"
-  depends on SENSOR_PS_TEST_5
-
-choice SENSOR_PS_TEST_5_MODE
-  prompt "PS Mode"
-  depends on SENSOR_PS_TEST_5 && SENSOR_PS_TEST_5_PS_ENABLED
-  config SENSOR_PS_TEST_5_MODE_LEGACY
-    bool "Legacy"
-  config SENSOR_PS_TEST_5_MODE_WMM
-    bool "WMM"
-endchoice
-
-choice SENSOR_PS_TEST_5_WAKEUP_MODE
-  prompt "Wakeup mode"
-  depends on SENSOR_PS_TEST_5 && SENSOR_PS_TEST_5_PS_ENABLED
-  config SENSOR_PS_TEST_5_WAKEUP_MODE_DTIM
-    bool "DTIM"
-  config SENSOR_PS_TEST_5_WAKEUP_MODE_LISTENINTERVAL
-    bool "Listen Interval"
-endchoice
 
 config SENSOR_TWT_TESTS_ENABLE
   bool "TWT"
@@ -316,23 +272,6 @@ config SENSOR_TWT_TEST_4_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_4
 
-config SENSOR_TWT_TEST_5
-  bool "Test 5"
-  depends on SENSOR_TWT_TESTS_ENABLE
-
-config SENSOR_TWT_TEST_5_ITERATIONS
-  int "Iterations"
-  depends on SENSOR_TWT_TEST_5
-
-config SENSOR_TWT_TEST_5_INTERVAL
-  int "TWT interval (ms)"
-  depends on SENSOR_TWT_TEST_5
-
-config SENSOR_TWT_TEST_5_SESSION_DURATION
-  int "TWT session duration (ms)"
-  depends on SENSOR_TWT_TEST_5
-
-
 
 config LARGE_PACKET_TESTS_ENABLE
   bool "Large Packet Tests"
@@ -356,9 +295,6 @@ config LARGE_PACKET_TESTS_ENABLE
       bool "Large request, large response"
   endchoice
 
-  config LARGE_PACKET_PS_TEST_1_PS_ENABLED
-    bool "PS enabled"
-    depends on LARGE_PACKET_PS_TEST_1
 
   config LARGE_PACKET_PS_TEST_1_ITERATIONS
     int "Iterations"
@@ -374,7 +310,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_1_MODE
     prompt "PS Mode"
-    depends on LARGE_PACKET_PS_TEST_1 && LARGE_PACKET_PS_TEST_1_PS_ENABLED
+    depends on LARGE_PACKET_PS_TEST_1
     config LARGE_PACKET_PS_TEST_1_MODE_LEGACY
       bool "Legacy"
     config LARGE_PACKET_PS_TEST_1_MODE_WMM
@@ -383,7 +319,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_1_WAKEUP_MODE
     prompt "Wakeup mode"
-    depends on LARGE_PACKET_PS_TEST_1 && LARGE_PACKET_PS_TEST_1_PS_ENABLED
+    depends on LARGE_PACKET_PS_TEST_1
     config LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_DTIM
       bool "DTIM"
     config LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
@@ -405,10 +341,6 @@ config LARGE_PACKET_TESTS_ENABLE
       bool "Large request, large response"
   endchoice
 
-  config LARGE_PACKET_PS_TEST_2_PS_ENABLED
-    bool "PS enabled"
-    depends on LARGE_PACKET_PS_TEST_2
-
   config LARGE_PACKET_PS_TEST_2_ITERATIONS
     int "Iterations"
     depends on LARGE_PACKET_PS_TEST_2
@@ -423,7 +355,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_2_MODE
     prompt "PS Mode"
-    depends on LARGE_PACKET_PS_TEST_2 && LARGE_PACKET_PS_TEST_2_PS_ENABLED
+    depends on LARGE_PACKET_PS_TEST_2
     config LARGE_PACKET_PS_TEST_2_MODE_LEGACY
       bool "Legacy"
     config LARGE_PACKET_PS_TEST_2_MODE_WMM
@@ -432,7 +364,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_2_WAKEUP_MODE
     prompt "Wakeup mode"
-    depends on LARGE_PACKET_PS_TEST_2 && LARGE_PACKET_PS_TEST_2_PS_ENABLED
+    depends on LARGE_PACKET_PS_TEST_2
     config LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_DTIM
       bool "DTIM"
     config LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
@@ -454,9 +386,6 @@ config LARGE_PACKET_TESTS_ENABLE
       bool "Large request, large response"
   endchoice
 
-  config LARGE_PACKET_PS_TEST_3_PS_ENABLED
-    bool "PS enabled"
-    depends on LARGE_PACKET_PS_TEST_3
 
   config LARGE_PACKET_PS_TEST_3_ITERATIONS
     int "Iterations"
@@ -472,7 +401,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_3_MODE
     prompt "PS Mode"
-    depends on LARGE_PACKET_PS_TEST_3 && LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    depends on LARGE_PACKET_PS_TEST_3
     config LARGE_PACKET_PS_TEST_3_MODE_LEGACY
       bool "Legacy"
     config LARGE_PACKET_PS_TEST_3_MODE_WMM
@@ -481,7 +410,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
   choice LARGE_PACKET_PS_TEST_3_WAKEUP_MODE
     prompt "Wakeup mode"
-    depends on LARGE_PACKET_PS_TEST_3 && LARGE_PACKET_PS_TEST_3_PS_ENABLED
+    depends on LARGE_PACKET_PS_TEST_3
     config LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_DTIM
       bool "DTIM"
     config LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
