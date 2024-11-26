@@ -12,6 +12,9 @@
  * @note The GPIO pins are configured as output and set to inactive state
  *       during initialization.
  */
+
+#ifdef CONFIG_PROFILER_ENABLE
+
 #include "profiler.h"
 
 #include <stdio.h>
@@ -109,3 +112,5 @@ void profiler_output_next() {
     profiler_output_binary(i);
     i++;
 }
+
+#endif //CONFIG_PROFILER_ENABLE

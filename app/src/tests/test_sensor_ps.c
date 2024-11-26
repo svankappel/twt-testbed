@@ -9,7 +9,11 @@
 #include "wifi_sta.h"
 #include "wifi_ps.h"
 #include "coap.h"
+
+#ifdef CONFIG_PROFILER_ENABLE
 #include "profiler.h"
+#endif //CONFIG_PROFILER_ENABLE
+
 LOG_MODULE_REGISTER(test_sensor_ps, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 8192
@@ -30,30 +34,19 @@ struct test_control{
     int iter;
     int sent;
     int received;
-    int send_fails;
-    int send_err_11;
-    int send_err_120;
-    int send_err_other;
-    int recv_resp;
-    int recv_err;
-    int recv_serv;
+    int received_serv;
+    uint32_t latency_sum;
 };
 
-static void print_test_results(struct test_control *control) {
+static struct test_control control = { 0 };
+
+static void print_test_results() {
     // Check for inconsistencies and print warnings
-    if ((control->send_err_11 + control->send_err_120 + control->send_err_other) != control->send_fails) {
-        LOG_WRN("Warning: Sum of send errors does not match send fails");
+    if ((control.iter != test_settings.iterations)) {
+        LOG_WRN("Warning: Test could not complete all iterations");
     }
-    if (control->sent != control->received) {
-        LOG_WRN("Warning: Sent messages do not match received messages");
-    }
-    if ((control->recv_resp + control->recv_err) != control->received) {
-        LOG_WRN("Warning: Sum of received responses and errors does not match received messages");
-    }
-    if ((control->sent + control->send_fails) != control->iter) {
-        LOG_WRN("Warning: Sent messages plus send fails do not match iterations");
-    }
-    if (control->recv_serv < 0) {
+    
+    if (control.received_serv < 0) {
         LOG_WRN("Warning: Could not receive server stats");
     }
 
@@ -68,9 +61,8 @@ static void print_test_results(struct test_control *control) {
             "=  Test Number:                           %6d                               =\n"
             "=  Iterations:                            %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
-            "=  Power Save:                          %s                               =\n"
-            "=  Mode:                                  %s                               =\n"
-            "=  Wake-Up mode:                 %s                               =\n"
+            "=  PS Mode:                               %s                               =\n"
+            "=  PS Wake-Up mode:              %s                               =\n"
             "=  Listen Interval:                       %6d                               =\n"
             "================================================================================\n"
             "=  Stats                                                                       =\n"
@@ -80,34 +72,23 @@ static void print_test_results(struct test_control *control) {
             "=  Requests received on server:           %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
-            "=  Request timed-out:                     %6d                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Requests lost:                         %6d                               =\n"
             "=  Responses lost:                        %6d                               =\n"
-            "================================================================================\n"
-            "=  Errors                                                                      =\n"
-            "================================================================================\n"
-            "=  Send Fails:                            %6d                               =\n"
-            "=    Send Error -11:                      %6d                               =\n"
-            "=    Send Error -120:                     %6d                               =\n"
-            "=    Other Send Errors:                   %6d                               =\n"
+            "=------------------------------------------------------------------------------=\n"
+            "=  Average latency:                       %6d ms                            =\n"
             "================================================================================\n",
             test_settings.test_id,
-            control->iter,
-            test_settings.ps_enabled ? " Enabled" : "Disabled",
+            control.iter,
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
-            control->sent,
-            control->recv_serv,
-            control->recv_resp,
-            control->recv_err,
-            control->recv_serv < 0 ? -1 : control->sent - control->recv_serv,
-            control->recv_serv < 0 ? -1 : control->recv_serv - control->recv_resp,
-            control->send_fails,
-            control->send_err_11,
-            control->send_err_120,
-            control->send_err_other);
+            control.sent,
+            control.received_serv,
+            control.received,
+            control.received_serv < 0 ? -1 : control.sent - control.received_serv,
+            control.received_serv < 0 ? -1 : control.received_serv - control.received,
+            control.received == 0 ? -1 : control.latency_sum/control.received);
 }
 
 
@@ -134,22 +115,16 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
-static void handle_coap_response(int16_t code, void * user_data)
+static void handle_coap_response(uint32_t time)
 {
     if(test_failed){
         return;
     }
-    struct test_control * control = (struct test_control *)user_data;
 
-    control->received++;
+    control.received++;
+    control.latency_sum += time;
 
-    if(code == 0x44){
-        control->recv_resp++;
-    }else{
-        control->recv_err++;
-    }
-
-    if((control->iter>=test_settings.iterations) && (control->received == control->sent))
+    if((control.iter >= test_settings.iterations))
     {
         k_sem_give(&end_sem);
     }
@@ -171,18 +146,12 @@ static void configure_ps()
     }else{
         wifi_ps_wakeup_listen_interval();
     }
-
-    if(test_settings.ps_enabled == PS_MODE_ENABLED){
-        wifi_ps_enable();
-    }else{
-        wifi_ps_disable();
-    }
 }
 
 //--------------------------------------------------------------------
 // Function to run the test
 //--------------------------------------------------------------------
-static void run_test(struct test_control * control)
+static void run_test()
 {
     k_timer_start(&send_timer, K_MSEC(test_settings.send_interval), K_NO_WAIT);
 
@@ -190,41 +159,30 @@ static void run_test(struct test_control * control)
         k_sem_take(&timer_event_sem, K_FOREVER);
 
         if(test_failed){
-            k_sleep(K_SECONDS(10));
             break;
         }
 
         char buf[32];
         int ret;
 
-        if(control->iter < test_settings.iterations){
-            sprintf(buf, "{\"sensor-value\":%d}", control->iter++);
-            ret = coap_put("sensor", buf, test_settings.send_interval+1000);
-            if(ret == 0){
-                control->sent++;
-            } else if(ret == -11){
-                control->send_err_11++;
-                control->send_fails++;
-            }else if(ret == -120){  
-                control->send_err_120++;
-                control->send_fails++;
-            }else{
-                control->send_err_other++;
-                control->send_fails++;
-            }
+        if(control.iter < test_settings.iterations){
+            sprintf(buf, "{\"sensor-value\":%d}", control.iter++);
+            ret = coap_put("sensor", buf);
+            if(ret >= 0){
+                control.sent++;
+            } 
         }else{
             break;
         }
     }
-    k_sem_take(&end_sem, K_FOREVER);
+    k_sem_take(&end_sem, K_MSEC(test_settings.send_interval));
 }
+
 //--------------------------------------------------------------------
-
-
 // Thread function that runs the test
 static void thread_function(void *arg1, void *arg2, void *arg3) 
 {
-    struct test_control control = { 0 };
+    memset(&control, 0, sizeof(control));
 
     // Extract the semaphore and test settings
     struct k_sem *test_sem = (struct k_sem *)arg1;
@@ -233,7 +191,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
     //register coap response callback
-    coap_register_response_callback(handle_coap_response,(void*)&control);
+    coap_register_response_callback(handle_coap_response);
 
     // configure power save mode 
     configure_ps();
@@ -260,27 +218,31 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     k_sleep(K_SECONDS(5));
 
+    coap_init_pool(1000);  // init coap request pool with 1s request timeout
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
+
+    #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
+    #endif //CONFIG_PROFILER_ENABLE
 
-    run_test(&control);
+    memset(&control, 0, sizeof(control));
 
+    run_test();
+
+    #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
+    #endif //CONFIG_PROFILER_ENABLE
+
+    coap_register_response_callback(NULL);
 
     if(!test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
-
         k_sleep(K_SECONDS(2));
 
-        control.recv_serv = coap_get_stat();
-        if(control.recv_serv < 0)
-        {
-            LOG_WRN("Failed to get CoAP stats from server");
-            control.recv_serv = -1;
-        }
+        control.received_serv = coap_get_stat();
 
         ret = wifi_disconnect();
         if(ret != 0)
@@ -291,10 +253,10 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     }
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
-        control.recv_serv = -1;
+        control.received_serv = -1;
     }
 
-    print_test_results(&control);
+    print_test_results();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
