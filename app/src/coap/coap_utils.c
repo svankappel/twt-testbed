@@ -8,7 +8,7 @@
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/coap.h>
 #include <zephyr/net/coap_client.h>
-#include <zephyr/random/rand32.h>
+#include <zephyr/random/random.h>
 
 LOG_MODULE_REGISTER(coap_utils, CONFIG_MY_COAP_LOG_LEVEL);
 
@@ -23,8 +23,6 @@ struct request_entry {
 static struct request_entry pending_requests_pool[COAP_CLIENT_POOL_SIZE];
 
 static uint32_t timeout;
-
-static uint8_t token_len;
 
 #ifndef CONFIG_IP_PROTO_IPV6
 int server_resolve(struct sockaddr_in* server_ptr)

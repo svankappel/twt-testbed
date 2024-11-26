@@ -518,7 +518,7 @@ config LARGE_PACKET_TESTS_ENABLE
 
 endmenu
 
-menu "Log Levels"
+menu "Logs and Profiling"
 config MY_MAIN_LOG_LEVEL
     int "Main log level"
     range 0 4
@@ -570,6 +570,11 @@ config MY_TEST_LOG_LEVEL
       - 2 WARNING, default to write LOG_LEVEL_WRN
       - 3 INFO, default to write LOG_LEVEL_INFO
       - 4 DEBUG, default to write LOG_LEVEL_DBG
+
+config PROFILER_ENABLE
+    bool "Enable Profiler"
+    help
+      Enable the profiler module to print test number on gpios
 endmenu
 
 

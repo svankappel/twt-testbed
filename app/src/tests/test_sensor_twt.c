@@ -84,7 +84,7 @@ static void print_test_results() {
             control.received,
             control.received_serv < 0 ? -1 : control.sent - control.received_serv,
             control.received_serv < 0 ? -1 : control.received_serv - control.received,
-            control.latency_sum/control.received);
+            control.received == 0 ? -1 : control.latency_sum/control.received);
         
 
     // Print the latency histogram
@@ -236,6 +236,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
     profiler_output_binary(test_settings.test_id);
+
+    memset(&control, 0, sizeof(control));
 
     run_test();
 

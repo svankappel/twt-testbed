@@ -70,8 +70,7 @@ static void print_test_results() {
             CONFIG_PS_LISTEN_INTERVAL,
             control.sent,
             control.received,
-            control.latency_sum/control.received
-            );
+            control.received == 0 ? -1 : control.latency_sum/control.received);
 }
 
 
@@ -199,6 +198,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
     profiler_output_binary(test_settings.test_id);
+
+    memset(&control, 0, sizeof(control));
 
     run_test();
 

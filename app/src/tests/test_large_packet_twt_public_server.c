@@ -5,7 +5,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
-#include <zephyr/random/rand32.h>
+#include <zephyr/random/random.h>
 
 #include "wifi_sta.h"
 #include "wifi_ps.h"
@@ -74,7 +74,7 @@ static void print_test_results() {
             wifi_twt_get_wake_interval_ms(),
             control.sent,
             control.received,
-            control.latency_sum/control.received);
+            control.control.received == 0 ? -1 : control.latency_sum/control.received);
     
 
     // Print the latency histogram
@@ -155,8 +155,7 @@ static void run_test()
             break;
         }
 
-        char buf[32];
-        int ret;
+        int ret=0;
 
         if(control.iter < test_settings.iterations){
 
@@ -230,6 +229,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
     profiler_output_binary(test_settings.test_id);
+
+    memset(&control, 0, sizeof(control));
 
     run_test();
 
