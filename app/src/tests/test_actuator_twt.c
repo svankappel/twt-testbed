@@ -29,6 +29,7 @@ static bool test_failed = false;
 
 struct test_control{
     int received;
+    int sent;
 };
 
 static struct test_control control = { 0 };
@@ -43,20 +44,22 @@ static void print_test_results() {
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
+            "=  Test time:                             %6d s                             =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Negotiated TWT Interval:               %6d s                             =\n"
             "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
             "================================================================================\n"
             "=  Stats                                                                       =\n"
             "================================================================================\n"
-            "=  Test time:                             %6d s                             =\n"
+            "=  Resonses sent:                         %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "================================================================================\n",
             test_settings.test_id,
+            test_settings.test_time_s,
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
-            test_settings.test_time_s,
+            control.sent,
             control.received);
 }
 
@@ -100,9 +103,11 @@ static void configure_twt()
 //--------------------------------------------------------------------
 static void run_test()
 {
-    
+    char payload[15];
+    sprintf(payload, "/%d/%d/", test_settings.min_interval, test_settings.max_interval);
+    coap_observe(TESTBED_ACTUATOR_RESOURCE, payload);
+
     k_sem_take(&end_sem, K_SECONDS(test_settings.test_time_s));
-   
 }
 //--------------------------------------------------------------------
 
@@ -130,14 +135,18 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     k_sleep(K_SECONDS(5));
 
     //coap
+    ret = coap_validate();
+    if(ret != 0){
+        LOG_ERR("Failed to validate coap");
+        k_sleep(K_FOREVER);
+    }
     coap_register_response_callback(handle_coap_response);
-    coap_observe(TESTBED_ACTUATOR_RESOURCE, NULL);
     k_sleep(K_SECONDS(2));
     
-
+    
     // configure TWT
     configure_twt(&test_settings);
-    LOG_DBG("TWT configured");
+
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
@@ -156,13 +165,18 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_response_callback(NULL);
-        coap_cancel_observers();
 
         // tear down TWT and disconnect from wifi
         if(wifi_twt_is_enabled()){
             wifi_twt_teardown();
         }
-        k_sleep(K_SECONDS(2));
+
+        k_sleep(K_SECONDS(1));
+        coap_cancel_observers();
+        k_sleep(K_SECONDS(1));
+        control.sent = coap_get_stat()-1;
+        k_sleep(K_SECONDS(1));
+
         ret = wifi_disconnect();
         if(ret != 0){
             LOG_ERR("Failed to disconnect from wifi");
@@ -175,6 +189,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         //coap
         coap_register_response_callback(NULL);
         coap_cancel_observers();
+        control.sent = -1;
     }
 
     print_test_results();

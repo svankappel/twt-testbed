@@ -532,14 +532,17 @@ config ACTUATOR_PS_TEST_1
   bool "Test 1"
   depends on ACTUATOR_PS_TESTS_ENABLE
 
+config ACTUATOR_PS_TEST_1_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
 
-config ACTUATOR_PS_TEST_1_ITERATIONS
-  int "Iterations"
+config ACTUATOR_PS_TEST_1_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
   depends on ACTUATOR_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
 
 config ACTUATOR_PS_TEST_1_TIME
   int "Test time (s)"
-  depends on ACTUATOR_PS_TEST_1 && !COAP_TWT_TESTBED_SERVER
+  depends on ACTUATOR_PS_TEST_1
 
 choice ACTUATOR_PS_TEST_1_MODE
   prompt "PS Mode"
@@ -568,13 +571,17 @@ config ACTUATOR_TWT_TEST_1
   bool "Test 1"
   depends on ACTUATOR_TWT_TESTS_ENABLE
 
-config ACTUATOR_TWT_TEST_1_ITERATIONS
-  int "Iterations"
+config ACTUATOR_TWT_TEST_1_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_1_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
   depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
 
 config ACTUATOR_TWT_TEST_1_TIME
   int "Test time (s)"
-  depends on ACTUATOR_TWT_TEST_1 && !COAP_TWT_TESTBED_SERVER
+  depends on ACTUATOR_TWT_TEST_1
 
 config ACTUATOR_TWT_TEST_1_INTERVAL
   int "TWT interval (ms)"

@@ -28,6 +28,7 @@ static bool test_failed = false;
 
 struct test_control{
     int received;
+    int sent;
 };
 
 static struct test_control control = { 0 };
@@ -42,6 +43,7 @@ static void print_test_results() {
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
+            "=  Test time:                             %6d s                             =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  PS Mode:                               %s                               =\n"
             "=  PS Wake-Up mode:              %s                               =\n"
@@ -49,15 +51,16 @@ static void print_test_results() {
             "================================================================================\n"
             "=  Stats                                                                       =\n"
             "================================================================================\n"
-            "=  Test time:                             %6d s                             =\n"
+            "=  Responses sent:                        %6d                               =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "================================================================================\n",
             test_settings.test_id,
+            test_settings.test_time_s,
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
-            test_settings.test_time_s,
+            control.sent,
             control.received);
 }
 
@@ -106,10 +109,12 @@ static void configure_ps()
 // Function to run the test
 //--------------------------------------------------------------------
 static void run_test()
-{
-    
+{   
+    char payload[15];
+    sprintf(payload, "/%d/%d/", test_settings.min_interval, test_settings.max_interval);
+    coap_observe(TESTBED_ACTUATOR_RESOURCE, payload);
+
     k_sem_take(&end_sem, K_SECONDS(test_settings.test_time_s));
-    
 }
 
 //--------------------------------------------------------------------
@@ -137,10 +142,13 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     k_sleep(K_SECONDS(5));
 
     //coap
-    coap_observe(TESTBED_ACTUATOR_RESOURCE, "/10/20/");
+    ret = coap_validate();
+    if(ret != 0){
+        LOG_ERR("Failed to validate coap");
+        k_sleep(K_FOREVER);
+    }
     coap_register_response_callback(handle_coap_response);
-    k_sleep(K_SECONDS(1));
-    
+    k_sleep(K_SECONDS(2));
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
@@ -159,6 +167,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         coap_register_response_callback(NULL);
         coap_cancel_observers();
+        control.sent = coap_get_stat()-1;
 
         k_sleep(K_SECONDS(2));
 
@@ -175,6 +184,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         //coap
         coap_register_response_callback(NULL);
         coap_cancel_observers();
+        control.sent = -1;
     }
 
     print_test_results();

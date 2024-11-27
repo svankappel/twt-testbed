@@ -177,6 +177,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 1,
                     .bytes = CONFIG_LARGE_PACKET_PS_TEST_1_NUM_BYTES,
 
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     #ifdef CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_SREQ_LRES 
                     .large_packet_config = SREQ_LRES,
                     #else
@@ -186,6 +187,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .large_packet_config = LREQ_SRES,
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_1_SERVER_ECHO
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
 
                     #ifndef CONFIG_LARGE_PACKET_PS_TEST_1_MODE_WMM
@@ -210,6 +212,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 2,
                     .bytes = CONFIG_LARGE_PACKET_PS_TEST_2_NUM_BYTES,
 
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     #ifdef CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_SREQ_LRES 
                     .large_packet_config = SREQ_LRES,
                     #else
@@ -219,6 +222,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .large_packet_config = LREQ_SRES,
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_2_SERVER_ECHO
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
                     #ifndef CONFIG_LARGE_PACKET_PS_TEST_2_MODE_WMM
                     .ps_mode = PS_MODE_LEGACY,
@@ -241,7 +245,8 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .send_interval = CONFIG_LARGE_PACKET_PS_TEST_3_SEND_INTERVAL,
                     .test_id = 3,
                     .bytes = CONFIG_LARGE_PACKET_PS_TEST_3_NUM_BYTES,
-
+                    
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     #ifdef CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_SREQ_LRES 
                     .large_packet_config = SREQ_LRES,
                     #else
@@ -251,6 +256,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .large_packet_config = LREQ_SRES,                    
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_3_SERVER_ECHO
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
                     #ifndef CONFIG_LARGE_PACKET_PS_TEST_3_MODE_WMM
                     .ps_mode = PS_MODE_LEGACY,
@@ -282,6 +288,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 1,
                     .wake_ahead_ms = 1000,
                     .bytes = CONFIG_LARGE_PACKET_TWT_TEST_1_NUM_BYTES,
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     #ifdef CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES 
                     .large_packet_config = SREQ_LRES,
                     #else
@@ -291,6 +298,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .large_packet_config = LREQ_SRES,
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
     test_large_packet_twt(&test_sem, &test_settings_1);
     #endif //CONFIG_LARGE_PACKET_TWT_TEST_1
@@ -302,6 +310,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 2,
                     .wake_ahead_ms = 1000,
                     .bytes = CONFIG_LARGE_PACKET_TWT_TEST_2_NUM_BYTES,
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     #ifdef CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES 
                     .large_packet_config = SREQ_LRES,
                     #else
@@ -311,6 +320,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .large_packet_config = LREQ_SRES,
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
     test_large_packet_twt(&test_sem, &test_settings_2);
     #endif //CONFIG_LARGE_PACKET_TWT_TEST_2
@@ -323,6 +333,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 3,
                     .wake_ahead_ms = 1000,
                     .bytes = CONFIG_LARGE_PACKET_TWT_TEST_3_NUM_BYTES,
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     #ifdef CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES 
                     .large_packet_config = SREQ_LRES,
                     #else
@@ -332,6 +343,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .large_packet_config = LREQ_SRES,
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_LREQ_LRES
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
     test_large_packet_twt(&test_sem, &test_settings_3);
     #endif //CONFIG_LARGE_PACKET_TWT_TEST_3
@@ -364,6 +376,11 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     #else
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                     #endif //CONFIG_ACTUATOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+
+                    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
+                    .min_interval = CONFIG_ACTUATOR_PS_TEST_1_MIN_INTERVAL,
+                    .max_interval = CONFIG_ACTUATOR_PS_TEST_1_MAX_INTERVAL,
+                    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
     test_actuator_ps(&test_sem, &test_settings_1);
     #endif //CONFIG_ACTUATOR_PS_TEST_1
@@ -380,7 +397,11 @@ struct test_actuator_twt_settings test_settings_1 = {
                 .twt_interval = CONFIG_ACTUATOR_TWT_TEST_1_INTERVAL,
                 .twt_wake_interval = CONFIG_ACTUATOR_TWT_TEST_1_SESSION_DURATION,
                 .test_id = 1,
-                .wake_ahead_ms = 100,
+
+                #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
+                .min_interval = CONFIG_ACTUATOR_TWT_TEST_1_MIN_INTERVAL,
+                .max_interval = CONFIG_ACTUATOR_TWT_TEST_1_MAX_INTERVAL,
+                #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 };
 test_actuator_twt(&test_sem, &test_settings_1);
 #endif //CONFIG_ACTUATOR_TWT_TEST_1
