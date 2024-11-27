@@ -77,7 +77,7 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
-static void handle_coap_response(uint32_t time)
+static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payload_len)
 {
     if(test_failed){
         return;
@@ -127,7 +127,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to connect to wifi");
         k_sleep(K_FOREVER);
     }
-    LOG_DBG("Connected to wifi");
     k_sleep(K_SECONDS(5));
 
     //coap

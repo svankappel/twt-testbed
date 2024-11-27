@@ -4,14 +4,6 @@
 #include <zephyr/kernel.h>
 #include "test_global.h"
 
-#define PS_MODE_DISABLED 0
-#define PS_MODE_ENABLED 1
-
-#define PS_MODE_LEGACY 0
-#define PS_MODE_WMM 1
-
-#define PS_WAKEUP_MODE_DTIM 0
-#define PS_WAKEUP_MODE_LISTEN_INTERVAL 1
 
 void test_large_packet_ps(struct k_sem *sem, void * test_settings);
 

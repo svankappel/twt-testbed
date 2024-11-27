@@ -14,6 +14,7 @@
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
 
+#include "test_global.h"
 
 #define STACK_SIZE 4096
 #define PRIORITY 8
@@ -60,9 +61,9 @@ static char observer_resources[MAXOBSERVERS][30];
 static int coap_stat = 0;
 
 
-static void (*coap_response_callback)(uint32_t time) = NULL;
+static void (*coap_response_callback)(uint32_t time, uint8_t * payload, uint16_t payload_len) = NULL;
 
-void coap_register_response_callback(void (*callback)(uint32_t time)) {
+void coap_register_response_callback(void (*callback)(uint32_t time, uint8_t * payload, uint16_t payload_len)) {
 	coap_response_callback = callback;
 }
 
@@ -310,8 +311,8 @@ int coap_validate()
 	}
 
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
-				(uint8_t *)"validate",
-				strlen("validate"));
+				(uint8_t *)TESTBED_VALIDATE_RESOURCE,
+				strlen(TESTBED_VALIDATE_RESOURCE));
 	if (err < 0) {
 		LOG_ERR("Failed to encode CoAP option, %d\n", err);
 		return err;
@@ -320,7 +321,7 @@ int coap_validate()
 	//set variables to be printed in log
 	memcpy(coap_send_token, token, TOKEN_LEN);
 	coap_send_payload[0] = '\0';
-	strcpy(coap_send_resource, "validate");
+	strcpy(coap_send_resource, TESTBED_VALIDATE_RESOURCE);
 
 	for(int i = 0; i < 3; i++)
 	{
@@ -362,8 +363,8 @@ int coap_get_stat()
 	}
 
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
-				(uint8_t *)"stat",
-				strlen("stat"));
+				(uint8_t *)TESTBED_STAT_RESOURCE,
+				strlen(TESTBED_STAT_RESOURCE));
 	if (err < 0) {
 		LOG_ERR("Failed to encode CoAP option, %d\n", err);
 		return err;
@@ -371,7 +372,7 @@ int coap_get_stat()
 
 	//set variables to be printed in log
 	coap_send_payload[0] = '\0';
-	strcpy(coap_send_resource, "stat");
+	strcpy(coap_send_resource, TESTBED_STAT_RESOURCE);
 	memcpy(coap_send_token, token, TOKEN_LEN);
 
 	for(int i = 0; i < 3; i++)
@@ -517,7 +518,7 @@ static int client_handle_response(uint8_t *buf, int received)
 			}
 			
 			if (coap_response_callback != NULL) {
-				coap_response_callback(0);
+				coap_response_callback(0, (uint8_t *)payload, payload_len);
 			}
 			return 0;
 		}
@@ -530,7 +531,7 @@ static int client_handle_response(uint8_t *buf, int received)
 		if(time > 0)
 		{
 			if (coap_response_callback != NULL) {
-				coap_response_callback(time);
+				coap_response_callback(time, (uint8_t *)payload, payload_len);
 			}
 			return 0;
 		}
