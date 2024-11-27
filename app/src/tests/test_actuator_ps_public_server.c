@@ -173,6 +173,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
 
+        //coap
         coap_register_response_callback(NULL);
         coap_cancel_observers();
     }

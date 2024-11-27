@@ -343,8 +343,10 @@ test_sensor_twt(&test_sem, &test_settings_4);
 
 #endif //CONFIG_LARGE_PACKET_TESTS_ENABLE
 
-#ifdef CONFIG_ACTUATOR_PS_TESTS_ENABLE
+#ifdef CONFIG_ACTUATOR_TESTS_ENABLE
 {
+    #ifdef CONFIG_ACTUATOR_PS_TESTS_ENABLE
+
     #ifdef CONFIG_ACTUATOR_PS_TEST_1
     struct test_actuator_ps_settings test_settings_1 = {
 
@@ -365,7 +367,29 @@ test_sensor_twt(&test_sem, &test_settings_4);
     };
     test_actuator_ps(&test_sem, &test_settings_1);
     #endif //CONFIG_ACTUATOR_PS_TEST_1
+
+    #endif //CONFIG_ACTUATOR_PS_TESTS_ENABLE
 }
-#endif //CONFIG_ACTUATOR_PS_TESTS_ENABLE
+
+{
+#ifdef CONFIG_ACTUATOR_TWT_TESTS_ENABLE
+
+#ifdef CONFIG_ACTUATOR_TWT_TEST_1
+struct test_actuator_twt_settings test_settings_1 = {
+                .test_time_s = CONFIG_ACTUATOR_TWT_TEST_1_TIME,
+                .twt_interval = CONFIG_ACTUATOR_TWT_TEST_1_INTERVAL,
+                .twt_wake_interval = CONFIG_ACTUATOR_TWT_TEST_1_SESSION_DURATION,
+                .test_id = 1,
+                .wake_ahead_ms = 100,
+};
+test_actuator_twt(&test_sem, &test_settings_1);
+#endif //CONFIG_ACTUATOR_TWT_TEST_1
+
+#endif //CONFIG_ACTUATOR_TWT_TESTS_ENABLE
+}
+
+
+
+#endif //CONFIG_ACTUATOR_TESTS_ENABLE
 
 }
