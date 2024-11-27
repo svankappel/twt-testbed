@@ -6,6 +6,9 @@
 #include "test_large_packet_ps.h"
 #include "test_large_packet_twt.h"
 
+#include "test_actuator_ps.h"
+#include "test_actuator_twt.h"
+
 static K_SEM_DEFINE(test_sem, 0, 1);
 
 
@@ -339,5 +342,30 @@ test_sensor_twt(&test_sem, &test_settings_4);
 }
 
 #endif //CONFIG_LARGE_PACKET_TESTS_ENABLE
+
+#ifdef CONFIG_ACTUATOR_PS_TESTS_ENABLE
+{
+    #ifdef CONFIG_ACTUATOR_PS_TEST_1
+    struct test_actuator_ps_settings test_settings_1 = {
+
+                    .test_time_s = CONFIG_ACTUATOR_PS_TEST_1_TIME,
+                    .test_id = 1,
+
+                    #ifndef CONFIG_ACTUATOR_PS_TEST_1_MODE_WMM
+                    .ps_mode = PS_MODE_LEGACY,
+                    #else
+                    .ps_mode = PS_MODE_WMM,
+                    #endif //CONFIG_ACTUATOR_PS_TEST_1_MODE_WMM
+
+                    #ifndef CONFIG_ACTUATOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
+                    #else
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
+                    #endif //CONFIG_ACTUATOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+    };
+    test_actuator_ps(&test_sem, &test_settings_1);
+    #endif //CONFIG_ACTUATOR_PS_TEST_1
+}
+#endif //CONFIG_ACTUATOR_PS_TESTS_ENABLE
 
 }

@@ -170,7 +170,7 @@ static void run_test()
 
             sprintf(buf, "/%06d/%s/largeupload/", control.iter++,random_data);
 
-            ret = coap_put(CONFIG_COAP_TEST_RESOURCE, buf);
+            ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
 
             if(ret >= 0){
                 control.sent++;

@@ -185,26 +185,36 @@ int coap_observe(char *resource, uint8_t *payload)
 		return err;
 	}
 
-	err = coap_packet_append_payload_marker(&coap_request);
-	if (err < 0) {
-		LOG_ERR("Failed to append payload marker, %d\n", err);
-		return err;
-	}
+	if(payload != NULL)
+	{
+		err = coap_packet_append_payload_marker(&coap_request);
+		if (err < 0) {
+			LOG_ERR("Failed to append payload marker, %d\n", err);
+			return err;
+		}
 
-	err = coap_packet_append_payload(&coap_request, (uint8_t *)payload, strlen(payload));
-	if (err < 0) {
-		LOG_ERR("Failed to append payload, %d\n", err);
-		return err;
+		err = coap_packet_append_payload(&coap_request, (uint8_t *)payload, strlen(payload));
+		if (err < 0) {
+			LOG_ERR("Failed to append payload, %d\n", err);
+			return err;
+		}
 	}
 
 	//set variables to be printed in log
 	memcpy(coap_send_token, token, TOKEN_LEN);
-	if (strlen((const char *)payload) > 49) {
-		strncpy(coap_send_payload, (const char *)payload, 46);
-		strcpy(coap_send_payload + 46, "...");
-	} else {
-		strncpy(coap_send_payload, (const char *)payload, 49);
-		coap_send_payload[49] = '\0';
+	if(payload != NULL)
+	{
+		if (strlen((const char *)payload) > 49) {
+			strncpy(coap_send_payload, (const char *)payload, 46);
+			strcpy(coap_send_payload + 46, "...");
+		} else {
+			strncpy(coap_send_payload, (const char *)payload, 49);
+			coap_send_payload[49] = '\0';
+		}
+	}
+	else
+	{
+		coap_send_payload[0] = '\0';
 	}
 	strcpy(coap_send_resource, resource);
 
@@ -215,6 +225,23 @@ int coap_observe(char *resource, uint8_t *payload)
 	strcpy(observer_resources[observers], resource);
 	observers++;
 
+
+	return send_return_code;
+}
+
+int coap_ack(struct coap_packet * req)
+{
+	memset(coap_send_buf, 0, sizeof(coap_send_buf));
+	memset(&coap_request, 0, sizeof(coap_request));
+
+	int err = coap_ack_init(&coap_request, req, coap_send_buf, sizeof(coap_send_buf), 0);
+	if (err < 0) {
+		LOG_ERR("Failed to create CoAP ACK, %d\n", err);
+		return err;
+	}
+
+	k_sem_give(&send_sem);
+	k_sem_take(&sent_sem, K_FOREVER);
 
 	return send_return_code;
 }
@@ -379,18 +406,28 @@ void send_coap_thread(void *arg1, void *arg2, void *arg3)
 		if (send_return_code < 0) {
 			LOG_ERR("Failed to send CoAP request, %d\n", errno);
 		}
-
-		char token_str[TOKEN_LEN * 3 + 1] = {0};
-		for (int i = 0; i < TOKEN_LEN; i++) {
-			snprintf(&token_str[i * 3], sizeof(token_str) - i * 3, " %02x", coap_send_token[i]);
+		//log
+		if(coap_request.data[1] == 0)	//if message is an ack
+		{
+			LOG_INF("CoAP ACK sent to: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME);
 		}
-		token_str[TOKEN_LEN * 3] = '\0';
+		else
+		{
+			char token_str[TOKEN_LEN * 3 + 1] = {0};
+			for (int i = 0; i < TOKEN_LEN; i++) {
+				snprintf(&token_str[i * 3], sizeof(token_str) - i * 3, " %02x", coap_send_token[i]);
+			}
+			token_str[TOKEN_LEN * 3] = '\0';
 
-		if (coap_send_payload[0] != '\0') {
-			LOG_INF("CoAP request sent to: %s, Token:%s, Resource: %s, Payload: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_resource, coap_send_payload);
-		} else {
-			LOG_INF("CoAP request sent to: %s, Token:%s, Resource: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_resource);
+			if (coap_send_payload[0] != '\0') {
+				LOG_INF("CoAP request sent to: %s, Token:%s, Resource: %s, Payload: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_resource, coap_send_payload);
+			} else {
+				LOG_INF("CoAP request sent to: %s, Token:%s, Resource: %s", CONFIG_COAP_TEST_SERVER_HOSTNAME, token_str, coap_send_resource);
+			}
 		}
+
+		
+
 		k_sem_give(&sent_sem);
 	}
 }
@@ -474,6 +511,11 @@ static int client_handle_response(uint8_t *buf, int received)
 		if(memcmp(observer_tokens[i], token, TOKEN_LEN) == 0 &&
 			coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT)
 		{
+			if((reply.data[0] & 0b00110000) == 0)	//if confirmalble -> ack
+			{
+				coap_ack(&reply);
+			}
+			
 			if (coap_response_callback != NULL) {
 				coap_response_callback(0);
 			}
