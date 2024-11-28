@@ -2,7 +2,9 @@
 #define TEST_GLOBAL_H
 
 #define TESTBED_SENSOR_RESOURCE "sensor"
-#define TESTBED_ACTUATOR_RESOURCE "observe"
+#define TESTBED_ACTUATOR_RESOURCE "actuator"
+#define TESTBED_ACTUATOR_ECHO_RESOURCE "actuatorecho"
+#define TESTBED_ACTUATOR_STAT_RESOURCE "actuatorstat"
 #define TESTBED_VALIDATE_RESOURCE "validate"
 #define TESTBED_STAT_RESOURCE "stat"
 #define TESTBED_LARGE_UPLOAD_RESOURCE "largeuploadack"

@@ -29,6 +29,7 @@ static bool test_failed = false;
 struct test_control{
     int received;
     int sent;
+    char latency_stats[1024];
 };
 
 static struct test_control control = { 0 };
@@ -62,6 +63,15 @@ static void print_test_results() {
             CONFIG_PS_LISTEN_INTERVAL,
             control.sent,
             control.received);
+
+    if(test_settings.echo && control.latency_stats[0] != '\0'){
+        LOG_INF("\n================================================================================\n"
+                "=  Actuator Latency Histogram                                                  =\n"
+                "================================================================================\n"
+                "%s\n"
+                "================================================================================\n",
+                control.latency_stats);
+    }
 }
 
 
@@ -76,7 +86,7 @@ static void wifi_disconnected_event()
 }
 
 //--------------------------------------------------------------------     
-// Callback function to handle coap responses
+// Callback function to handle coap obs responses
 //--------------------------------------------------------------------
 static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
 {
@@ -85,6 +95,16 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
     }
 
     control.received++;
+
+    if(test_settings.echo){
+
+        // Change the payload {"actuator-value":x} to {"actuator-echo":x}
+        char echo[payload_len];
+        snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
+
+        coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
+    }
+    
 }
 
 //--------------------------------------------------------------------
@@ -143,6 +163,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     //coap
     ret = coap_validate();
+    coap_init_pool(5000);
     if(ret != 0){
         LOG_ERR("Failed to validate coap");
         k_sleep(K_FOREVER);
@@ -168,6 +189,13 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         coap_register_obs_response_callback(NULL);
         coap_cancel_observers();
         control.sent = coap_get_stat()-1;
+        if(test_settings.echo){
+            ret = coap_get_actuator_stat(control.latency_stats);
+            if(ret != 0){
+                LOG_ERR("Failed to get actuator stat");
+                control.latency_stats[0] = '\0';
+            }
+        }
 
         k_sleep(K_SECONDS(2));
 

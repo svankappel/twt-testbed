@@ -10,6 +10,8 @@ int coap_validate();
 
 int coap_get_stat();
 
+int coap_get_actuator_stat(char * buffer);
+
 int coap_observe(char *resource, uint8_t *payload);
 
 int coap_cancel_observers();

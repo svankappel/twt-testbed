@@ -380,6 +380,13 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
                     .min_interval = CONFIG_ACTUATOR_PS_TEST_1_MIN_INTERVAL,
                     .max_interval = CONFIG_ACTUATOR_PS_TEST_1_MAX_INTERVAL,
+
+                    #ifdef CONFIG_ACTUATOR_PS_TEST_1_ECHO
+                    .echo = true,
+                    #else
+                    .echo = false,
+                    #endif //CONFIG_ACTUATOR_PS_TEST_1_ECHO
+                    
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
     test_actuator_ps(&test_sem, &test_settings_1);

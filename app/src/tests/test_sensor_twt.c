@@ -212,7 +212,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
+    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool
     k_sleep(K_SECONDS(2));
 
 
