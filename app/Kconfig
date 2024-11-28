@@ -228,6 +228,10 @@ config SENSOR_TWT_TEST_1_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_1
 
+config SENSOR_TWT_TEST_1_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
+  depends on SENSOR_TWT_TEST_1
+
 config SENSOR_TWT_TEST_2
   bool "Test 2"
   depends on SENSOR_TWT_TESTS_ENABLE
@@ -242,6 +246,10 @@ config SENSOR_TWT_TEST_2_INTERVAL
 
 config SENSOR_TWT_TEST_2_SESSION_DURATION
   int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_2
+
+config SENSOR_TWT_TEST_2_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_2
 
 config SENSOR_TWT_TEST_3
@@ -260,6 +268,10 @@ config SENSOR_TWT_TEST_3_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_3
 
+config SENSOR_TWT_TEST_3_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
+  depends on SENSOR_TWT_TEST_3
+
 config SENSOR_TWT_TEST_4
   bool "Test 4"
   depends on SENSOR_TWT_TESTS_ENABLE
@@ -274,6 +286,10 @@ config SENSOR_TWT_TEST_4_INTERVAL
 
 config SENSOR_TWT_TEST_4_SESSION_DURATION
   int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_4
+
+config SENSOR_TWT_TEST_4_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_4
 
 

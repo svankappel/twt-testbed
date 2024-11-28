@@ -120,6 +120,12 @@ struct test_sensor_twt_settings test_settings_1 = {
                 .twt_wake_interval = CONFIG_SENSOR_TWT_TEST_1_SESSION_DURATION,
                 .test_id = 1,
                 .wake_ahead_ms = 100,
+
+                #ifdef CONFIG_SENSOR_TWT_TEST_1_RECOVER
+                .recover = true,
+                #else
+                .recover = false,
+                #endif //CONFIG_SENSOR_TWT_TEST_1_RECOVER
 };
 test_sensor_twt(&test_sem, &test_settings_1);
 #endif //CONFIG_SENSOR_TWT_TEST_1
@@ -131,6 +137,12 @@ struct test_sensor_twt_settings test_settings_2 = {
                 .twt_wake_interval = CONFIG_SENSOR_TWT_TEST_2_SESSION_DURATION,
                 .test_id = 2,
                 .wake_ahead_ms = 100,
+                
+                #ifdef CONFIG_SENSOR_TWT_TEST_2_RECOVER
+                .recover = true,
+                #else
+                .recover = false,
+                #endif //CONFIG_SENSOR_TWT_TEST_2_RECOVER
 };
 test_sensor_twt(&test_sem, &test_settings_2);
 #endif //CONFIG_SENSOR_TWT_TEST_2
@@ -142,6 +154,12 @@ struct test_sensor_twt_settings test_settings_3 = {
                 .twt_wake_interval = CONFIG_SENSOR_TWT_TEST_3_SESSION_DURATION,
                 .test_id = 3,
                 .wake_ahead_ms = 100,
+                
+                #ifdef CONFIG_SENSOR_TWT_TEST_3_RECOVER
+                .recover = true,
+                #else
+                .recover = false,
+                #endif //CONFIG_SENSOR_TWT_TEST_3_RECOVER
 };
 test_sensor_twt(&test_sem, &test_settings_3);
 #endif //CONFIG_SENSOR_TWT_TEST_3
@@ -153,6 +171,12 @@ struct test_sensor_twt_settings test_settings_4 = {
                 .twt_wake_interval = CONFIG_SENSOR_TWT_TEST_4_SESSION_DURATION,
                 .test_id = 4,
                 .wake_ahead_ms = 100,
+                
+                #ifdef CONFIG_SENSOR_TWT_TEST_4_RECOVER
+                .recover = true,
+                #else
+                .recover = false,
+                #endif //CONFIG_SENSOR_TWT_TEST_4_RECOVER
 };
 test_sensor_twt(&test_sem, &test_settings_4);
 #endif //CONFIG_SENSOR_TWT_TEST_4
