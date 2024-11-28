@@ -183,7 +183,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
 
     //coap
-    coap_register_response_callback(handle_coap_response);
+    coap_register_put_response_callback(handle_coap_response);
     coap_init_pool(test_settings.send_interval);
 
 
@@ -204,7 +204,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         //coap
-        coap_register_response_callback(NULL);
+        coap_register_put_response_callback(NULL);
 
         //wifi
         ret = wifi_disconnect();
@@ -216,7 +216,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
         
-        coap_register_response_callback(NULL);
+        coap_register_put_response_callback(NULL);
     }
 
     print_test_results();

@@ -61,10 +61,15 @@ static char observer_resources[MAXOBSERVERS][30];
 static int coap_stat = 0;
 
 
-static void (*coap_response_callback)(uint32_t time, uint8_t * payload, uint16_t payload_len) = NULL;
+static void (*coap_put_response_callback)(uint32_t time, uint8_t * payload, uint16_t payload_len) = NULL;
+static void (*coap_obs_response_callback)(uint8_t * payload, uint16_t payload_len) = NULL;
 
-void coap_register_response_callback(void (*callback)(uint32_t time, uint8_t * payload, uint16_t payload_len)) {
-	coap_response_callback = callback;
+void coap_register_put_response_callback(void (*callback)(uint32_t time, uint8_t * payload, uint16_t payload_len)) {
+	coap_put_response_callback = callback;
+}
+
+void coap_register_obs_response_callback(void (*callback)(uint8_t * payload, uint16_t payload_len)) {
+	coap_obs_response_callback = callback;
 }
 
 void coap_init_pool(uint32_t requests_timeout)
@@ -517,8 +522,8 @@ static int client_handle_response(uint8_t *buf, int received)
 				coap_ack(&reply);
 			}
 			
-			if (coap_response_callback != NULL) {
-				coap_response_callback(0, (uint8_t *)payload, payload_len);
+			if (coap_obs_response_callback != NULL) {
+				coap_obs_response_callback((uint8_t *)payload, payload_len);
 			}
 			return 0;
 		}
@@ -530,8 +535,8 @@ static int client_handle_response(uint8_t *buf, int received)
 		uint32_t time = remove_pending_request(token);
 		if(time > 0)
 		{
-			if (coap_response_callback != NULL) {
-				coap_response_callback(time, (uint8_t *)payload, payload_len);
+			if (coap_put_response_callback != NULL) {
+				coap_put_response_callback(time, (uint8_t *)payload, payload_len);
 			}
 			return 0;
 		}

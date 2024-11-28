@@ -191,7 +191,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
 
     //coap
-    coap_register_response_callback(handle_coap_response);
+    coap_register_put_response_callback(handle_coap_response);
     coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
     coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, "{init-message}"); //send a first message before activating TWT
     k_sleep(K_SECONDS(2));
@@ -219,7 +219,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         //coap
-        coap_register_response_callback(NULL);
+        coap_register_put_response_callback(NULL);
 
         // tear down TWT and disconnect from wifi
         if(wifi_twt_is_enabled()){
@@ -236,7 +236,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
 
-        coap_register_response_callback(NULL);
+        coap_register_put_response_callback(NULL);
     }
 
     print_test_results();

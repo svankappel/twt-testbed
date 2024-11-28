@@ -80,7 +80,7 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
-static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payload_len)
+static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
 {
     if(test_failed){
         return;
@@ -140,7 +140,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to validate coap");
         k_sleep(K_FOREVER);
     }
-    coap_register_response_callback(handle_coap_response);
+    coap_register_obs_response_callback(handle_coap_response);
     k_sleep(K_SECONDS(2));
     
     
@@ -164,7 +164,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         //coap
-        coap_register_response_callback(NULL);
+        coap_register_obs_response_callback(NULL);
 
         // tear down TWT and disconnect from wifi
         if(wifi_twt_is_enabled()){
@@ -187,7 +187,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Test %d failed", test_settings.test_id);
 
         //coap
-        coap_register_response_callback(NULL);
+        coap_register_obs_response_callback(NULL);
         coap_cancel_observers();
         control.sent = -1;
     }
