@@ -213,6 +213,7 @@ static void run_test()
                     if(recover.pending >= 3){
                         wifi_twt_teardown();
                         recover.teardown = true;
+                        recover.cnt++;
                         k_sem_take(&recover_sem, K_SECONDS(2));
                         recover.teardown = false;
                         recover.pending=0;
