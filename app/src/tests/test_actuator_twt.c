@@ -100,7 +100,7 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
 
     if(test_settings.echo){
         //wait some time to make sure the echo is sent in the next TWT window
-        k_sleep(K_MSEC(test_settings.twt_wake_interval*2));
+        k_sleep(K_MSEC(test_settings.twt_wake_interval*5));
 
         // Change the payload {"actuator-value":x} to {"actuator-echo":x}
         char echo[payload_len];
