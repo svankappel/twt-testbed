@@ -13,6 +13,7 @@ struct test_actuator_twt_settings {
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
     uint32_t min_interval;
     uint32_t max_interval;
+    bool echo;
     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     uint32_t test_time_s;
 };

@@ -30,6 +30,7 @@ static bool test_failed = false;
 struct test_control{
     int received;
     int sent;
+    char latency_stats[1024];
 };
 
 static struct test_control control = { 0 };
@@ -61,6 +62,15 @@ static void print_test_results() {
             wifi_twt_get_wake_interval_ms(),
             control.sent,
             control.received);
+
+            if(test_settings.echo && control.latency_stats[0] != '\0'){
+            LOG_INF("\n================================================================================\n"
+                "=  Actuator Latency Histogram                                                  =\n"
+                "================================================================================\n"
+                "%s\n"
+                "================================================================================\n",
+                control.latency_stats);
+    }
 }
 
 
@@ -87,6 +97,17 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
     }
 
     control.received++;
+
+    if(test_settings.echo){
+        //wait some time to make sure the echo is sent in the next TWT window
+        k_sleep(K_MSEC(test_settings.twt_wake_interval*2));
+
+        // Change the payload {"actuator-value":x} to {"actuator-echo":x}
+        char echo[payload_len];
+        snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
+
+        coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
+    }
 }
 
 
@@ -141,6 +162,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         k_sleep(K_FOREVER);
     }
     coap_register_obs_response_callback(handle_coap_response);
+    coap_init_pool(300000);
     k_sleep(K_SECONDS(2));
     
     
@@ -175,6 +197,13 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         coap_cancel_observers();
         k_sleep(K_SECONDS(1));
         control.sent = coap_get_stat()-1;
+        if(test_settings.echo){
+            ret = coap_get_actuator_stat(control.latency_stats);
+            if(ret != 0){
+                LOG_ERR("Failed to get actuator stat");
+                control.latency_stats[0] = '\0';
+            }
+        }
         k_sleep(K_SECONDS(1));
 
         ret = wifi_disconnect();

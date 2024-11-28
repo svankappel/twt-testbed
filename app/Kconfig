@@ -583,6 +583,10 @@ config ACTUATOR_TWT_TEST_1_MAX_INTERVAL
   int "Maximum interval between two actuations (s)"
   depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
 
+config ACTUATOR_TWT_TEST_1_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
+
 config ACTUATOR_TWT_TEST_1_TIME
   int "Test time (s)"
   depends on ACTUATOR_TWT_TEST_1
