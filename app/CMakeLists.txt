@@ -44,4 +44,8 @@ target_sources(app PRIVATE
     src/tests/test_large_packet_ps_public_server.c
     src/tests/test_large_packet_twt.c
     src/tests/test_large_packet_twt_public_server.c
+    src/tests/test_actuator_ps.c
+    src/tests/test_actuator_ps_public_server.c
+    src/tests/test_actuator_twt.c
+    src/tests/test_actuator_twt_public_server.c
 )

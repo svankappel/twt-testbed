@@ -2,7 +2,7 @@
 #define TEST_SENSOR_TWT_H
 
 #include <zephyr/kernel.h>
-
+#include "test_global.h"
 
 void test_sensor_twt(struct k_sem *sem, void * test_settings);
 
