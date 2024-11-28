@@ -15,9 +15,13 @@ config COAP_TEST_SERVER_HOSTNAME
 config COAP_TEST_SERVER_PORT
 	int "CoAP server port"
 
-config COAP_TEST_RESOURCE
+config COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE
   depends on !COAP_TWT_TESTBED_SERVER
-  string "Resource on server for the tests"
+  string "Resource on server for the sensor and large packet tests"
+
+config COAP_ACTUATOR_TEST_RESOURCE
+  depends on !COAP_TWT_TESTBED_SERVER
+  string "Resource on server for the actuator tests"
 
 
 endmenu
@@ -224,6 +228,10 @@ config SENSOR_TWT_TEST_1_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_1
 
+config SENSOR_TWT_TEST_1_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
+  depends on SENSOR_TWT_TEST_1
+
 config SENSOR_TWT_TEST_2
   bool "Test 2"
   depends on SENSOR_TWT_TESTS_ENABLE
@@ -238,6 +246,10 @@ config SENSOR_TWT_TEST_2_INTERVAL
 
 config SENSOR_TWT_TEST_2_SESSION_DURATION
   int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_2
+
+config SENSOR_TWT_TEST_2_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_2
 
 config SENSOR_TWT_TEST_3
@@ -256,6 +268,10 @@ config SENSOR_TWT_TEST_3_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on SENSOR_TWT_TEST_3
 
+config SENSOR_TWT_TEST_3_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
+  depends on SENSOR_TWT_TEST_3
+
 config SENSOR_TWT_TEST_4
   bool "Test 4"
   depends on SENSOR_TWT_TESTS_ENABLE
@@ -270,6 +286,10 @@ config SENSOR_TWT_TEST_4_INTERVAL
 
 config SENSOR_TWT_TEST_4_SESSION_DURATION
   int "TWT session duration (ms)"
+  depends on SENSOR_TWT_TEST_4
+
+config SENSOR_TWT_TEST_4_RECOVER
+  bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_4
 
 
@@ -513,6 +533,285 @@ config LARGE_PACKET_TESTS_ENABLE
   config LARGE_PACKET_TWT_TEST_3_NUM_BYTES
     int "Number of bytes"
     depends on LARGE_PACKET_TWT_TEST_3
+
+
+
+
+config ACTUATOR_TESTS_ENABLE
+  bool "Actuator Tests"
+
+config ACTUATOR_PS_TESTS_ENABLE
+  bool "PS"
+  depends on ACTUATOR_TESTS_ENABLE
+
+config ACTUATOR_PS_TEST_1
+  bool "Test 1"
+  depends on ACTUATOR_PS_TESTS_ENABLE
+
+config ACTUATOR_PS_TEST_1_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_1_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_1_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_PS_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_1_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_PS_TEST_1
+
+choice ACTUATOR_PS_TEST_1_MODE
+  prompt "PS Mode"
+  depends on ACTUATOR_PS_TEST_1
+  config ACTUATOR_PS_TEST_1_MODE_LEGACY
+    bool "Legacy"
+  config ACTUATOR_PS_TEST_1_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice ACTUATOR_PS_TEST_1_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on ACTUATOR_PS_TEST_1
+  config ACTUATOR_PS_TEST_1_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config ACTUATOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config ACTUATOR_PS_TEST_2
+  bool "Test 2"
+  depends on ACTUATOR_PS_TESTS_ENABLE
+
+config ACTUATOR_PS_TEST_2_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_2 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_2_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_2 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_2_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_PS_TEST_2 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_2_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_PS_TEST_2
+
+choice ACTUATOR_PS_TEST_2_MODE
+  prompt "PS Mode"
+  depends on ACTUATOR_PS_TEST_2
+  config ACTUATOR_PS_TEST_2_MODE_LEGACY
+    bool "Legacy"
+  config ACTUATOR_PS_TEST_2_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice ACTUATOR_PS_TEST_2_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on ACTUATOR_PS_TEST_2
+  config ACTUATOR_PS_TEST_2_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config ACTUATOR_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config ACTUATOR_PS_TEST_3
+  bool "Test 3"
+  depends on ACTUATOR_PS_TESTS_ENABLE
+
+config ACTUATOR_PS_TEST_3_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_3 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_3_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_3 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_3_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_PS_TEST_3 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_3_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_PS_TEST_3
+
+choice ACTUATOR_PS_TEST_3_MODE
+  prompt "PS Mode"
+  depends on ACTUATOR_PS_TEST_3
+  config ACTUATOR_PS_TEST_3_MODE_LEGACY
+    bool "Legacy"
+  config ACTUATOR_PS_TEST_3_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice ACTUATOR_PS_TEST_3_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on ACTUATOR_PS_TEST_3
+  config ACTUATOR_PS_TEST_3_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config ACTUATOR_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+config ACTUATOR_PS_TEST_4
+  bool "Test 4"
+  depends on ACTUATOR_PS_TESTS_ENABLE
+
+config ACTUATOR_PS_TEST_4_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_4 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_4_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_PS_TEST_4 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_4_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_PS_TEST_4 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_PS_TEST_4_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_PS_TEST_4
+
+choice ACTUATOR_PS_TEST_4_MODE
+  prompt "PS Mode"
+  depends on ACTUATOR_PS_TEST_4
+  config ACTUATOR_PS_TEST_4_MODE_LEGACY
+    bool "Legacy"
+  config ACTUATOR_PS_TEST_4_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice ACTUATOR_PS_TEST_4_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on ACTUATOR_PS_TEST_4
+  config ACTUATOR_PS_TEST_4_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config ACTUATOR_PS_TEST_4_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
+
+config ACTUATOR_TWT_TESTS_ENABLE
+  bool "TWT"
+  depends on ACTUATOR_TESTS_ENABLE
+
+config ACTUATOR_TWT_TEST_1
+  bool "Test 1"
+  depends on ACTUATOR_TWT_TESTS_ENABLE
+
+config ACTUATOR_TWT_TEST_1_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_1_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_1_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_TWT_TEST_1 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_1_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_TWT_TEST_1
+
+config ACTUATOR_TWT_TEST_1_INTERVAL
+  int "TWT interval (ms)"
+  depends on ACTUATOR_TWT_TEST_1
+
+config ACTUATOR_TWT_TEST_1_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on ACTUATOR_TWT_TEST_1
+
+config ACTUATOR_TWT_TEST_2
+  bool "Test 2"
+  depends on ACTUATOR_TWT_TESTS_ENABLE
+
+config ACTUATOR_TWT_TEST_2_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_2 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_2_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_2 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_2_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_TWT_TEST_2 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_2_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_TWT_TEST_2
+
+config ACTUATOR_TWT_TEST_2_INTERVAL
+  int "TWT interval (ms)"
+  depends on ACTUATOR_TWT_TEST_2
+
+config ACTUATOR_TWT_TEST_2_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on ACTUATOR_TWT_TEST_2
+
+config ACTUATOR_TWT_TEST_3
+  bool "Test 3"
+  depends on ACTUATOR_TWT_TESTS_ENABLE
+
+config ACTUATOR_TWT_TEST_3_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_3 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_3_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_3 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_3_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_TWT_TEST_3 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_3_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_TWT_TEST_3
+
+config ACTUATOR_TWT_TEST_3_INTERVAL
+  int "TWT interval (ms)"
+  depends on ACTUATOR_TWT_TEST_3
+
+config ACTUATOR_TWT_TEST_3_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on ACTUATOR_TWT_TEST_3
+
+config ACTUATOR_TWT_TEST_4
+  bool "Test 4"
+  depends on ACTUATOR_TWT_TESTS_ENABLE
+
+config ACTUATOR_TWT_TEST_4_MIN_INTERVAL
+  int "Minimum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_4 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_4_MAX_INTERVAL
+  int "Maximum interval between two actuations (s)"
+  depends on ACTUATOR_TWT_TEST_4 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_4_ECHO
+  bool "Echo actuation"
+  depends on ACTUATOR_TWT_TEST_4 && COAP_TWT_TESTBED_SERVER
+
+config ACTUATOR_TWT_TEST_4_TIME
+  int "Test time (s)"
+  depends on ACTUATOR_TWT_TEST_4
+
+config ACTUATOR_TWT_TEST_4_INTERVAL
+  int "TWT interval (ms)"
+  depends on ACTUATOR_TWT_TEST_4
+
+config ACTUATOR_TWT_TEST_4_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on ACTUATOR_TWT_TEST_4
 
   
 

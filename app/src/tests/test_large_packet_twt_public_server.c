@@ -24,10 +24,8 @@ static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 #define MAX_INTERVALS_BUFFERED 50
 
-
 static struct test_large_packet_twt_settings test_settings;
 
-static K_SEM_DEFINE(end_sem, 0, 1);
 static K_SEM_DEFINE(wake_ahead_sem, 0, 1);
 
 static bool test_failed = false;
@@ -113,13 +111,12 @@ static void wifi_disconnected_event()
 
     test_failed = true;
     k_sem_give(&wake_ahead_sem);
-    k_sem_give(&end_sem);
 }
 
 //--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
-static void handle_coap_response(uint32_t time)
+static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payload_len)
 {
     if(test_failed){
         return;
@@ -130,11 +127,6 @@ static void handle_coap_response(uint32_t time)
     int index = (time+(test_settings.twt_interval/2)) / test_settings.twt_interval;
     if (index < MAX_INTERVALS_BUFFERED) {
         control.latency_hist[index]++;
-    }
-
-    if((control.iter>=test_settings.iterations))
-    {
-        k_sem_give(&end_sem);
     }
 }
 
@@ -176,7 +168,7 @@ static void run_test()
 
             sprintf(buf, "/%06d/%s/largeupload/", control.iter++,random_data);
             
-            ret = coap_put(CONFIG_COAP_TEST_RESOURCE, buf);
+            ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
 
             if(ret >= 0){
                 control.sent++;
@@ -185,7 +177,7 @@ static void run_test()
             break;
         }
     }
-    k_sem_take(&end_sem, K_MSEC(test_settings.twt_interval*2));
+    k_sleep(K_MSEC(test_settings.twt_interval*2));
 }
 //--------------------------------------------------------------------
 
@@ -201,72 +193,61 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
-    //register coap response callback
-    coap_register_response_callback(handle_coap_response);
-
     int ret;
-    // connect to wifi
+
+    //wifi
     ret = wifi_connect();
     if(ret != 0){
         LOG_ERR("Failed to connect to wifi");
         k_sleep(K_FOREVER);
     }
-    LOG_DBG("Connected to wifi");
-
-    k_sleep(K_SECONDS(1));
-
     wifi_register_disconnected_cb(wifi_disconnected_event);
-
-    k_sleep(K_SECONDS(1));
-
-    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
-
-    //send a first message before activating TWT
-    ret = coap_put(CONFIG_COAP_TEST_RESOURCE, "{init-message}");
     k_sleep(K_SECONDS(5));
 
-    // configure TWT
+
+    //coap
+    coap_register_put_response_callback(handle_coap_response);
+    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
+    coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, "{init-message}"); //send one message before TWT
+    k_sleep(K_SECONDS(2));
+
+    // TWT
     wifi_twt_register_event_callback(handle_twt_event,test_settings.wake_ahead_ms);
     configure_twt(&test_settings);
-    LOG_DBG("TWT configured");
+
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
-
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
     #endif //CONFIG_PROFILER_ENABLE
-
     memset(&control, 0, sizeof(control));
-
     run_test();
-
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
     #endif //CONFIG_PROFILER_ENABLE
 
-    coap_register_response_callback(NULL);
-
     if(!test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
+        //coap
+        coap_register_put_response_callback(NULL);
+
         // tear down TWT and disconnect from wifi
-        if(wifi_twt_is_enabled())
-        {
+        if(wifi_twt_is_enabled()){
             wifi_twt_teardown();
         }
-
         k_sleep(K_SECONDS(2));
-
         ret = wifi_disconnect();
-        if(ret != 0)
-        {
+        if(ret != 0){
             LOG_ERR("Failed to disconnect from wifi");
             k_sleep(K_FOREVER);
         }
     }
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
+
+        coap_register_put_response_callback(NULL);
     }
 
     print_test_results();

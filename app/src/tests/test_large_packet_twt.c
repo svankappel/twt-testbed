@@ -27,7 +27,6 @@ static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 static struct test_large_packet_twt_settings test_settings;
 
-static K_SEM_DEFINE(end_sem, 0, 1);
 static K_SEM_DEFINE(wake_ahead_sem, 0, 1);
 
 static bool test_failed = false;
@@ -101,14 +100,19 @@ static void print_test_results() {
     char hist_str[1024] = {0};
     char temp[32];
     for (int i = 0; i < MAX_INTERVALS_BUFFERED; i++) {
-        
-        snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, control.latency_hist[i]);
-        strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
-        
+        if(control.latency_hist[i] != 0){
+            snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, control.latency_hist[i]);
+            strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
+        } 
     }
     snprintf(temp, sizeof(temp), "lost;%d\n", control.sent - control.received);
     strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
-    LOG_INF("Latency Histogram:\n%s", hist_str);
+    LOG_INF("\n================================================================================\n"
+                "=  Latency Histogram                                                           =\n"
+                "================================================================================\n"
+                "%s"
+                "================================================================================\n",
+                hist_str);
 
 }
 
@@ -129,15 +133,13 @@ static void wifi_disconnected_event()
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
     
     test_failed = true;
-    k_sem_give(&wake_ahead_sem);
-    k_sem_give(&end_sem);
-    
+    k_sem_give(&wake_ahead_sem);  
 }
 
 //--------------------------------------------------------------------     
 // Callback function to handle coap responses
 //--------------------------------------------------------------------
-static void handle_coap_response(uint32_t time)
+static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payload_len)
 {
     if(test_failed){
         return;
@@ -150,12 +152,6 @@ static void handle_coap_response(uint32_t time)
     int index = (time+(test_settings.twt_interval/2)) / test_settings.twt_interval;
     if (index < MAX_INTERVALS_BUFFERED) {
         control.latency_hist[index]++;
-    }
-    
-
-    if((control.iter>=test_settings.iterations) && (control.received == control.sent))
-    {
-        k_sem_give(&end_sem);
     }
 }
 
@@ -200,15 +196,15 @@ static void run_test()
             sprintf(buf, "/%06d/%s/largeupload/", control.iter++,random_data);
 
             if(test_settings.large_packet_config == LREQ_LRES){
-                ret = coap_put("largeuploadecho", buf);
+                ret = coap_put(TESTBED_LARGE_UPLOAD_DOWNLOAD_RESOURCE, buf);
             }else if (test_settings.large_packet_config == LREQ_SRES){
-                ret = coap_put("largeuploadack", buf);
+                ret = coap_put(TESTBED_LARGE_UPLOAD_RESOURCE, buf);
             }else if (test_settings.large_packet_config == SREQ_LRES){
                 char buf2[16];
                 strncpy(buf2, buf, 8);
                 sprintf(buf2+8, "%06d/", test_settings.bytes);
                 buf2[15] = '\0';
-                ret = coap_put("largedownload", buf2);
+                ret = coap_put(TESTBED_LARGE_DOWNLOAD_RESOURCE, buf2);
             }
 
 
@@ -219,7 +215,7 @@ static void run_test()
             break;
         }
     }
-    k_sem_take(&end_sem, K_MSEC(test_settings.twt_interval*2));
+    k_sleep(K_MSEC(test_settings.twt_interval*2));
 }
 //--------------------------------------------------------------------
 
@@ -235,73 +231,64 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
-    //register coap response callback
-    coap_register_response_callback(handle_coap_response);
-
     int ret;
 
-    // connect to wifi
+    //wifi
     ret = wifi_connect();
     if(ret != 0){
         LOG_ERR("Failed to connect to wifi");
         k_sleep(K_FOREVER);
     }
-    LOG_DBG("Connected to wifi");
-
-    k_sleep(K_SECONDS(1));
-
     wifi_register_disconnected_cb(wifi_disconnected_event);
+    k_sleep(K_SECONDS(5));
 
+    //coap
+    coap_register_put_response_callback(handle_coap_response);
     ret = coap_validate();
     if(ret != 0){
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-    LOG_DBG("CoAP validated");
-
-    k_sleep(K_SECONDS(5));
-
     coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
+    k_sleep(K_SECONDS(2));
 
 
     // configure TWT
     wifi_twt_register_event_callback(handle_twt_event,test_settings.wake_ahead_ms);
     configure_twt(&test_settings);
-    LOG_DBG("TWT configured");
+
 
     // run the test
     LOG_INF("Starting test %d", test_settings.test_id);
-
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
     #endif //CONFIG_PROFILER_ENABLE
-
     memset(&control, 0, sizeof(control));
-
     run_test();
-
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
     #endif //CONFIG_PROFILER_ENABLE
     
-    coap_register_response_callback(NULL);
 
+    //test finished
     if(!test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
+        //coap
+        coap_register_put_response_callback(NULL);
+
         // tear down TWT and disconnect from wifi
-        if(wifi_twt_is_enabled())
-        {
+        if(wifi_twt_is_enabled()){
             wifi_twt_teardown();
         }
-
         k_sleep(K_SECONDS(2));
 
+        //get stats from server
         control.received_serv = coap_get_stat();
 
+        //disconnect from wifi
         ret = wifi_disconnect();
-        if(ret != 0)
-        {
+        if(ret != 0){
             LOG_ERR("Failed to disconnect from wifi");
             k_sleep(K_FOREVER);
         }
@@ -309,6 +296,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     else{ //test failed
         LOG_ERR("Test %d failed", test_settings.test_id);
         control.received_serv = -1;
+
+        coap_register_put_response_callback(NULL);
     }
 
     print_test_results();
