@@ -36,8 +36,15 @@ struct test_control{
     uint32_t latency_sum;
     uint16_t latency_hist[MAX_INTERVALS_BUFFERED];
 };
-
 static struct test_control control = { 0 };
+
+struct recovery_control{
+    int pending;
+    int cnt;
+    bool teardown;
+};
+static K_SEM_DEFINE(recover_sem, 0, 1);
+static struct recovery_control recover = { 0 };
 
 static void print_test_results() {
     // Check for inconsistencies and print warnings
@@ -74,6 +81,18 @@ static void print_test_results() {
             control.sent,
             control.received,
             control.received == 0 ? -1 : control.latency_sum/control.received);
+    
+    //print recovery stats
+    if(test_settings.recover)
+    {
+        LOG_INF("\n"
+                "================================================================================\n"
+                "=  Recovery Stats                                                              =\n"
+                "================================================================================\n"
+                "=  Recovery count:                         %6d                              =\n"
+                "================================================================================\n",
+                recover.cnt);
+    }
 
     // Print the latency histogram
     char hist_str[1024] = {0};
@@ -120,6 +139,13 @@ static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payl
 
     control.received++;
 
+    if(test_settings.recover){
+        recover.pending--;
+        if(recover.pending == 0 && recover.teardown){
+            k_sem_give(&recover_sem);
+        }
+    }
+
     control.latency_sum += time/1000;
 
     int index = (time+(test_settings.twt_interval/2)) / test_settings.twt_interval;
@@ -157,6 +183,19 @@ static void run_test()
             ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
             if(ret >= 0){
                 control.sent++;
+
+                if(test_settings.recover){
+                    recover.pending++;
+                    if(recover.pending >= 3){
+                        wifi_twt_teardown();
+                        recover.teardown = true;
+                        recover.cnt++;
+                        k_sem_take(&recover_sem, K_SECONDS(2));
+                        recover.teardown = false;
+                        recover.pending=0;
+                        configure_twt(&test_settings);
+                    }
+                }
             } 
         }else{
             break;
@@ -171,6 +210,7 @@ static void run_test()
 static void thread_function(void *arg1, void *arg2, void *arg3) 
 {
     memset(&control, 0, sizeof(control));
+    memset(&recover, 0, sizeof(recover));
 
     // Extract the semaphore and test settings
     struct k_sem *test_sem = (struct k_sem *)arg1;
