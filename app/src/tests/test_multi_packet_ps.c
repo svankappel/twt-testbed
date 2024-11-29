@@ -123,8 +123,8 @@ static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payl
     monitor.latency_sum += time;
 
     //check if all packets have been received and give the semaphore to start the next iteration
-    monitor.iter_received++;
-    if(monitor.iter_received == control.iter_sent && monitor.iter_sent == test_settings.packet_number){
+    control.iter_received++;
+    if(control.iter_received == control.iter_sent && control.iter_sent == test_settings.packet_number){
         k_sem_give(&send_sem);
     }
 }
@@ -156,9 +156,11 @@ static void run_test()
 
     while(true){
         //wait for the last iteration to finish (timeout in case of packet lost)
-        k_sem_take(&send_sem, K_MSEC(2000 + 50*test_settings.packet_number));
+        k_sem_take(&send_sem, K_MSEC(2000 + 200*test_settings.packet_number));
 
         k_sleep(K_SECONDS(2)); //wait min 2 sec between iterations
+
+        coap_init_pool(0xFFFFFFFF); //clear the pool
 
         if(control.test_failed){
             break;
@@ -183,7 +185,6 @@ static void run_test()
             break;
         }
     }
-    k_sleep(K_MSEC(test_settings.send_interval));
 }
 
 //--------------------------------------------------------------------
@@ -219,7 +220,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-    coap_init_pool(test_settings.send_interval); 
     k_sleep(K_SECONDS(2));
 
 

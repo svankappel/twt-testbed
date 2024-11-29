@@ -41,6 +41,7 @@ static struct sockaddr_in6 server = { 0 };
 
 #define COAP_MAX_MSG_LEN 1280
 
+static K_MUTEX_DEFINE(coap_mutex);
 
 static uint8_t coap_send_token[TOKEN_LEN];
 static uint8_t validate_token[TOKEN_LEN];
@@ -140,6 +141,7 @@ int coap_put(char *resource,uint8_t *payload)
 	}
 	strcpy(coap_send_resource, resource);
 
+	k_mutex_lock(&coap_mutex, K_FOREVER);
 
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
@@ -152,6 +154,7 @@ int coap_put(char *resource,uint8_t *payload)
 			return err;
 		}
 	}
+	k_mutex_unlock(&coap_mutex);
 
 	return send_return_code;
 }
@@ -626,6 +629,7 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
 
     while (1) {
         int ret = poll(&fds, 1, -1); // Use -1 for infinite timeout
+		k_mutex_lock(&coap_mutex, K_FOREVER);
         if (ret > 0) {
             if (fds.revents & POLLIN) {
 				socklen_t server_len = sizeof(server);
@@ -641,6 +645,7 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
         } else if (ret < 0) {
             LOG_ERR("Poll error");
         }
+		k_mutex_unlock(&coap_mutex);
     }
 }
 
