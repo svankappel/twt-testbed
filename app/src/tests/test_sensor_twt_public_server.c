@@ -87,25 +87,29 @@ static void print_test_results() {
     {
         LOG_INF("\n"
                 "================================================================================\n"
-                "=  Recovery Stats                                                              =\n"
-                "================================================================================\n"
-                "=  Recovery count:                         %6d                              =\n"
+                "=  Recovery count:                        %6d                               =\n"
                 "================================================================================\n",
                 recover.cnt);
     }
+        
 
     // Print the latency histogram
     char hist_str[1024] = {0};
     char temp[32];
     for (int i = 0; i < MAX_INTERVALS_BUFFERED; i++) {
-        
-        snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, control.latency_hist[i]);
-        strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
-        
+        if(control.latency_hist[i] != 0){
+            snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, control.latency_hist[i]);
+            strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
+        } 
     }
     snprintf(temp, sizeof(temp), "lost;%d\n", control.sent - control.received);
     strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
-    LOG_INF("Latency Histogram:\n%s", hist_str);
+    LOG_INF("\n================================================================================\n"
+                "=  Latency Histogram                                                           =\n"
+                "================================================================================\n"
+                "%s"
+                "================================================================================\n",
+                hist_str);
 }
 
 
