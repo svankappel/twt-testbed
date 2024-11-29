@@ -28,9 +28,14 @@ static struct test_large_packet_ps_settings test_settings;
 
 static K_SEM_DEFINE(timer_event_sem, 0, 1);
 
-static bool test_failed = false;
-
 struct test_control{
+    bool test_failed;
+};
+
+static struct test_control control = { 0 };
+
+
+struct test_monitor{
     int iter;
     int sent;
     int received;
@@ -38,15 +43,15 @@ struct test_control{
     uint32_t latency_sum;
 };
 
-static struct test_control control = { 0 };
+static struct test_monitor monitor = { 0 };
 
 static void print_test_results() {
     // Check for inconsistencies and print warnings
-    if ((control.iter != test_settings.iterations)) {
+    if ((monitor.iter != test_settings.iterations)) {
         LOG_WRN("Warning: Test could not complete all iterations");
     }
     
-    if (control.received_serv < 0) {
+    if (monitor.received_serv < 0) {
         LOG_WRN("Warning: Could not receive server stats");
     }
 
@@ -82,18 +87,18 @@ static void print_test_results() {
             "=  Average latency:                       %6d ms                            =\n"
             "================================================================================\n",
             test_settings.test_id,
-            control.iter,
+            monitor.iter,
             test_settings.large_packet_config == LREQ_LRES || test_settings.large_packet_config == LREQ_SRES ? test_settings.bytes : 16,
             test_settings.large_packet_config == LREQ_LRES || test_settings.large_packet_config == SREQ_LRES ? test_settings.bytes : 9,
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
-            control.sent,
-            control.received_serv,
-            control.received,
-            control.received_serv < 0 ? -1 : control.sent - control.received_serv,
-            control.received_serv < 0 ? -1 : control.received_serv - control.received,
-            control.received == 0 ? -1 : control.latency_sum/control.received);
+            monitor.sent,
+            monitor.received_serv,
+            monitor.received,
+            monitor.received_serv < 0 ? -1 : monitor.sent - monitor.received_serv,
+            monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
+            monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
 }
 
 
@@ -112,7 +117,7 @@ static void handle_timer_event()
 static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
-    test_failed = true;
+    control.test_failed = true;
     k_sem_give(&timer_event_sem);
 }
 
@@ -121,12 +126,12 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------
 static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payload_len)
 {
-    if(test_failed){
+    if(control.test_failed){
         return;
     }
 
-    control.received++;
-    control.latency_sum += time;
+    monitor.received++;
+    monitor.latency_sum += time;
 }
 
 //--------------------------------------------------------------------
@@ -157,13 +162,13 @@ static void run_test()
     while(true){
         k_sem_take(&timer_event_sem, K_FOREVER);
 
-        if(test_failed){
+        if(control.test_failed){
             break;
         }
 
         int ret=0;
 
-        if(control.iter < test_settings.iterations){
+        if(monitor.iter < test_settings.iterations){
 
             // Generate an array with random chars
             char random_data[test_settings.bytes-21];
@@ -177,7 +182,7 @@ static void run_test()
 
             char buf[test_settings.bytes+20];
 
-            sprintf(buf, "/%06d/%s/largeupload/", control.iter++,random_data);
+            sprintf(buf, "/%06d/%s/largeupload/", monitor.iter++,random_data);
 
             if(test_settings.large_packet_config == LREQ_LRES){
                 ret = coap_put(TESTBED_LARGE_UPLOAD_DOWNLOAD_RESOURCE, buf);
@@ -192,7 +197,7 @@ static void run_test()
             }
 
             if(ret >= 0){
-                control.sent++;
+                monitor.sent++;
             } 
         }else{
             break;
@@ -205,6 +210,7 @@ static void run_test()
 // Thread function that runs the test
 static void thread_function(void *arg1, void *arg2, void *arg3) 
 {
+    memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
     // Extract the semaphore and test settings
@@ -242,20 +248,20 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
     #endif //CONFIG_PROFILER_ENABLE
-    memset(&control, 0, sizeof(control));
+    memset(&monitor, 0, sizeof(monitor));
     run_test();
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
     #endif //CONFIG_PROFILER_ENABLE
 
     
-    if(!test_failed){
+    if(!control.test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
         //coap
         coap_register_put_response_callback(NULL);
         k_sleep(K_SECONDS(2));
-        control.received_serv = coap_get_stat();
+        monitor.received_serv = coap_get_stat();
 
         //wifi
         ret = wifi_disconnect();
@@ -268,7 +274,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Test %d failed", test_settings.test_id);
 
         coap_register_put_response_callback(NULL);
-        control.received_serv = -1;
+        monitor.received_serv = -1;
     }
 
     print_test_results();
