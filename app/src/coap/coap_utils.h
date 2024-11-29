@@ -4,7 +4,6 @@
 #include <zephyr/kernel.h>
 
 #include <zephyr/net/coap.h>
-#include <zephyr/net/coap_client.h>
 #include <zephyr/net/socket.h>
 
 
