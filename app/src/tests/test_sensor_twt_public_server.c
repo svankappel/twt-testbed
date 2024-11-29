@@ -189,7 +189,7 @@ static void run_test()
 
         if(monitor.iter < test_settings.iterations){
             sprintf(buf, "{\"sensor-value\":%d}", monitor.iter++);
-            ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
+            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
             if(ret >= 0){
                 monitor.sent++;
 
@@ -242,7 +242,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     //coap
     coap_register_put_response_callback(handle_coap_response);
     coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
-    coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, "{init-message}"); //send a first message before activating TWT
+    coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, "{init-message}"); //send a first message before activating TWT
     k_sleep(K_SECONDS(2));
 
 

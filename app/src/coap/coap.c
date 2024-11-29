@@ -9,7 +9,6 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/coap.h>
-#include <zephyr/net/coap_client.h>
 
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
@@ -27,9 +26,12 @@ struct k_thread coap_send_thread_data;
 
 static K_SEM_DEFINE(send_sem, 0, 1);
 static K_SEM_DEFINE(sent_sem, 0, 1);
+
+#ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 static K_SEM_DEFINE(stat_sem, 0, 1);
 static K_SEM_DEFINE(stat_actuator_sem, 0, 1);
 static K_SEM_DEFINE(validate_sem, 0, 1);
+#endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
 static int sock;
 
@@ -41,13 +43,17 @@ static struct sockaddr_in6 server = { 0 };
 
 #define COAP_MAX_MSG_LEN 1280
 
+static K_MUTEX_DEFINE(coap_mutex);
 
 static uint8_t coap_send_token[TOKEN_LEN];
+
+#ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 static uint8_t validate_token[TOKEN_LEN];
 static uint8_t stat_token[TOKEN_LEN];
 static uint8_t stat_actuator_token[TOKEN_LEN];
-
 static uint8_t * stat_actuator_ptr;
+static int coap_stat = 0;
+#endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
 static struct coap_packet coap_request = { 0 };
 static int send_return_code = 0;
@@ -61,8 +67,6 @@ static char coap_send_resource[30];
 static uint8_t observers = 0;
 static uint8_t observer_tokens[MAXOBSERVERS][TOKEN_LEN];
 static char observer_resources[MAXOBSERVERS][30];
-
-static int coap_stat = 0;
 
 
 static void (*coap_put_response_callback)(uint32_t time, uint8_t * payload, uint16_t payload_len) = NULL;
@@ -140,6 +144,7 @@ int coap_put(char *resource,uint8_t *payload)
 	}
 	strcpy(coap_send_resource, resource);
 
+	k_mutex_lock(&coap_mutex, K_FOREVER);
 
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
@@ -152,6 +157,7 @@ int coap_put(char *resource,uint8_t *payload)
 			return err;
 		}
 	}
+	k_mutex_unlock(&coap_mutex);
 
 	return send_return_code;
 }
@@ -300,7 +306,7 @@ int coap_cancel_observers()
 	return 0;
 }
 
-
+#ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 int coap_validate()
 {
 	uint8_t token[TOKEN_LEN];
@@ -459,6 +465,8 @@ int coap_get_actuator_stat(char * buffer)
 	return 0;
 }
 
+#endif // CONFIG_COAP_TWT_TESTBED_SERVER
+
 
 void send_coap_thread(void *arg1, void *arg2, void *arg3)
 {
@@ -550,6 +558,8 @@ static int client_handle_response(uint8_t *buf, int received)
 	       coap_header_get_code(&reply), token_str);
 	}
 
+	#ifdef CONFIG_COAP_TWT_TESTBED_SERVER
+
 	//Check if the response is a validation response
 	if(memcmp(&validate_token, token, TOKEN_LEN) == 0 &&
 		coap_header_get_code(&reply) == COAP_RESPONSE_CODE_CONTENT &&
@@ -578,6 +588,7 @@ static int client_handle_response(uint8_t *buf, int received)
 		k_sem_give(&stat_actuator_sem);
 		return 0;
 	}
+	#endif // CONFIG_COAP_TWT_TESTBED_SERVER
 
 	//check if the response is an observer response
 	for(int i = 0; i < observers; i++)
@@ -626,6 +637,7 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
 
     while (1) {
         int ret = poll(&fds, 1, -1); // Use -1 for infinite timeout
+		k_mutex_lock(&coap_mutex, K_FOREVER);
         if (ret > 0) {
             if (fds.revents & POLLIN) {
 				socklen_t server_len = sizeof(server);
@@ -641,6 +653,7 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
         } else if (ret < 0) {
             LOG_ERR("Poll error");
         }
+		k_mutex_unlock(&coap_mutex);
     }
 }
 

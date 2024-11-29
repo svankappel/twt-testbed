@@ -176,7 +176,7 @@ static void run_test()
 
             sprintf(buf, "/%06d/%s/largeupload/", monitor.iter++,random_data);
             
-            ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
+            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
 
             if(ret >= 0){
                 monitor.sent++;
@@ -217,7 +217,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     //coap
     coap_register_put_response_callback(handle_coap_response);
     coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool with 1s request timeout
-    coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, "{init-message}"); //send one message before TWT
+    coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, "{init-message}"); //send one message before TWT
     k_sleep(K_SECONDS(2));
 
     // TWT
