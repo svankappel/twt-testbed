@@ -643,6 +643,28 @@ test_sensor_twt(&test_sem, &test_settings_4);
     test_multi_packet_ps(&test_sem, &test_settings_1);
     #endif //CONFIG_MULTI_PACKET_PS_TEST_1
 
+    #ifdef CONFIG_MULTI_PACKET_PS_TEST_2
+    struct test_multi_packet_ps_settings test_settings_2 = {
+
+                    .iterations = CONFIG_MULTI_PACKET_PS_TEST_2_ITERATIONS,
+                    .packet_number = CONFIG_MULTI_PACKET_PS_TEST_2_PACKET_NBR,
+                    .test_id = 2,
+
+                    #ifndef CONFIG_MULTI_PACKET_PS_TEST_2_MODE_WMM
+                    .ps_mode = PS_MODE_LEGACY,
+                    #else
+                    .ps_mode = PS_MODE_WMM,
+                    #endif //CONFIG_MULTI_PACKET_PS_TEST_2_MODE_WMM
+
+                    #ifndef CONFIG_MULTI_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
+                    #else
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
+                    #endif //CONFIG_MULTI_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+    };
+    test_multi_packet_ps(&test_sem, &test_settings_2);
+    #endif //CONFIG_MULTI_PACKET_PS_TEST_2
+
     #endif //CONFIG_MULTI_PACKET_PS_TESTS_ENABLE
 }
 
@@ -660,6 +682,18 @@ test_sensor_twt(&test_sem, &test_settings_4);
     };
     test_multi_packet_twt(&test_sem, &test_settings_1);
     #endif //CONFIG_MULTI_PACKET_TWT_TEST_1
+
+    #ifdef CONFIG_MULTI_PACKET_TWT_TEST_2
+    struct test_multi_packet_twt_settings test_settings_2 = {
+                    .iterations = CONFIG_MULTI_PACKET_TWT_TEST_2_ITERATIONS,
+                    .packet_number = CONFIG_MULTI_PACKET_TWT_TEST_2_PACKET_NBR,
+                    .twt_interval = CONFIG_MULTI_PACKET_TWT_TEST_2_INTERVAL,
+                    .twt_wake_interval = CONFIG_MULTI_PACKET_TWT_TEST_2_SESSION_DURATION,
+                    .test_id = 2,
+                    .wake_ahead_ms = 500,                 
+    };
+    test_multi_packet_twt(&test_sem, &test_settings_2);
+    #endif //CONFIG_MULTI_PACKET_TWT_TEST_2
 
     #endif //CONFIG_MULTI_PACKET_TWT_TESTS_ENABLE
 }

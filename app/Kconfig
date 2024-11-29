@@ -852,6 +852,36 @@ choice MULTI_PACKET_PS_TEST_1_WAKEUP_MODE
     bool "Listen Interval"
 endchoice
 
+config MULTI_PACKET_PS_TEST_2
+  bool "Test 2"
+  depends on MULTI_PACKET_PS_TESTS_ENABLE
+
+config MULTI_PACKET_PS_TEST_2_ITERATIONS
+  int "Iterations"
+  depends on MULTI_PACKET_PS_TEST_2
+
+config MULTI_PACKET_PS_TEST_2_PACKET_NBR
+  int "Number of packets sent at each iteration"
+  depends on MULTI_PACKET_PS_TEST_2
+
+choice MULTI_PACKET_PS_TEST_2_MODE
+  prompt "PS Mode"
+  depends on MULTI_PACKET_PS_TEST_2
+  config MULTI_PACKET_PS_TEST_2_MODE_LEGACY
+    bool "Legacy"
+  config MULTI_PACKET_PS_TEST_2_MODE_WMM
+    bool "WMM"
+endchoice
+
+choice MULTI_PACKET_PS_TEST_2_WAKEUP_MODE
+  prompt "Wakeup mode"
+  depends on MULTI_PACKET_PS_TEST_2
+  config MULTI_PACKET_PS_TEST_2_WAKEUP_MODE_DTIM
+    bool "DTIM"
+  config MULTI_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
+    bool "Listen Interval"
+endchoice
+
 
 
 config MULTI_PACKET_TWT_TESTS_ENABLE
@@ -878,6 +908,26 @@ config MULTI_PACKET_TWT_TEST_1_SESSION_DURATION
 config MULTI_PACKET_TWT_TEST_1_PACKET_NBR
   int "Number of packets sent at each iteration"
   depends on MULTI_PACKET_TWT_TEST_1
+
+config MULTI_PACKET_TWT_TEST_2
+  bool "Test 2"
+  depends on MULTI_PACKET_TWT_TESTS_ENABLE
+
+config MULTI_PACKET_TWT_TEST_2_ITERATIONS
+  int "Iterations"
+  depends on MULTI_PACKET_TWT_TEST_2
+
+config MULTI_PACKET_TWT_TEST_2_INTERVAL
+  int "TWT interval (ms)"
+  depends on MULTI_PACKET_TWT_TEST_2
+
+config MULTI_PACKET_TWT_TEST_2_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on MULTI_PACKET_TWT_TEST_2
+
+config MULTI_PACKET_TWT_TEST_2_PACKET_NBR
+  int "Number of packets sent at each iteration"
+  depends on MULTI_PACKET_TWT_TEST_2
 
   
 
