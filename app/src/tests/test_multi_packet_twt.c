@@ -1,6 +1,6 @@
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
-#include "test_sensor_twt.h"
+#include "test_multi_packet_twt.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -15,7 +15,7 @@
 #include "profiler.h"
 #endif //CONFIG_PROFILER_ENABLE
 
-LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
+LOG_MODULE_REGISTER(test_multi_packet_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
 #define STACK_SIZE 8192
 #define PRIORITY -2         //non preemptive priority
@@ -24,20 +24,16 @@ static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 #define MAX_INTERVALS_BUFFERED 50
 
 
-static struct test_sensor_twt_settings test_settings;
+static struct test_multi_packet_twt_settings test_settings;
 
 static K_SEM_DEFINE(wake_ahead_sem, 0, 1);
-
-struct recovery_monitor{
-    int pending;
-    int cnt;
-    bool teardown;
-};
-static K_SEM_DEFINE(recover_sem, 0, 1);
+static K_SEM_DEFINE(send_sem, 0, 1);
 
 struct test_control{
     bool test_failed;
-    struct recovery_monitor recover;
+    int iter_sent;
+    int iter_received;
+    bool ready_to_send;
 };
 static struct test_control control = { 0 };
 
@@ -67,7 +63,7 @@ static void print_test_results() {
     // Print the results
     LOG_INF("\n\n"
             "================================================================================\n"
-            "=                          TEST RESULTS - SENSOR TWT                           =\n"
+            "=                       TEST RESULTS - MULTI PACKET TWT                        =\n"
             "================================================================================\n"
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
@@ -101,15 +97,6 @@ static void print_test_results() {
             monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
             monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
 
-    //print recovery stats
-    if(test_settings.recover)
-    {
-        LOG_INF("\n"
-                "================================================================================\n"
-                "=  Recovery count:                        %6d                               =\n"
-                "================================================================================\n",
-                control.recover.cnt);
-    }
         
 
     // Print the latency histogram
@@ -138,7 +125,9 @@ static void print_test_results() {
 //--------------------------------------------------------------------
 static void handle_twt_event()
 {
-    k_sem_give(&wake_ahead_sem);
+    if(control.ready_to_send){
+        k_sem_give(&wake_ahead_sem);
+    }
 }
 
 //--------------------------------------------------------------------     
@@ -150,6 +139,7 @@ static void wifi_disconnected_event()
     
     control.test_failed = true;
     k_sem_give(&wake_ahead_sem); 
+    k_sem_give(&send_sem);
 }
 
 //--------------------------------------------------------------------     
@@ -162,19 +152,18 @@ static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payl
     }
 
     monitor.received++;
-
-    if(test_settings.recover){
-        control.recover.pending--;
-        if(control.recover.pending == 0 && control.recover.teardown){
-            k_sem_give(&recover_sem);
-        }
-    }
-
     monitor.latency_sum += time/1000;
 
+    //compute latency histogram
     int index = (time+(test_settings.twt_interval/2)) / test_settings.twt_interval;
     if (index < MAX_INTERVALS_BUFFERED) {
         monitor.latency_hist[index]++;
+    }
+
+    //check if all packets have been received and give the semaphore to start the next iteration
+    control.iter_received++;
+    if(control.iter_received == control.iter_sent && control.iter_sent == test_settings.packet_number){
+        k_sem_give(&send_sem);
     }
 }
 
@@ -192,41 +181,44 @@ static void configure_twt()
 //--------------------------------------------------------------------
 static void run_test()
 {
+    k_sem_give(&send_sem);
+
     while(true){
+        //wait for the last iteration to finish (timeout in case of packet lost)
+        k_sem_take(&send_sem, K_MSEC(test_settings.twt_interval * test_settings.packet_number));
+        
+        k_sleep(K_SECONDS(2)); //wait min 2 sec between iterations
+
+        //wait for wake ahead event
+        control.ready_to_send = true;
         k_sem_take(&wake_ahead_sem, K_FOREVER);
+        control.ready_to_send = false;
+
+        coap_init_pool(0xFFFFFFFF); //clear the pool
 
         if(control.test_failed){
             break;
         }
 
-        char buf[32];
+        char buf[64];
         int ret;
 
         if(monitor.iter < test_settings.iterations){
-            sprintf(buf, "{\"sensor-value\":%d}", monitor.iter++);
-            ret = coap_put(TESTBED_SENSOR_RESOURCE, buf);
-            if(ret >= 0){
-                monitor.sent++;
-
-                if(test_settings.recover){
-                    control.recover.pending++;
-                    if(control.recover.pending >= 3){
-                        wifi_twt_teardown();
-                        control.recover.teardown = true;
-                        control.recover.cnt++;
-                        k_sem_take(&recover_sem, K_SECONDS(2));
-                        control.recover.teardown = false;
-                        control.recover.pending=0;
-                        configure_twt(&test_settings);
-                    }
-                }
-            } 
-
+            control.iter_sent = 0;
+            control.iter_received = 0;
+            for(int i = 0; i < test_settings.packet_number; i++){
+                sprintf(buf, "{\"multi_packet-value\":%d, \"iter\":%d}",i, monitor.iter);
+                ret = coap_put(TESTBED_SENSOR_RESOURCE, buf);
+                if(ret >= 0){
+                    monitor.sent++;
+                    control.iter_sent++;
+                } 
+            }
+            monitor.iter++;
         }else{
             break;
         }
     }
-    k_sleep(K_MSEC(test_settings.twt_interval*2));
 }
 //--------------------------------------------------------------------
 
@@ -261,7 +253,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_ERR("Failed to validate CoAP client");
         k_sleep(K_FOREVER);
     }
-    coap_init_pool(test_settings.twt_interval * MAX_INTERVALS_BUFFERED);  // init coap request pool
     k_sleep(K_SECONDS(2));
 
 
@@ -321,7 +312,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 }
 
 // Function to initialize the test
-void test_sensor_twt(struct k_sem *sem, void * test_settings) {
+void test_multi_packet_twt(struct k_sem *sem, void * test_settings) {
     
     struct k_thread thread_data;
 

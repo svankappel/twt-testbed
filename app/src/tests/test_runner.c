@@ -10,6 +10,7 @@
 #include "test_actuator_twt.h"
 
 #include "test_multi_packet_ps.h"
+#include "test_multi_packet_twt.h"
 
 static K_SEM_DEFINE(test_sem, 0, 1);
 
@@ -643,6 +644,24 @@ test_sensor_twt(&test_sem, &test_settings_4);
     #endif //CONFIG_MULTI_PACKET_PS_TEST_1
 
     #endif //CONFIG_MULTI_PACKET_PS_TESTS_ENABLE
+}
+
+{
+    #ifdef CONFIG_MULTI_PACKET_TWT_TESTS_ENABLE
+
+    #ifdef CONFIG_MULTI_PACKET_TWT_TEST_1
+    struct test_multi_packet_twt_settings test_settings_1 = {
+                    .iterations = CONFIG_MULTI_PACKET_TWT_TEST_1_ITERATIONS,
+                    .packet_number = CONFIG_MULTI_PACKET_TWT_TEST_1_PACKET_NBR,
+                    .twt_interval = CONFIG_MULTI_PACKET_TWT_TEST_1_INTERVAL,
+                    .twt_wake_interval = CONFIG_MULTI_PACKET_TWT_TEST_1_SESSION_DURATION,
+                    .test_id = 1,
+                    .wake_ahead_ms = 500,                 
+    };
+    test_multi_packet_twt(&test_sem, &test_settings_1);
+    #endif //CONFIG_MULTI_PACKET_TWT_TEST_1
+
+    #endif //CONFIG_MULTI_PACKET_TWT_TESTS_ENABLE
 }
 
 #endif //CONFIG_MULTI_PACKET_TESTS_ENABLE

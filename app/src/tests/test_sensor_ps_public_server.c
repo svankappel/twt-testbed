@@ -149,7 +149,7 @@ static void run_test()
 
         if(monitor.iter < test_settings.iterations){
             sprintf(buf, "{\"sensor-value\":%d}", monitor.iter++);
-            ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
+            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
             if(ret >= 0){
             monitor.sent++;
         } 

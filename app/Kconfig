@@ -15,9 +15,9 @@ config COAP_TEST_SERVER_HOSTNAME
 config COAP_TEST_SERVER_PORT
 	int "CoAP server port"
 
-config COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE
+config COAP_SENSOR_TEST_RESOURCE
   depends on !COAP_TWT_TESTBED_SERVER
-  string "Resource on server for the sensor and large packet tests"
+  string "Resource on server for the sensor and large/multi packet tests"
 
 config COAP_ACTUATOR_TEST_RESOURCE
   depends on !COAP_TWT_TESTBED_SERVER
@@ -851,6 +851,33 @@ choice MULTI_PACKET_PS_TEST_1_WAKEUP_MODE
   config MULTI_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
     bool "Listen Interval"
 endchoice
+
+
+
+config MULTI_PACKET_TWT_TESTS_ENABLE
+  bool "TWT"
+  depends on MULTI_PACKET_TESTS_ENABLE
+
+config MULTI_PACKET_TWT_TEST_1
+  bool "Test 1"
+  depends on MULTI_PACKET_TWT_TESTS_ENABLE
+
+
+config MULTI_PACKET_TWT_TEST_1_ITERATIONS
+  int "Iterations"
+  depends on MULTI_PACKET_TWT_TEST_1
+
+config MULTI_PACKET_TWT_TEST_1_INTERVAL
+  int "TWT interval (ms)"
+  depends on MULTI_PACKET_TWT_TEST_1
+
+config MULTI_PACKET_TWT_TEST_1_SESSION_DURATION
+  int "TWT session duration (ms)"
+  depends on MULTI_PACKET_TWT_TEST_1
+
+config MULTI_PACKET_TWT_TEST_1_PACKET_NBR
+  int "Number of packets sent at each iteration"
+  depends on MULTI_PACKET_TWT_TEST_1
 
   
 
