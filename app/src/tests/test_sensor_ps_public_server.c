@@ -27,20 +27,23 @@ static struct test_sensor_ps_settings test_settings;
 
 static K_SEM_DEFINE(timer_event_sem, 0, 1);
 
-static bool test_failed = false;
-
 struct test_control{
+    bool test_failed;
+};
+static struct test_control control = { 0 };
+
+struct test_monitor{
     int iter;
     int sent;
     int received;
     uint32_t latency_sum;
 };
 
-static struct test_control control = { 0 };
+static struct test_monitor monitor = { 0 };
 
 static void print_test_results() {
     // Check for inconsistencies and print warnings
-    if ((control.iter != test_settings.iterations)) {
+    if ((monitor.iter != test_settings.iterations)) {
         LOG_WRN("Warning: Test could not complete all iterations");
     }
 
@@ -67,13 +70,13 @@ static void print_test_results() {
             "=  Average latency:                       %6d ms                            =\n"
             "================================================================================\n",
             test_settings.test_id,
-            control.iter,
+            monitor.iter,
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
-            control.sent,
-            control.received,
-            control.received == 0 ? -1 : control.latency_sum/control.received);
+            monitor.sent,
+            monitor.received,
+            monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
 }
 
 
@@ -92,7 +95,7 @@ static void handle_timer_event()
 static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
-    test_failed = true;
+    control.test_failed = true;
     k_sem_give(&timer_event_sem);
 }
 
@@ -101,12 +104,12 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------
 static void handle_coap_response(uint32_t time, uint8_t * payload, uint16_t payload_len)
 {
-    if(test_failed){
+    if(control.test_failed){
         return;
     }
 
-    control.received++;
-    control.latency_sum += time;
+    monitor.received++;
+    monitor.latency_sum += time;
 }
 
 //--------------------------------------------------------------------
@@ -137,18 +140,18 @@ static void run_test()
     while(true){
         k_sem_take(&timer_event_sem, K_FOREVER);
 
-        if(test_failed){
+        if(control.test_failed){
             break;
         }
 
         char buf[32];
         int ret;
 
-        if(control.iter < test_settings.iterations){
-            sprintf(buf, "{\"sensor-value\":%d}", control.iter++);
+        if(monitor.iter < test_settings.iterations){
+            sprintf(buf, "{\"sensor-value\":%d}", monitor.iter++);
             ret = coap_put(CONFIG_COAP_SENSOR_LARGE_PACKET_TEST_RESOURCE, buf);
             if(ret >= 0){
-            control.sent++;
+            monitor.sent++;
         } 
         }else{
             break;
@@ -161,6 +164,7 @@ static void run_test()
 // Thread function that runs the test
 static void thread_function(void *arg1, void *arg2, void *arg3) 
 {
+    memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
     // Extract the semaphore and test settings
@@ -192,7 +196,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
     #endif //CONFIG_PROFILER_ENABLE
-    memset(&control, 0, sizeof(control));
+    memset(&monitor, 0, sizeof(monitor));
     run_test();
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
@@ -200,7 +204,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
 
     //test finished
-    if(!test_failed){
+    if(!control.test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
         //coap

@@ -30,7 +30,6 @@ static K_SEM_DEFINE(timer_event_sem, 0, 1);
 struct test_control{
     bool test_failed;
 };
-
 static struct test_control control = { 0 };
 
 

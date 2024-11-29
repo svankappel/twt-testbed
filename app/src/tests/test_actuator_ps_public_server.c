@@ -24,13 +24,16 @@ static struct test_actuator_ps_settings test_settings;
 
 static K_SEM_DEFINE(end_sem, 0, 1);
 
-static bool test_failed = false;
-
 struct test_control{
+    bool test_failed;
+};
+static struct test_control control = { 0 };
+
+struct test_monitor{
     int received;
 };
 
-static struct test_control control = { 0 };
+static struct test_monitor monitor = { 0 };
 
 static void print_test_results() {
 
@@ -58,7 +61,7 @@ static void print_test_results() {
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
             test_settings.test_time_s,
-            control.received);
+            monitor.received);
 }
 
 
@@ -68,7 +71,7 @@ static void print_test_results() {
 static void wifi_disconnected_event()
 {
     LOG_ERR("Disconnected from wifi unexpectedly. Stopping test ...");
-    test_failed = true;
+    control.test_failed = true;
     k_sem_give(&end_sem);
 }
 
@@ -77,11 +80,11 @@ static void wifi_disconnected_event()
 //--------------------------------------------------------------------
 static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
 {
-    if(test_failed){
+    if(control.test_failed){
         return;
     }
 
-    control.received++;
+    monitor.received++;
 }
 
 //--------------------------------------------------------------------
@@ -116,6 +119,7 @@ static void run_test()
 // Thread function that runs the test
 static void thread_function(void *arg1, void *arg2, void *arg3) 
 {
+    memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
     // Extract the semaphore and test settings
@@ -147,14 +151,14 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_output_binary(test_settings.test_id);
     #endif //CONFIG_PROFILER_ENABLE
-    memset(&control, 0, sizeof(control));
+    memset(&monitor, 0, sizeof(monitor));
     run_test();
     #ifdef CONFIG_PROFILER_ENABLE
     profiler_all_clear();
     #endif //CONFIG_PROFILER_ENABLE
 
     //finish test
-    if(!test_failed){
+    if(!control.test_failed){
         LOG_INF("Test %d finished", test_settings.test_id);
 
         coap_register_obs_response_callback(NULL);
