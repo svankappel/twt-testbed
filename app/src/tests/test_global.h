@@ -1,6 +1,8 @@
 #ifndef TEST_GLOBAL_H
 #define TEST_GLOBAL_H
 
+#ifdef CONFIG_COAP_TWT_TESTBED_SERVER
+
 #define TESTBED_SENSOR_RESOURCE "sensor"
 #define TESTBED_ACTUATOR_RESOURCE "actuator"
 #define TESTBED_ACTUATOR_ECHO_RESOURCE "actuatorecho"
@@ -10,6 +12,8 @@
 #define TESTBED_LARGE_UPLOAD_RESOURCE "largeuploadack"
 #define TESTBED_LARGE_DOWNLOAD_RESOURCE "largedownload"
 #define TESTBED_LARGE_UPLOAD_DOWNLOAD_RESOURCE "largeuploadecho"
+
+#endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
 #define PS_MODE_DISABLED 0
 #define PS_MODE_ENABLED 1
