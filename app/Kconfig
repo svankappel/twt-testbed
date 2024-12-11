@@ -23,6 +23,18 @@ config COAP_ACTUATOR_TEST_RESOURCE
   depends on !COAP_TWT_TESTBED_SERVER
   string "Resource on server for the actuator tests"
 
+config COAP_SECURE
+  bool "Use secure CoAP connection"
+
+config COAP_SERVER_DTLS_PSK_ID
+  depends on COAP_SECURE
+  string "CoAP server DTLS PSK identity"
+
+config COAP_SERVER_DTLS_PSK
+  depends on COAP_SECURE
+  string "CoAP server DTLS PSK"
+  
+
 
 endmenu
 

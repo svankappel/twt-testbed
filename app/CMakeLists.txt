@@ -3,7 +3,9 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(twt-testbed)
 
-target_include_directories(app PUBLIC ${ZEPHYR_BASE}/subsys/net/ip)
+target_include_directories(app PRIVATE ${ZEPHYR_BASE}/subsys/net/ip)
+
+zephyr_include_directories(${ZEPHYR_BASE}/modules/mbedtls/include)
 
 # Include directories for each module
 target_include_directories(app PRIVATE
@@ -20,6 +22,7 @@ target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE 
     src/coap/coap.c
     src/coap/coap_utils.c
+    src/coap/coap_security.c
     )
 
 # Profiler module
