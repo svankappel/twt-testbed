@@ -18,22 +18,20 @@ LOG_MODULE_REGISTER(coap_security, CONFIG_MY_COAP_LOG_LEVEL);
 //security tag for credentials
 #define SEC_TAG 12
 
-#define COAP_DEVICE_NAME "cali.svk.nrf70"
-#define COAP_SERVER_PSK ".fornium"
 
 int configure_psk(void)
 {
     int err;
 
     /* Add the PSK identity */
-    err = tls_credential_add(SEC_TAG, TLS_CREDENTIAL_PSK_ID, COAP_DEVICE_NAME, strlen(COAP_DEVICE_NAME));
+    err = tls_credential_add(SEC_TAG, TLS_CREDENTIAL_PSK_ID, CONFIG_COAP_SERVER_DTLS_PSK_ID, strlen(CONFIG_COAP_SERVER_DTLS_PSK_ID));
     if (err < 0) {
         LOG_ERR("Failed to add PSK identity: %d", err);
         return err;
     }
 
     /* Add the PSK */
-    err = tls_credential_add(SEC_TAG, TLS_CREDENTIAL_PSK, COAP_SERVER_PSK, strlen(COAP_SERVER_PSK));
+    err = tls_credential_add(SEC_TAG, TLS_CREDENTIAL_PSK, CONFIG_COAP_SERVER_DTLS_PSK, strlen(CONFIG_COAP_SERVER_DTLS_PSK));
     if (err < 0) {
         LOG_ERR("Failed to add PSK: %d", err);
         return err;
@@ -48,18 +46,11 @@ int set_socket_dtls_options(int sock)
 {
 	int err;
 
-	int verify = TLS_PEER_VERIFY_NONE;
-	err = setsockopt(sock, SOL_TLS, TLS_PEER_VERIFY, &verify, sizeof(verify));
-	if (err) {
-	LOG_ERR("Failed to setup peer verification, errno %d\n", errno);
-	return -errno;
-	}
-
 	int ciphersuite_list[] = {
 	//  MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,
 	//  MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
 	//  MBEDTLS_TLS_PSK_WITH_AES_128_CCM,
-	MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256,
+		MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256,
 	//  MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384,
 	//  MBEDTLS_TLS_PSK_WITH_AES_256_CCM,
 	//  MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8
@@ -80,12 +71,6 @@ int set_socket_dtls_options(int sock)
 		return -errno;
 	}
 
-	int role = TLS_DTLS_ROLE_CLIENT;
-	err = setsockopt(sock, SOL_TLS, TLS_DTLS_ROLE, &role, sizeof(role));
-	if (err) {
-		LOG_ERR("Failed to setup socket role, errno %d\n", errno);
-		return -errno;
-	}
 
 	err = setsockopt(sock, SOL_TLS, TLS_HOSTNAME, CONFIG_COAP_TEST_SERVER_HOSTNAME,strlen(CONFIG_COAP_TEST_SERVER_HOSTNAME));
 	if (err) {

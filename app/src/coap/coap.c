@@ -1,6 +1,9 @@
 #include "coap.h"
-#include "coap_security.h"
 #include "coap_utils.h"
+
+#ifdef CONFIG_COAP_SECURE
+#include "coap_security.h"
+#endif //CONFIG_COAP_SECURE
 
 #include <zephyr/net/socket.h>
 #include <zephyr/kernel.h>
@@ -683,14 +686,6 @@ int coap_init() {
 	#ifndef CONFIG_IP_PROTO_IPV6
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_DTLS_1_2);
 	err = set_socket_dtls_options(sock);
-
-	//err = connect(sock, (struct sockaddr *)&server,sizeof(struct sockaddr_in));
-	if (err < 0) {
-		LOG_ERR("Connect failed : %d\n", errno);
-		return -errno;
-	}
-	LOG_INF("Successfully connected to server");
-
 	#else // CONFIG_IP_PROTO_IPV6
 	sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_DTLS_1_2);
 	err = set_socket_dtls_options(sock);

@@ -27,6 +27,7 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
+//check for inconsistencies in the configuration and print warnings
 static void check_config()
 {
     //check if the CoAP server port is correct
