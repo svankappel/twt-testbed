@@ -46,14 +46,27 @@ int set_socket_dtls_options(int sock)
 {
 	int err;
 
+
+	int verify = TLS_PEER_VERIFY_REQUIRED;
+	err = setsockopt(sock, SOL_TLS, TLS_PEER_VERIFY, &verify, sizeof(verify));
+	if (err) {
+		LOG_ERR("Failed to setup peer verification, errno %d\n", errno);
+		return -errno;
+	}
+
 	int ciphersuite_list[] = {
-	//  MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,
-	//  MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
-	//  MBEDTLS_TLS_PSK_WITH_AES_128_CCM,
-		MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256,
-	//  MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384,
-	//  MBEDTLS_TLS_PSK_WITH_AES_256_CCM,
-	//  MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8
+	    MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,					//works on cali
+	    MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,			//works on cali
+//	  	MBEDTLS_TLS_PSK_WITH_AES_128_CCM,					//doesnt work on cali
+		MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256,			//works on cali
+//	    MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384,			//doesnt work on cali
+//	  	MBEDTLS_TLS_PSK_WITH_AES_256_CCM,					//doesnt work on cali
+//	  	MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,					//doesnt work on cali
+
+		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,		//works on cali
+//		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,			//doesnt work on cali
+//		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,		//doesnt work on cali
+//		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,			//doesnt work on cali
 	};
 
 
@@ -78,6 +91,14 @@ int set_socket_dtls_options(int sock)
 		CONFIG_COAP_TEST_SERVER_HOSTNAME, errno);
 		return -errno;
 	}
+
+	int cid = TLS_DTLS_CID_ENABLED;
+	err = setsockopt(sock, SOL_TLS, TLS_DTLS_CID, &cid, sizeof(int));
+	if (err) {
+		LOG_ERR("Failed to setup CID, errno %d\n", errno);
+		return -errno;
+	}
+
 
 	return 0;
 }
