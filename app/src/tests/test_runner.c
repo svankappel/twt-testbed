@@ -126,6 +126,7 @@ struct test_sensor_twt_settings test_settings_1 = {
 
                 #ifdef CONFIG_SENSOR_TWT_TEST_1_RECOVER
                 .recover = true,
+                .recover_max_pending = CONFIG_SENSOR_TWT_TEST_1_RECOVER_MAX_PENDING,
                 #else
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_1_RECOVER
@@ -143,6 +144,7 @@ struct test_sensor_twt_settings test_settings_2 = {
                 
                 #ifdef CONFIG_SENSOR_TWT_TEST_2_RECOVER
                 .recover = true,
+                .recover_max_pending = CONFIG_SENSOR_TWT_TEST_2_RECOVER_MAX_PENDING,
                 #else
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_2_RECOVER
@@ -160,6 +162,7 @@ struct test_sensor_twt_settings test_settings_3 = {
                 
                 #ifdef CONFIG_SENSOR_TWT_TEST_3_RECOVER
                 .recover = true,
+                .recover_max_pending = CONFIG_SENSOR_TWT_TEST_3_RECOVER_MAX_PENDING,
                 #else
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_3_RECOVER
@@ -177,6 +180,7 @@ struct test_sensor_twt_settings test_settings_4 = {
                 
                 #ifdef CONFIG_SENSOR_TWT_TEST_4_RECOVER
                 .recover = true,
+                .recover_max_pending = CONFIG_SENSOR_TWT_TEST_4_RECOVER_MAX_PENDING,
                 #else
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_4_RECOVER

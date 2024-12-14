@@ -13,6 +13,7 @@ struct test_sensor_twt_settings {
     uint32_t iterations;
     uint32_t wake_ahead_ms;
     bool recover;
+    uint8_t recover_max_pending;
 };
 
 #endif // TEST_SENSOR_TWT_H
