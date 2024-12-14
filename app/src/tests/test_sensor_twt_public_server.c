@@ -195,7 +195,7 @@ static void run_test()
 
                 if(test_settings.recover){
                     control.recover.pending++;
-                    if(control.recover.pending >= 3){
+                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
                         wifi_twt_teardown();
                         control.recover.teardown = true;
                         control.recover.cnt++;

@@ -33,6 +33,26 @@ config COAP_SERVER_DTLS_PSK_ID
 config COAP_SERVER_DTLS_PSK
   depends on COAP_SECURE
   string "CoAP server DTLS PSK"
+
+config COAP_DTLS_PEER_VERIFY
+  depends on COAP_SECURE
+  bool "Use  DTLS peer verification"
+
+config COAP_DTLS_CID
+  depends on COAP_SECURE
+  bool "Use DTLS connection ID"
+
+choice
+prompt "Choose ciphersuite"
+
+	    
+config COAP_DTLS_CIPHERSUITE_TLS_PSK_WITH_AES_128_CBC_SHA256
+  bool "TLS_PSK_WITH_AES_128_CBC_SHA256"
+
+config COAP_DTLS_CIPHERSUITE_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
+  bool "TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256"
+
+endchoice
   
 
 
@@ -244,6 +264,10 @@ config SENSOR_TWT_TEST_1_RECOVER
   bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_1
 
+config SENSOR_TWT_TEST_1_RECOVER_MAX_PENDING
+  int "Max pending packets before recover"
+  depends on SENSOR_TWT_TEST_1_RECOVER
+
 config SENSOR_TWT_TEST_2
   bool "Test 2"
   depends on SENSOR_TWT_TESTS_ENABLE
@@ -263,6 +287,10 @@ config SENSOR_TWT_TEST_2_SESSION_DURATION
 config SENSOR_TWT_TEST_2_RECOVER
   bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_2
+
+config SENSOR_TWT_TEST_2_RECOVER_MAX_PENDING
+  int "Max pending packets before recover"
+  depends on SENSOR_TWT_TEST_2_RECOVER
 
 config SENSOR_TWT_TEST_3
   bool "Test 3"
@@ -284,6 +312,10 @@ config SENSOR_TWT_TEST_3_RECOVER
   bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_3
 
+config SENSOR_TWT_TEST_3_RECOVER_MAX_PENDING
+  int "Max pending packets before recover"
+  depends on SENSOR_TWT_TEST_3_RECOVER
+
 config SENSOR_TWT_TEST_4
   bool "Test 4"
   depends on SENSOR_TWT_TESTS_ENABLE
@@ -303,6 +335,10 @@ config SENSOR_TWT_TEST_4_SESSION_DURATION
 config SENSOR_TWT_TEST_4_RECOVER
   bool "Recover - Teardown and re-setup if packets are buffered at AP"
   depends on SENSOR_TWT_TEST_4
+
+config SENSOR_TWT_TEST_4_RECOVER_MAX_PENDING
+  int "Max pending packets before recover"
+  depends on SENSOR_TWT_TEST_4_RECOVER
 
 
 config LARGE_PACKET_TESTS_ENABLE

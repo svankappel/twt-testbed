@@ -43,8 +43,8 @@ static void check_config()
 
     //check if the CoAP server hostname is correct
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
-    if(strcmp(CONFIG_COAP_TEST_SERVER_HOSTNAME, "californium.eclipseprojects.io") != 0){
-        LOG_WRN("Californium server is not compatible with TWT testbed private server features, remove CONFIG_COAP_TWT_TESTBED_SERVER to use public server");
+    if(strcmp(CONFIG_COAP_TEST_SERVER_HOSTNAME, "californium.eclipseprojects.io") == 0){
+        LOG_WRN("Californium public server is not compatible with TWT testbed private server features, remove CONFIG_COAP_TWT_TESTBED_SERVER to use public server");
     }
     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 }

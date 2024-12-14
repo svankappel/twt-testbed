@@ -18,7 +18,7 @@ LOG_MODULE_REGISTER(coap_security, CONFIG_MY_COAP_LOG_LEVEL);
 //security tag for credentials
 #define SEC_TAG 12
 
-
+#ifdef CONFIG_COAP_SECURE
 int configure_psk(void)
 {
     int err;
@@ -47,7 +47,12 @@ int set_socket_dtls_options(int sock)
 	int err;
 
 
+	#ifdef CONFIG_COAP_DTLS_PEER_VERIFY
 	int verify = TLS_PEER_VERIFY_REQUIRED;
+	#else
+	int verify = TLS_PEER_VERIFY_NONE;
+	#endif
+
 	err = setsockopt(sock, SOL_TLS, TLS_PEER_VERIFY, &verify, sizeof(verify));
 	if (err) {
 		LOG_ERR("Failed to setup peer verification, errno %d\n", errno);
@@ -55,18 +60,11 @@ int set_socket_dtls_options(int sock)
 	}
 
 	int ciphersuite_list[] = {
-	    MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,					//works on cali
-	    MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,			//works on cali
-//	  	MBEDTLS_TLS_PSK_WITH_AES_128_CCM,					//doesnt work on cali
-		MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256,			//works on cali
-//	    MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384,			//doesnt work on cali
-//	  	MBEDTLS_TLS_PSK_WITH_AES_256_CCM,					//doesnt work on cali
-//	  	MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,					//doesnt work on cali
-
-		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,		//works on cali
-//		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,			//doesnt work on cali
-//		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,		//doesnt work on cali
-//		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,			//doesnt work on cali
+		#ifndef CONFIG_COAP_DTLS_CIPHERSUITE_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
+	    MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
+		#else //CONFIG_COAP_DTLS_CIPHERSUITE_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
+		MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
+		#endif //CONFIG_COAP_DTLS_CIPHERSUITE_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
 	};
 
 
@@ -92,7 +90,12 @@ int set_socket_dtls_options(int sock)
 		return -errno;
 	}
 
+	#ifdef CONFIG_COAP_DTLS_CID
 	int cid = TLS_DTLS_CID_ENABLED;
+	#else
+	int cid = TLS_DTLS_CID_DISABLED;
+	#endif
+	
 	err = setsockopt(sock, SOL_TLS, TLS_DTLS_CID, &cid, sizeof(int));
 	if (err) {
 		LOG_ERR("Failed to setup CID, errno %d\n", errno);
@@ -102,3 +105,4 @@ int set_socket_dtls_options(int sock)
 
 	return 0;
 }
+#endif //CONFIG_COAP_SECURE
