@@ -1,6 +1,9 @@
 #include "coap.h"
-
 #include "coap_utils.h"
+
+#ifdef CONFIG_COAP_SECURE
+#include "coap_security.h"
+#endif //CONFIG_COAP_SECURE
 
 #include <zephyr/net/socket.h>
 #include <zephyr/kernel.h>
@@ -669,12 +672,31 @@ int coap_init() {
 		LOG_ERR("Failed to resolve server name");
 		k_sleep(K_FOREVER);
 	}
+
+	#ifndef CONFIG_COAP_SECURE
 	
 	#ifndef CONFIG_IP_PROTO_IPV6
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	#else // CONFIG_IP_PROTO_IPV6
 	sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	#endif // CONFIG_IP_PROTO_IPV6
+
+	#else // CONFIG_COAP_SECURE
+
+	#ifndef CONFIG_IP_PROTO_IPV6
+	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_DTLS_1_2);
+	err = set_socket_dtls_options(sock);
+	#else // CONFIG_IP_PROTO_IPV6
+	sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_DTLS_1_2);
+	err = set_socket_dtls_options(sock);
+	#endif // CONFIG_IP_PROTO_IPV6
+
+	if (err) {
+		LOG_ERR("Failed to set socket options, %d", err);
+		k_sleep(K_FOREVER);
+	}
+
+	#endif // CONFIG_COAP_SECURE
 
 	if (sock < 0) {
 		LOG_ERR("Failed to create CoAP socket: %d.", -errno);

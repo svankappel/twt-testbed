@@ -165,20 +165,26 @@ int wifi_twt_setup(uint32_t twt_wake_interval_ms, uint32_t twt_interval_ms)
 	params.setup.twt_wake_interval = twt_wake_interval_ms * USEC_PER_MSEC;
 	params.setup.twt_interval = twt_interval_ms * USEC_PER_MSEC;
 
-	// Send the TWT setup request with net_mgmt.
-	if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
-		LOG_ERR("TWT setup with %s failed, reason : %s",
-			wifi_twt_negotiation_type_txt(params.negotiation_type),
-			wifi_twt_get_err_code_str(params.fail_reason));
-		return -1;
-	}
-	
-	LOG_INF("-------------------------------");
-	LOG_INF("TWT setup requested");
-	LOG_INF("-------------------------------");
+	for(int i = 0; i < 3; i++){		// 3 retries if setup fails
+		// Send the TWT setup request with net_mgmt.
+		if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
+			LOG_ERR("TWT setup with %s failed, reason : %s",
+				wifi_twt_negotiation_type_txt(params.negotiation_type),
+				wifi_twt_get_err_code_str(params.fail_reason));
+			return -1;
+		}
+		
+		LOG_INF("-------------------------------");
+		LOG_INF("TWT setup requested");
+		LOG_INF("-------------------------------");
 
-	// wait until setup is complete
-	k_sem_take(&twt_setup_sem, K_FOREVER);
+		// wait until setup is complete
+		if (k_sem_take(&twt_setup_sem, K_SECONDS(5)) != 0) {
+			LOG_ERR("TWT setup timed out");
+			continue;
+		}
+		break;
+	}
 
 	if(!twt_enabled) {
 		LOG_ERR("TWT setup failed");
@@ -205,17 +211,24 @@ int wifi_twt_teardown()
 	LOG_INF("TWT teardown requested");
 	LOG_INF("-------------------------------");
 	
-	// Send the TWT teardown request with net_mgmt.
-	if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
-		LOG_ERR("TWT teardown with %s failed, reason : %s",
-			wifi_twt_negotiation_type_txt(params.negotiation_type),
-			wifi_twt_get_err_code_str(params.fail_reason));
-		return -1;
-	}
+	for(int i = 0; i < 3; i++){		// 3 retries if teardown fails
+		// Send the TWT teardown request with net_mgmt.
+		if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
+			LOG_ERR("TWT teardown with %s failed, reason : %s",
+				wifi_twt_negotiation_type_txt(params.negotiation_type),
+				wifi_twt_get_err_code_str(params.fail_reason));
+			return -1;
+		}
 
-	// wait until teardown is complete
-	twt_teardown_requested = true;
-	k_sem_take(&twt_teardown_sem, K_FOREVER);
+		// wait until teardown is complete
+		twt_teardown_requested = true;
+		if(k_sem_take(&twt_teardown_sem, K_FOREVER)){
+			LOG_ERR("TWT setup timed out");
+			continue;
+		}
+		break;
+	}
+	
 
 	if(twt_enabled) {
 		LOG_ERR("TWT teardown failed");
