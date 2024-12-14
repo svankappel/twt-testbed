@@ -44,8 +44,7 @@ config COAP_DTLS_CID
 
 choice
 prompt "Choose ciphersuite"
-
-	    
+depends on COAP_SECURE
 config COAP_DTLS_CIPHERSUITE_TLS_PSK_WITH_AES_128_CBC_SHA256
   bool "TLS_PSK_WITH_AES_128_CBC_SHA256"
 
