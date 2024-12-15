@@ -12,41 +12,107 @@
 #include "wifi_ps.h"
 #include "wifi_twt.h"
 
-#ifdef CONFIG_COAP_SECURE
-#include "coap_security.h"
-#endif //CONFIG_COAP_SECURE
 
-#include "coap.h"
+#include <zephyr/net/lwm2m.h>
 
-#ifdef CONFIG_PROFILER_ENABLE
-#include "profiler.h"
-#endif //CONFIG_PROFILER_ENABLE
-
-#include "test_runner.h"
 
 
 LOG_MODULE_REGISTER(main, CONFIG_MY_MAIN_LOG_LEVEL);
 
-//check for inconsistencies in the configuration and print warnings
-static void check_config()
-{
-    //check if the CoAP server port is correct
-    #ifndef CONFIG_COAP_SECURE
-    if(CONFIG_COAP_TEST_SERVER_PORT != 5683){
-        LOG_WRN("CoAP/UDP port is 5683, got %d", CONFIG_COAP_TEST_SERVER_PORT);
-    }
-    #else
-    if(CONFIG_COAP_TEST_SERVER_PORT != 5684){
-        LOG_WRN("CoAP/DTLS port is 5684, got %d", CONFIG_COAP_TEST_SERVER_PORT);
-    }
-    #endif //CONFIG_COAP_SECURE
 
-    //check if the CoAP server hostname is correct
-    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
-    if(strcmp(CONFIG_COAP_TEST_SERVER_HOSTNAME, "californium.eclipseprojects.io") == 0){
-        LOG_WRN("Californium public server is not compatible with TWT testbed private server features, remove CONFIG_COAP_TWT_TESTBED_SERVER to use public server");
-    }
-    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
+static int device_reboot_cb(uint16_t obj_inst_id, uint8_t *args,
+                            uint16_t args_len)
+{
+        LOG_INF("Reboot CB called !");
+        
+        return 0; /* won't reach this */
+}
+
+static void rd_client_event(struct lwm2m_ctx *client,
+                            enum lwm2m_rd_client_event client_event)
+{
+        switch (client_event) {
+
+        case LWM2M_RD_CLIENT_EVENT_NONE:
+                /* do nothing */
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_BOOTSTRAP_REG_FAILURE:
+                LOG_DBG("Bootstrap registration failure!");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_BOOTSTRAP_REG_COMPLETE:
+                LOG_DBG("Bootstrap registration complete");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_BOOTSTRAP_TRANSFER_COMPLETE:
+                LOG_DBG("Bootstrap transfer complete");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_REGISTRATION_FAILURE:
+                LOG_DBG("Registration failure!");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_REGISTRATION_COMPLETE:
+                LOG_DBG("Registration complete");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_REG_TIMEOUT:
+                LOG_DBG("Registration timeout!");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_REG_UPDATE_COMPLETE:
+                LOG_DBG("Registration update complete");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_DEREGISTER_FAILURE:
+                LOG_DBG("Deregister failure!");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_DISCONNECT:
+                LOG_DBG("Disconnected");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_REG_UPDATE:
+                LOG_DBG("Registration update");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_DEREGISTER:
+                LOG_DBG("Deregistration client");
+                break;
+
+        case LWM2M_RD_CLIENT_EVENT_SERVER_DISABLED:
+                LOG_DBG("LwM2M server disabled");
+          break;
+        }
+}
+
+static void observe_cb(enum lwm2m_observe_event event,
+		       struct lwm2m_obj_path *path, void *user_data)
+{
+	char buf[LWM2M_MAX_PATH_STR_SIZE];
+
+	switch (event) {
+
+	case LWM2M_OBSERVE_EVENT_OBSERVER_ADDED:
+		LOG_INF("Observer added for %s", lwm2m_path_log_buf(buf, path));
+		break;
+
+	case LWM2M_OBSERVE_EVENT_OBSERVER_REMOVED:
+		LOG_INF("Observer removed for %s", lwm2m_path_log_buf(buf, path));
+		break;
+
+	case LWM2M_OBSERVE_EVENT_NOTIFY_ACK:
+		LOG_INF("Notify acknowledged for %s", lwm2m_path_log_buf(buf, path));
+		break;
+
+	case LWM2M_OBSERVE_EVENT_NOTIFY_TIMEOUT:
+		LOG_INF("Notify timeout for %s, trying registration update",
+			lwm2m_path_log_buf(buf, path));
+
+		lwm2m_rd_client_update();
+		break;
+	}
 }
 
 
@@ -56,33 +122,9 @@ int main(void)
 
     LOG_INF("Starting TWT testbed ...");
 
-    //check configuration
-    check_config(); 
-
     // initialize setup
 
-    #ifdef CONFIG_PROFILER_ENABLE
-    ret = profiler_init();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to initialize profiler");
-        k_sleep(K_FOREVER);
-    }
-    #endif //CONFIG_PROFILER_ENABLE
-
-    //configure DTLS credentials
-    #ifdef CONFIG_COAP_SECURE
-    ret = configure_psk();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to configure PSK");
-        k_sleep(K_FOREVER);
-    }
-    #endif //CONFIG_COAP_SECURE
-
     wifi_init();
-
-    wifi_ps_set_listen_interval(CONFIG_PS_LISTEN_INTERVAL);
 
     ret = wifi_connect();
     if(ret != 0)
@@ -91,45 +133,34 @@ int main(void)
         k_sleep(K_FOREVER);
     }
 
+    /* LwM2M client context */
+    static struct lwm2m_ctx client;
+
+    lwm2m_set_string(&LWM2M_OBJ(0, 0, 0), "coap://leshan.eclipseprojects.io:5683");
+
+    //nosec
+    lwm2m_set_u8(&LWM2M_OBJ(0, 0, 2), 3);
+
+    //bootstrap
+    lwm2m_set_u8(&LWM2M_OBJ(0, 0, 1), 0); // Disable bootstrap
+
+
+    // short server id
+    lwm2m_set_u16(&LWM2M_OBJ(0, 0, 10), CONFIG_LWM2M_SERVER_DEFAULT_SSID);
+	lwm2m_set_u16(&LWM2M_OBJ(1, 0, 0), CONFIG_LWM2M_SERVER_DEFAULT_SSID);
+
+
+    //client manufacturer
+    lwm2m_set_res_buf(&LWM2M_OBJ(3, 0, 0), "CLIENT_MANUFACTURER",
+                   sizeof("CLIENT_MANUFACTURER"),
+                   LWM2M_RES_DATA_FLAG_RO,LWM2M_RES_DATA_FLAG_RO);
     
-    coap_init();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to initialize CoAP client");
-        k_sleep(K_FOREVER);
-    }
 
-    k_sleep(K_SECONDS(1));
+    lwm2m_register_exec_callback(&LWM2M_OBJ(3, 0, 4), device_reboot_cb);
 
- 
-    #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
-    ret = coap_validate();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to validate CoAP client");
-        k_sleep(K_FOREVER);
-    }
-    #endif //CONFIG_COAP_TWT_TESTBED_SERVER
+    (void)memset(&client, 0x0, sizeof(client));
 
-    ret = wifi_disconnect();
-    if(ret != 0)
-    {
-        LOG_ERR("Failed to disconnect from wifi");
-        k_sleep(K_FOREVER);
-     }
-
-    k_sleep(K_SECONDS(1));
-
-    LOG_INF("TWT testbed initialized. Running tests ...");
-
-
-
-    //run tests
-
-    run_tests();
-
-
-    LOG_INF("Tests Finished!");
+    lwm2m_rd_client_start(&client, "svk-unique-endpoint-name", 0, rd_client_event,observe_cb);
 
 
     k_sleep(K_FOREVER);
