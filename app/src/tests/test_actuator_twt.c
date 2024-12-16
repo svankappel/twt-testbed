@@ -202,7 +202,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         k_sleep(K_SECONDS(1));
         coap_cancel_observers();
         k_sleep(K_SECONDS(1));
-        monitor.sent = coap_get_stat()-1;
+        monitor.sent = coap_get_stat();
         if(test_settings.echo){
             ret = coap_get_actuator_stat(monitor.latency_stats);
             if(ret != 0){

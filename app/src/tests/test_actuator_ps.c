@@ -194,7 +194,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         coap_register_obs_response_callback(NULL);
         coap_cancel_observers();
-        monitor.sent = coap_get_stat()-1;
+        monitor.sent = coap_get_stat();
         if(test_settings.echo){
             ret = coap_get_actuator_stat(monitor.latency_stats);
             if(ret != 0){

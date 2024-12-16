@@ -401,10 +401,10 @@ int coap_get_stat()
 		if (k_sem_take(&stat_sem, K_SECONDS(5)) != 0) {
 			if(i == 2)
 			{
-				LOG_ERR("Get actuator stat timed out!");
+				LOG_ERR("Get stat timed out!");
 				return -ETIMEDOUT;
 			}
-			LOG_WRN("Get actuator stat timed out, Retrying ...");
+			LOG_WRN("Get stat timed out, Retrying ...");
 			continue;
 		}
 		break;
