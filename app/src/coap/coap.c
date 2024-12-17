@@ -12,6 +12,7 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/coap.h>
+#include <zephyr/net/net_ip.h>
 
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
@@ -473,10 +474,13 @@ int coap_get_actuator_stat(char * buffer)
 
 void send_coap_thread(void *arg1, void *arg2, void *arg3)
 {
+	
+
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
 
+		
 
 		send_return_code = sendto(sock, coap_request.data, coap_request.offset, 0, (struct sockaddr *)&server, sizeof(server));
 		if (send_return_code < 0) {
@@ -701,6 +705,12 @@ int coap_init() {
 	if (sock < 0) {
 		LOG_ERR("Failed to create CoAP socket: %d.", -errno);
 		k_sleep(K_FOREVER);
+	}
+
+	int priority = NET_PRIORITY_VO;
+	int ret = setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority));
+	if (ret < 0) {
+		LOG_ERR("Failed to set socket priority, %d\n", errno);
 	}
 
 
