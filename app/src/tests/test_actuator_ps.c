@@ -97,19 +97,25 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
 {
     if(control.test_failed){
         return;
+    }  
+
+    //only count the responses of the observe notifications
+    if(strncmp((char *)payload, "{\"actuator-value\":", 18) == 0)
+    {
+        monitor.received++;
+
+        if(test_settings.echo){
+
+            // Change the payload {"actuator-value":x} to {"actuator-echo":x}
+            char echo[payload_len];
+            snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
+
+            coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
+
+            coap_init_pool(5000); //reset the pool because this specific request is not responded
+                                  //  -> the init avoid the pool to generate warnings
+        }
     }
-
-    monitor.received++;
-
-    if(test_settings.echo){
-
-        // Change the payload {"actuator-value":x} to {"actuator-echo":x}
-        char echo[payload_len];
-        snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
-
-        coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
-    }
-    
 }
 
 //--------------------------------------------------------------------
