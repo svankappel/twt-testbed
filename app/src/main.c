@@ -118,6 +118,11 @@ int main(void)
     int i = 0;
     while(true)
     {
+        if(i % 20 < 10){
+            coap_emergency_enable();
+        }else{
+            coap_emergency_disable();
+        }
         k_sleep(K_SECONDS(1));
         char buffer[10];
         sprintf(buffer, "t-%d", i);
