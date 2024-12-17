@@ -192,7 +192,11 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         //coap
+        if(test_settings.emergency_uplink){
+            coap_emergency_enable();
+        }
         coap_register_obs_response_callback(NULL);
+
 
         // tear down TWT and disconnect from wifi
         if(wifi_twt_is_enabled()){
@@ -210,6 +214,9 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
                 monitor.latency_stats[0] = '\0';
             }
         }
+        if(test_settings.emergency_uplink){
+            coap_emergency_disable();
+        }
         k_sleep(K_SECONDS(1));
 
         ret = wifi_disconnect();
@@ -224,6 +231,9 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         //coap
         coap_register_obs_response_callback(NULL);
         coap_cancel_observers();
+        if(test_settings.emergency_uplink){
+            coap_emergency_disable();
+        }
         monitor.sent = -1;
     }
 
