@@ -111,6 +111,20 @@ int main(void)
     }
     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
+
+    wifi_twt_setup(8,5000);
+
+    coap_init_pool(20000);
+    int i = 0;
+    while(true)
+    {
+        k_sleep(K_SECONDS(1));
+        char buffer[10];
+        sprintf(buffer, "t-%d", i);
+        coap_put("sensor", buffer);
+        i++;
+    }
+
     ret = wifi_disconnect();
     if(ret != 0)
     {
