@@ -1,0 +1,51 @@
+{
+    "test_results": 
+    {
+      "test_title": "Sensor Use Case - TWT",
+      "testbed_setup": 
+      {
+        "CoAP_Server": "californium.eclipseprojects.io",
+        "DTLS": "Enabled",
+        "DTLS_Peer_Verification": "None",
+        "DTLS_Connection_ID": "Enabled",
+        "DTLS_Ciphersuite": "TLS_PSK_WITH_AES_128_CCM_8",
+        "IP_Protocol": "IPv4",
+        "Wi-Fi_TWT_Implicit": true,
+        "Wi-Fi_TWT_Announced": true,
+        "Wi-Fi_TWT_Trigger": false,
+        "Wi-Fi_PS_Listen_Interval": 10
+      },
+      "test_setup": 
+      {
+        "Iterations": 2500,
+        "Negotiated_TWT_Interval": "5 s",
+        "Negotiated_TWT_Wake_Interval": "16 ms"
+      },
+      "results": 
+      {
+        "Requests_Sent": 2500,
+        "Responses_Received": 2435,
+        "Average_Latency": "16 s"
+      },
+
+      "latency_histogram": [
+        { "latency": 0, "count": 32 },
+        { "latency": 5, "count": 268 },
+        { "latency": 10, "count": 73 },
+        { "latency": 15, "count": 1026 },
+        { "latency": 20, "count": 1005 },
+        { "latency": 25, "count": 55 },
+        { "latency": 30, "count": 7 },
+        { "latency": 35, "count": 0 },
+        { "latency": 40, "count": 0 },
+        { "latency": 45, "count": 0 },
+        { "latency": 50, "count": 0 },
+        { "latency": 55, "count": 0 },
+        { "latency": 60, "count": 0 },
+        { "latency": 65, "count": 0 },
+        { "latency": 70, "count": 1 },
+        { "latency": "lost", "count": 65 }
+      ]
+    }
+}
+  
