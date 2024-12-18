@@ -6,15 +6,9 @@ def extract_test_setup(json_file_path):
     with open(json_file_path, 'r') as file:
         data = json.load(file)
 
-    test_setup = data.get("test_results", {}).get("test_setup", {})
-
-    # Print parameters except for "usecase"
-    for key, value in test_setup.items():
-        if key != "usecase":
-            print(f"{key.replace('_', ' ').capitalize()}: {value}")
 
     # Extract and plot latency histogram
-    latency_histogram = data.get("test_results", {}).get("latency_histogram", [])
+    latency_histogram = data.get("latency_histogram", [])
     latencies = []
     counts = []
     bar_colors = []
@@ -34,11 +28,11 @@ def extract_test_setup(json_file_path):
     plt.ylabel("Count")
     plt.grid(True, linestyle='--', axis='y', zorder=0)
     plt.bar(latencies, counts, label=latencies, color=bar_colors, width=0.9, zorder=3)
-    plt.savefig("latency_histogram.png")
+    plt.savefig("histogram.png")
 
 # Example usage
 if len(sys.argv) != 2:
-    print("Usage: python testreport.py <json_file_path>")
+    print("Usage: python histogram.py <json_file_path>")
 else:
     json_file_path = sys.argv[1]
     extract_test_setup(json_file_path)
