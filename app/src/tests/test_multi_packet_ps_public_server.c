@@ -81,6 +81,38 @@ static void print_test_results() {
             monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
 }
 
+static void generate_test_report(){
+    struct test_report report;
+    sprintf(report.test_title, "\"test_title\":\"Multi Packet Use Case - PS\"");
+
+    sprintf(report.test_setup,
+        "\"test_setup\":\n"
+        "{\n"
+            "\"Iterations\": %d,\n"
+            "\"Number_of_packet_per_iteration\": %d,\n"
+            "\"PS_Mode\": \"%s\",\n"
+            "\"PS_Wake_Up_Mode\": \"%s\"\n"
+        "}",
+        test_settings.iterations,
+        test_settings.packet_number,
+        test_settings.ps_mode ? "WMM" : "Legacy",
+        test_settings.ps_wakeup_mode ? "Listen Interval" : "DTIM");
+
+    sprintf(report.results, 
+        "\"results\":\n"
+        "{\n"
+            "\"Requests_Sent\": %d,\n"
+            "\"Responses_Received\": %d,\n"
+            "\"Average_Latency\": \"%d ms\"\n"
+        "}",
+        monitor.sent,
+        monitor.received,
+        monitor.received == 0 ? -1 : monitor.latency_sum / monitor.received);
+
+        test_report_print(&report);
+}
+
+
 
 
 
@@ -236,6 +268,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     print_test_results();
+
+    generate_test_report();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
