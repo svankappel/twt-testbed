@@ -40,6 +40,7 @@ target_sources(app PRIVATE
 target_sources(app PRIVATE 
     src/tests/test_runner.c
     src/tests/test_report.c
+    src/tests/test_global.c
     src/tests/test_sensor_twt.c
     src/tests/test_sensor_ps.c
     src/tests/test_sensor_twt_public_server.c

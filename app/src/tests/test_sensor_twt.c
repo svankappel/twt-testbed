@@ -2,6 +2,8 @@
 
 #include "test_sensor_twt.h"
 
+#include "test_report.h"
+
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
@@ -17,9 +19,9 @@
 
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 8192
-#define PRIORITY -2         //non preemptive priority
-static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
+//#define STACK_SIZE 8192
+//#define PRIORITY -2         //non preemptive priority
+//static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 #define MAX_INTERVALS_BUFFERED 50
 
@@ -107,8 +109,10 @@ static void print_test_results() {
         LOG_INF("\n"
                 "================================================================================\n"
                 "=  Recovery count:                        %6d                               =\n"
+                "=  Max pending requests before recover:   %6d                               =\n"
                 "================================================================================\n",
-                control.recover.cnt);
+                control.recover.cnt,
+                test_settings.recover_max_pending);
     }
         
 
@@ -131,6 +135,89 @@ static void print_test_results() {
                 hist_str);
 
 }
+
+static void generate_test_report() {
+    struct test_report report;
+    sprintf(report.test_title, "\"test_title\":\"Sensor Use Case - TWT\"");
+
+    if (test_settings.recover) {
+        sprintf(report.test_setup,
+                "\"test_setup\":\n"
+                "{\n"
+                "\"Iterations\": %d,\n"
+                "\"Negotiated_TWT_Interval\": \"%d s\",\n"
+                "\"Negotiated_TWT_Wake_Interval\": \"%d ms\",\n"
+                "\"Recovery\": \"Enabled\",\n"
+                "\"Max_Pending_Requests_Before_Recover\": %d\n"
+                "}",
+                test_settings.iterations,
+                wifi_twt_get_interval_ms() / 1000,
+                wifi_twt_get_wake_interval_ms(),
+                test_settings.recover_max_pending);
+
+        sprintf(report.results,
+                "\"results\":\n"
+                "{\n"
+                "\"Requests_Sent\": %d,\n"
+                "\"Requests_Received_on_Server\": %d,\n"
+                "\"Responses_Received\": %d,\n"
+                "\"Requests_Lost\": %d,\n"
+                "\"Responses_Lost\": %d,\n"
+                "\"Average_Latency\": \"%d s\",\n"
+                "\"Recovery_Count\": %d\n"
+                "}",
+                monitor.sent,
+                monitor.received_serv,
+                monitor.received,
+                monitor.received_serv < 0 ? -1 : monitor.sent - monitor.received_serv,
+                monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
+                monitor.received == 0 ? -1 : monitor.latency_sum / monitor.received,
+                control.recover.cnt);
+    } else {
+        sprintf(report.test_setup,
+                "\"test_setup\":\n"
+                "{\n"
+                "\"Iterations\": %d,\n"
+                "\"Negotiated_TWT_Interval\": \"%d s\",\n"
+                "\"Negotiated_TWT_Wake_Interval\": \"%d ms\",\n"
+                "\"Recovery\": \"Disabled\"\n"
+                "}",
+                test_settings.iterations,
+                wifi_twt_get_interval_ms() / 1000,
+                wifi_twt_get_wake_interval_ms());
+
+        sprintf(report.results,
+                "\"results\":\n"
+                "{\n"
+                "\"Requests_Sent\": %d,\n"
+                "\"Requests_Received_on_Server\": %d,\n"
+                "\"Responses_Received\": %d,\n"
+                "\"Requests_Lost\": %d,\n"
+                "\"Responses_Lost\": %d,\n"
+                "\"Average_Latency\": \"%d s\"\n"
+                "}",
+                monitor.sent,
+                monitor.received_serv,
+                monitor.received,
+                monitor.received_serv < 0 ? -1 : monitor.sent - monitor.received_serv,
+                monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
+                monitor.received == 0 ? -1 : monitor.latency_sum / monitor.received);
+    }
+
+    // Generate latency histogram
+    char temp[64];
+    sprintf(report.latency_histogram, "\"latency_histogram\":\n[\n");
+    for (int i = 0; i < 20; i++) {
+        sprintf(temp, "{ \"latency\": %d, \"count\": %d },\n", i * test_settings.twt_interval / 1000, monitor.latency_hist[i]);
+        strncat(report.latency_histogram, temp, sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+    }
+    sprintf(temp, "{ \"latency\": \"lost\", \"count\": %d }\n", monitor.sent - monitor.received);
+    strncat(report.latency_histogram, temp, sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+    strncat(report.latency_histogram, "]", sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+
+    test_report_print(&report);
+}
+
 
 
 //--------------------------------------------------------------------     
@@ -314,6 +401,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     print_test_results();
 
+    generate_test_report();
+
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
@@ -325,11 +414,11 @@ void test_sensor_twt(struct k_sem *sem, void * test_settings) {
     
     struct k_thread thread_data;
 
-    k_tid_t thread_id = k_thread_create(&thread_data, thread_stack,
-                                        K_THREAD_STACK_SIZEOF(thread_stack),
+    k_tid_t thread_id = k_thread_create(&thread_data, thread_stack_,
+                                        K_THREAD_STACK_SIZEOF(thread_stack_),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
+                                        -2, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 

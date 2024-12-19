@@ -132,7 +132,6 @@ int wifi_connect(void)
 	ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, iface,
 			   &cnx_params, sizeof(struct wifi_connect_req_params));
 			   
-	//ret = net_mgmt(NET_REQUEST_WIFI_CONNECT_STORED, iface, NULL, 0);
 	if (ret) {
 		printk("Connection request failed with error: %d\n", ret);
 		context.connect_requested = false;
