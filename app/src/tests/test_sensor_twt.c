@@ -1,7 +1,7 @@
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_sensor_twt.h"
-
+#include "test_global.h"
 #include "test_report.h"
 
 #include <zephyr/kernel.h>
@@ -19,9 +19,6 @@
 
 LOG_MODULE_REGISTER(test_sensor_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
-//#define STACK_SIZE 8192
-//#define PRIORITY -2         //non preemptive priority
-//static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 #define MAX_INTERVALS_BUFFERED 50
 
@@ -414,11 +411,11 @@ void test_sensor_twt(struct k_sem *sem, void * test_settings) {
     
     struct k_thread thread_data;
 
-    k_tid_t thread_id = k_thread_create(&thread_data, thread_stack_,
-                                        K_THREAD_STACK_SIZEOF(thread_stack_),
+    k_tid_t thread_id = k_thread_create(&thread_data, thread_stack,
+                                        K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        -2, 0, K_NO_WAIT);
+                                        TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 

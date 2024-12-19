@@ -1,6 +1,8 @@
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_multi_packet_ps.h"
+#include "test_global.h"
+#include "test_report.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -15,10 +17,6 @@
 #endif //CONFIG_PROFILER_ENABLE
 
 LOG_MODULE_REGISTER(test_multi_packet_ps, CONFIG_MY_TEST_LOG_LEVEL);
-
-#define STACK_SIZE 8192
-#define PRIORITY -2         //non preemptive priority
-static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 
 static struct test_multi_packet_ps_settings test_settings;
@@ -275,7 +273,7 @@ void test_multi_packet_ps(struct k_sem *sem, void * test_settings) {
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
+                                        TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 

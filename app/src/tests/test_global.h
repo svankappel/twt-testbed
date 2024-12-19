@@ -33,9 +33,9 @@ enum large_packet_config {
     LREQ_LRES
 };
 
-//#define STACK_SIZE 8192
-//#define PRIORITY -2         //non preemptive priority
-extern struct z_thread_stack_element thread_stack_[8192];
+#define TEST_THREAD_STACK_SIZE 8192
+#define TEST_THREAD_PRIORITY -2         //non preemptive priority
+extern struct z_thread_stack_element thread_stack[TEST_THREAD_STACK_SIZE];
 
 
 
