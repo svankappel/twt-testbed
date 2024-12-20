@@ -23,6 +23,8 @@ void run_tests(){
 
 //PS Tests
 {
+
+
 #ifdef CONFIG_SENSOR_PS_TESTS_ENABLE
 
 #ifdef CONFIG_SENSOR_PS_TEST_1
@@ -539,12 +541,18 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .min_interval = CONFIG_ACTUATOR_TWT_TEST_1_MIN_INTERVAL,
                     .max_interval = CONFIG_ACTUATOR_TWT_TEST_1_MAX_INTERVAL,
 
-                    #ifdef CONFIG_ACTUATOR_TWT_TEST_1_ECHO
+                        #ifdef CONFIG_ACTUATOR_TWT_TEST_1_ECHO
                         .echo = true,
                         #else
                         .echo = false,
                         #endif //CONFIG_ACTUATOR_TWT_TEST_1_ECHO
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
+
+                    #ifdef CONFIG_ACTUATOR_TWT_TEST_1_EMERGENCY_UPLINK
+                    .emergency_uplink = true,
+                    #else
+                    .emergency_uplink = false,
+                    #endif //CONFIG_ACTUATOR_TWT_TEST_1_EMERGENCY_UPLINK
     };
     test_actuator_twt(&test_sem, &test_settings_1);
     #endif //CONFIG_ACTUATOR_TWT_TEST_1
@@ -560,12 +568,18 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .min_interval = CONFIG_ACTUATOR_TWT_TEST_2_MIN_INTERVAL,
                     .max_interval = CONFIG_ACTUATOR_TWT_TEST_2_MAX_INTERVAL,
 
-                    #ifdef CONFIG_ACTUATOR_TWT_TEST_2_ECHO
+                        #ifdef CONFIG_ACTUATOR_TWT_TEST_2_ECHO
                         .echo = true,
                         #else
                         .echo = false,
                         #endif //CONFIG_ACTUATOR_TWT_TEST_2_ECHO
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
+
+                    #ifdef CONFIG_ACTUATOR_TWT_TEST_2_EMERGENCY_UPLINK
+                    .emergency_uplink = true,
+                    #else
+                    .emergency_uplink = false,
+                    #endif //CONFIG_ACTUATOR_TWT_TEST_2_EMERGENCY_UPLINK
     };
     test_actuator_twt(&test_sem, &test_settings_2);
     #endif //CONFIG_ACTUATOR_TWT_TEST_2
@@ -581,12 +595,18 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .min_interval = CONFIG_ACTUATOR_TWT_TEST_3_MIN_INTERVAL,
                     .max_interval = CONFIG_ACTUATOR_TWT_TEST_3_MAX_INTERVAL,
 
-                    #ifdef CONFIG_ACTUATOR_TWT_TEST_3_ECHO
+                        #ifdef CONFIG_ACTUATOR_TWT_TEST_3_ECHO
                         .echo = true,
                         #else
                         .echo = false,
                         #endif //CONFIG_ACTUATOR_TWT_TEST_3_ECHO
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
+
+                    #ifdef CONFIG_ACTUATOR_TWT_TEST_3_EMERGENCY_UPLINK
+                    .emergency_uplink = true,
+                    #else
+                    .emergency_uplink = false,
+                    #endif //CONFIG_ACTUATOR_TWT_TEST_3_EMERGENCY_UPLINK
     };
     test_actuator_twt(&test_sem, &test_settings_3);
     #endif //CONFIG_ACTUATOR_TWT_TEST_3
@@ -602,12 +622,18 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .min_interval = CONFIG_ACTUATOR_TWT_TEST_4_MIN_INTERVAL,
                     .max_interval = CONFIG_ACTUATOR_TWT_TEST_4_MAX_INTERVAL,
 
-                    #ifdef CONFIG_ACTUATOR_TWT_TEST_4_ECHO
+                        #ifdef CONFIG_ACTUATOR_TWT_TEST_4_ECHO
                         .echo = true,
                         #else
                         .echo = false,
                         #endif //CONFIG_ACTUATOR_TWT_TEST_4_ECHO
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
+
+                    #ifdef CONFIG_ACTUATOR_TWT_TEST_4_EMERGENCY_UPLINK
+                    .emergency_uplink = true,
+                    #else
+                    .emergency_uplink = false,
+                    #endif //CONFIG_ACTUATOR_TWT_TEST_4_EMERGENCY_UPLINK
     };
     test_actuator_twt(&test_sem, &test_settings_4);
     #endif //CONFIG_ACTUATOR_TWT_TEST_4

@@ -776,6 +776,10 @@ config ACTUATOR_TWT_TEST_1_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on ACTUATOR_TWT_TEST_1
 
+config ACTUATOR_TWT_TEST_1_EMERGENCY_UPLINK
+  bool "Use emergency for the uplink traffic (send data outside TWT session)"
+  depends on ACTUATOR_TWT_TEST_1 && (!COAP_TWT_TESTBED_SERVER || ACTUATOR_TWT_TEST_1_ECHO)
+
 config ACTUATOR_TWT_TEST_2
   bool "Test 2"
   depends on ACTUATOR_TWT_TESTS_ENABLE
@@ -803,6 +807,10 @@ config ACTUATOR_TWT_TEST_2_INTERVAL
 config ACTUATOR_TWT_TEST_2_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on ACTUATOR_TWT_TEST_2
+
+config ACTUATOR_TWT_TEST_2_EMERGENCY_UPLINK
+  bool "Use emergency for the uplink traffic (send data outside TWT session)"
+  depends on ACTUATOR_TWT_TEST_2 && (!COAP_TWT_TESTBED_SERVER || ACTUATOR_TWT_TEST_2_ECHO)
 
 config ACTUATOR_TWT_TEST_3
   bool "Test 3"
@@ -832,6 +840,10 @@ config ACTUATOR_TWT_TEST_3_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on ACTUATOR_TWT_TEST_3
 
+config ACTUATOR_TWT_TEST_3_EMERGENCY_UPLINK
+  bool "Use emergency for the uplink traffic (send data outside TWT session)"
+  depends on ACTUATOR_TWT_TEST_3 && (!COAP_TWT_TESTBED_SERVER || ACTUATOR_TWT_TEST_3_ECHO)
+
 config ACTUATOR_TWT_TEST_4
   bool "Test 4"
   depends on ACTUATOR_TWT_TESTS_ENABLE
@@ -859,6 +871,10 @@ config ACTUATOR_TWT_TEST_4_INTERVAL
 config ACTUATOR_TWT_TEST_4_SESSION_DURATION
   int "TWT session duration (ms)"
   depends on ACTUATOR_TWT_TEST_4
+
+config ACTUATOR_TWT_TEST_4_EMERGENCY_UPLINK
+  bool "Use emergency for the uplink traffic (send data outside TWT session)"
+  depends on ACTUATOR_TWT_TEST_4 && (!COAP_TWT_TESTBED_SERVER || ACTUATOR_TWT_TEST_4_ECHO)
 
 
 config MULTI_PACKET_TESTS_ENABLE

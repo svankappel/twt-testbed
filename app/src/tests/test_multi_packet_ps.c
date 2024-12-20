@@ -1,6 +1,8 @@
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_multi_packet_ps.h"
+#include "test_global.h"
+#include "test_report.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -15,10 +17,6 @@
 #endif //CONFIG_PROFILER_ENABLE
 
 LOG_MODULE_REGISTER(test_multi_packet_ps, CONFIG_MY_TEST_LOG_LEVEL);
-
-#define STACK_SIZE 8192
-#define PRIORITY -2         //non preemptive priority
-static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 
 static struct test_multi_packet_ps_settings test_settings;
@@ -94,6 +92,46 @@ static void print_test_results() {
             monitor.received_serv < 0 ? -1 : monitor.sent - monitor.received_serv,
             monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
             monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
+}
+
+
+static void generate_test_report(){
+    struct test_report report;
+    memset(&report, '\0', sizeof(report));
+
+    sprintf(report.test_title, "\"test_title\":\"Multi Packet Use Case - PS\"");
+
+    sprintf(report.test_setup,
+        "\"test_setup\":\n"
+        "{\n"
+            "\"Iterations\": %d,\n"
+            "\"Number_of_packet_per_iteration\": %d,\n"
+            "\"PS_Mode\": \"%s\",\n"
+            "\"PS_Wake_Up_Mode\": \"%s\"\n"
+        "}",
+        test_settings.iterations,
+        test_settings.packet_number,
+        test_settings.ps_mode ? "WMM" : "Legacy",
+        test_settings.ps_wakeup_mode ? "Listen Interval" : "DTIM");
+
+    sprintf(report.results, 
+        "\"results\":\n"
+        "{\n"
+            "\"Requests_Sent\": %d,\n"
+            "\"Requests_Received_on_Server\": %d,\n"
+            "\"Responses_Received\": %d,\n"
+            "\"Requests_Lost\": %d,\n"
+            "\"Responses_Lost\": %d,\n"
+            "\"Average_Latency\": \"%d ms\"\n"
+        "}",
+        monitor.sent,
+        monitor.received_serv,
+        monitor.received,
+        monitor.received_serv < 0 ? -1 : monitor.sent - monitor.received_serv,
+        monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
+        monitor.received == 0 ? -1 : monitor.latency_sum / monitor.received);
+
+    test_report_print(&report);
 }
 
 
@@ -260,6 +298,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     print_test_results();
 
+    generate_test_report();
+
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
@@ -275,7 +315,7 @@ void test_multi_packet_ps(struct k_sem *sem, void * test_settings) {
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
+                                        TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 

@@ -1,6 +1,8 @@
 #ifndef TEST_GLOBAL_H
 #define TEST_GLOBAL_H
 
+#include <zephyr/kernel.h>
+
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #define TESTBED_SENSOR_RESOURCE "sensor"
@@ -30,6 +32,11 @@ enum large_packet_config {
     SREQ_LRES,
     LREQ_LRES
 };
+
+#define TEST_THREAD_STACK_SIZE 8192
+#define TEST_THREAD_PRIORITY -2         //non preemptive priority
+extern struct z_thread_stack_element thread_stack[TEST_THREAD_STACK_SIZE];
+
 
 
 #endif //TEST_GLOBAL_H

@@ -12,6 +12,7 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/coap.h>
+#include <zephyr/net/net_ip.h>
 
 
 LOG_MODULE_REGISTER(coap, CONFIG_MY_COAP_LOG_LEVEL);
@@ -401,10 +402,10 @@ int coap_get_stat()
 		if (k_sem_take(&stat_sem, K_SECONDS(5)) != 0) {
 			if(i == 2)
 			{
-				LOG_ERR("Get actuator stat timed out!");
+				LOG_ERR("Get stat timed out!");
 				return -ETIMEDOUT;
 			}
-			LOG_WRN("Get actuator stat timed out, Retrying ...");
+			LOG_WRN("Get stat timed out, Retrying ...");
 			continue;
 		}
 		break;
@@ -470,14 +471,33 @@ int coap_get_actuator_stat(char * buffer)
 
 #endif // CONFIG_COAP_TWT_TESTBED_SERVER
 
+void coap_emergency_enable()
+{
+	uint8_t prior = 0xFF; 
+	int ret = setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &prior, sizeof(prior));
+	if (ret < 0) {
+		LOG_ERR("Failed to set emergency, %d\n", errno);
+	}
+}
+
+void coap_emergency_disable()
+{
+	uint8_t prior = 0; 
+	int ret = setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &prior, sizeof(prior));
+	if (ret < 0) {
+		LOG_ERR("Failed to set emergency, %d\n", errno);
+	}
+}
+
 
 void send_coap_thread(void *arg1, void *arg2, void *arg3)
 {
+	
+
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
-
-
+		
 		send_return_code = sendto(sock, coap_request.data, coap_request.offset, 0, (struct sockaddr *)&server, sizeof(server));
 		if (send_return_code < 0) {
 			LOG_ERR("Failed to send CoAP request, %d\n", errno);
@@ -702,6 +722,8 @@ int coap_init() {
 		LOG_ERR("Failed to create CoAP socket: %d.", -errno);
 		k_sleep(K_FOREVER);
 	}
+
+	
 
 
 	

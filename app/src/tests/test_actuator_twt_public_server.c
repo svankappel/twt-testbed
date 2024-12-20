@@ -1,6 +1,8 @@
 #ifndef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_actuator_twt.h"
+#include "test_global.h"
+#include "test_report.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -16,10 +18,6 @@
 #endif //CONFIG_PROFILER_ENABLE
 
 LOG_MODULE_REGISTER(test_actuator_twt, CONFIG_MY_TEST_LOG_LEVEL);
-
-#define STACK_SIZE 8192
-#define PRIORITY -2         //non preemptive priority
-static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 static struct test_actuator_twt_settings test_settings;
 
@@ -46,23 +44,55 @@ static void print_test_results() {
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
+            "=  Test time:                             %6d s                             =\n"
+            "=  Emergency Uplink:                    %s                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Negotiated TWT Interval:               %6d s                             =\n"
             "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
             "================================================================================\n"
             "=  Stats                                                                       =\n"
             "================================================================================\n"
-            "=  Test time:                             %6d s                             =\n"
-            "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "================================================================================\n",
             test_settings.test_id,
+            test_settings.test_time_s,
+            test_settings.emergency_uplink ? " Enabled" : "Disabled",
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
-            test_settings.test_time_s,
             monitor.received);
 }
 
+
+static void generate_test_report(){
+    struct test_report report;
+    memset(&report, '\0', sizeof(report));
+
+    sprintf(report.test_title, "\"test_title\":\"Actuator Use Case - TWT\"");
+
+    sprintf(report.test_setup,
+        "\"test_setup\":\n"
+        "{\n"
+            "\"Test_Time\": \"%d s\",\n"
+            "\"TWT_Interval\": \"%d s\",\n"
+            "\"TWT_Wake_Interval\": \"%d ms\",\n"
+            "\"Emergency Uplink\": \"%s\"\n"
+        "}",
+        test_settings.test_time_s,
+        wifi_twt_get_interval_ms() / 1000,
+        wifi_twt_get_wake_interval_ms(),
+        test_settings.emergency_uplink ? "Enabled" : "Disabled");
+
+
+    sprintf(report.results, 
+        "\"results\":\n"
+        "{\n"
+            "\"Notifications_received_on_Client\": %d\n"
+        "}",
+        monitor.received);
+        
+    
+    test_report_print(&report);
+}
 
 
 
@@ -134,6 +164,9 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     k_sleep(K_SECONDS(5));
 
     //coap
+    if(test_settings.emergency_uplink){
+        coap_emergency_enable();
+    }
     coap_register_obs_response_callback(handle_coap_response);
     coap_observe(CONFIG_COAP_ACTUATOR_TEST_RESOURCE, NULL);
     k_sleep(K_SECONDS(2));
@@ -161,6 +194,9 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         //coap
         coap_register_obs_response_callback(NULL);
         coap_cancel_observers();
+        if(test_settings.emergency_uplink){
+            coap_emergency_disable();
+        }
 
         // tear down TWT and disconnect from wifi
         if(wifi_twt_is_enabled()){
@@ -179,9 +215,14 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         //coap
         coap_register_obs_response_callback(NULL);
         coap_cancel_observers();
+        if(test_settings.emergency_uplink){
+            coap_emergency_disable();
+        }
     }
 
     print_test_results();
+
+    generate_test_report();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
@@ -198,7 +239,7 @@ void test_actuator_twt(struct k_sem *sem, void * test_settings) {
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
+                                        TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 
