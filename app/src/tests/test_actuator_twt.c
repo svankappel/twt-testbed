@@ -141,7 +141,7 @@ static void generate_test_report(){
             "\"Notifications_received_on_Client\": %d,\n"
             "\"Echo_received_on_Server\": %d,\n"
             "\"Average_Latency\": \"%d ms\"\n"
-            "},\n",
+            "}",
             monitor.sent,
             monitor.received,
             monitor.sent - lost,

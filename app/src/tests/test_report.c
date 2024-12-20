@@ -117,6 +117,7 @@ void test_report_print(struct test_report *report)
     printk(",\n%s", report->test_setup);
     printk(",\n%s", report->results);
     if(report->latency_histogram[0] != '\0'){
+        printk(",\n");
         //break the buffer in chunks because it is too big to printed in one printk
         for (int i = 0; i < 8; i++) {
             int offset = i * 512;
