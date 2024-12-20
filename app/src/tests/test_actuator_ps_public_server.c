@@ -43,6 +43,7 @@ static void print_test_results() {
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
+            "=  Test time:                             %6d s                             =\n"
             "-------------------------------------------------------------------------------=\n"
             "=  PS Mode:                               %s                               =\n"
             "=  PS Wake-Up mode:              %s                               =\n"
@@ -50,17 +51,44 @@ static void print_test_results() {
             "================================================================================\n"
             "=  Stats                                                                       =\n"
             "================================================================================\n"
-            "=  Test time:                             %6d s                             =\n"
-            "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "================================================================================\n",
             test_settings.test_id,
+            test_settings.test_time_s,
             test_settings.ps_mode ? "   WMM" : "Legacy",
             test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
             CONFIG_PS_LISTEN_INTERVAL,
-            test_settings.test_time_s,
             monitor.received);
 }
+
+static void generate_test_report(){
+    struct test_report report;
+    memset(&report, '\0', sizeof(report));
+
+    sprintf(report.test_title, "\"test_title\":\"Actuator Use Case - PS\"");
+
+    sprintf(report.test_setup,
+        "\"test_setup\":\n"
+        "{\n"
+            "\"Test_Time\": \"%d s\",\n"
+            "\"PS_Mode\": \"%s\",\n"
+            "\"PS_Wake_Up_Mode\": \"%s\"\n"
+        "}",
+        test_settings.test_time_s,
+        test_settings.ps_mode ? "WMM" : "Legacy",
+        test_settings.ps_wakeup_mode ? "Listen Interval" : "DTIM");
+
+    sprintf(report.results, 
+        "\"results\":\n"
+        "{\n"
+            "\"Notifications_received_on_Client\": %d\n"
+        "}",
+        monitor.received);
+    
+    
+    test_report_print(&report);
+}
+
 
 
 //--------------------------------------------------------------------     
@@ -180,6 +208,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     print_test_results();
+
+    generate_test_report();
 
     k_sleep(K_SECONDS(2)); 
 

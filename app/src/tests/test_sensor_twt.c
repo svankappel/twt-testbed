@@ -135,6 +135,8 @@ static void print_test_results() {
 
 static void generate_test_report() {
     struct test_report report;
+    memset(&report, '\0', sizeof(report));
+
     sprintf(report.test_title, "\"test_title\":\"Sensor Use Case - TWT\"");
 
     if (test_settings.recover) {

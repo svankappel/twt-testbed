@@ -27,7 +27,11 @@ def extract_test_setup(json_file_path):
     plt.xlabel("Latency (s)")
     plt.ylabel("Count")
     plt.grid(True, linestyle='--', axis='y', zorder=0)
-    plt.bar(latencies, counts, label=latencies, color=bar_colors, width=0.9, zorder=3)
+    plt.bar(latencies, counts, color=bar_colors, width=0.9, zorder=3)
+    if len(latencies) > 30:
+        plt.xticks(ticks=range(0, len(latencies), 5), labels=[latencies[i] for i in range(0, len(latencies), 5)])
+    else:
+        plt.xticks(ticks=range(len(latencies)), labels=latencies)
     plt.savefig("histogram.png")
 
 # Example usage

@@ -44,23 +44,55 @@ static void print_test_results() {
             "=  Test setup                                                                  =\n"
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
+            "=  Test time:                             %6d s                             =\n"
+            "=  Emergency Uplink:                    %s                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Negotiated TWT Interval:               %6d s                             =\n"
             "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
             "================================================================================\n"
             "=  Stats                                                                       =\n"
             "================================================================================\n"
-            "=  Test time:                             %6d s                             =\n"
-            "-------------------------------------------------------------------------------=\n"
             "=  Responses received:                    %6d                               =\n"
             "================================================================================\n",
             test_settings.test_id,
+            test_settings.test_time_s,
+            test_settings.emergency_uplink ? " Enabled" : "Disabled",
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
-            test_settings.test_time_s,
             monitor.received);
 }
 
+
+static void generate_test_report(){
+    struct test_report report;
+    memset(&report, '\0', sizeof(report));
+
+    sprintf(report.test_title, "\"test_title\":\"Actuator Use Case - TWT\"");
+
+    sprintf(report.test_setup,
+        "\"test_setup\":\n"
+        "{\n"
+            "\"Test_Time\": \"%d s\",\n"
+            "\"TWT_Interval\": \"%d s\",\n"
+            "\"TWT_Wake_Interval\": \"%d ms\",\n"
+            "\"Emergency Uplink\": \"%s\"\n"
+        "}",
+        test_settings.test_time_s,
+        wifi_twt_get_interval_ms() / 1000,
+        wifi_twt_get_wake_interval_ms(),
+        test_settings.emergency_uplink ? "Enabled" : "Disabled");
+
+
+    sprintf(report.results, 
+        "\"results\":\n"
+        "{\n"
+            "\"Notifications_received_on_Client\": %d\n"
+        "}",
+        monitor.received);
+        
+    
+    test_report_print(&report);
+}
 
 
 
@@ -189,6 +221,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     }
 
     print_test_results();
+
+    generate_test_report();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 

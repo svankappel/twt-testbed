@@ -6,7 +6,7 @@ struct test_report{
     char test_title[128];
     char test_setup[256];
     char results[256];
-    char latency_histogram[1024];
+    char latency_histogram[4096];
 };
 
 
