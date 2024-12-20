@@ -1,6 +1,8 @@
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_large_packet_twt.h"
+#include "test_global.h"
+#include "test_report.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -18,9 +20,6 @@
 
 LOG_MODULE_REGISTER(test_large_packet_twt, CONFIG_MY_TEST_LOG_LEVEL);
 
-#define STACK_SIZE 8192
-#define PRIORITY -2         //non preemptive priority
-static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 #define MAX_INTERVALS_BUFFERED 50
 
@@ -119,6 +118,59 @@ static void print_test_results() {
                 "================================================================================\n",
                 hist_str);
 
+}
+
+static void generate_test_report() {
+    struct test_report report;
+    memset(&report, '\0', sizeof(report));
+
+    sprintf(report.test_title, "\"test_title\":\"Large Packet Use Case - TWT\"");
+
+    sprintf(report.test_setup,
+            "\"test_setup\":\n"
+            "{\n"
+            "\"Iterations\": %d,\n"
+            "\"Request_Payload_Size\": \"%d bytes\",\n"
+            "\"Response_Payload_Size\": \"%d bytes\",\n"
+            "\"Negotiated_TWT_Interval\": \"%d s\",\n"
+            "\"Negotiated_TWT_Wake_Interval\": \"%d ms\"\n"
+            "}",
+            monitor.iter,
+            test_settings.large_packet_config == LREQ_LRES || test_settings.large_packet_config == LREQ_SRES ? test_settings.bytes : 16,
+            test_settings.large_packet_config == LREQ_LRES || test_settings.large_packet_config == SREQ_LRES ? test_settings.bytes : 9,
+            wifi_twt_get_interval_ms() / 1000,
+            wifi_twt_get_wake_interval_ms());
+
+    sprintf(report.results,
+            "\"results\":\n"
+            "{\n"
+            "\"Requests_Sent\": %d,\n"
+            "\"Requests_Received_on_Server\": %d,\n"
+            "\"Responses_Received\": %d,\n"
+            "\"Requests_Lost\": %d,\n"
+            "\"Responses_Lost\": %d,\n"
+            "\"Average_Latency\": \"%d s\"\n"
+            "}",
+            monitor.sent,
+            monitor.received_serv,
+            monitor.received,
+            monitor.received_serv < 0 ? -1 : monitor.sent - monitor.received_serv,
+            monitor.received_serv < 0 ? -1 : monitor.received_serv - monitor.received,
+            monitor.received == 0 ? -1 : monitor.latency_sum / monitor.received);
+    
+
+    // Generate latency histogram
+    char temp[64];
+    sprintf(report.latency_histogram, "\"latency_histogram\":\n[\n");
+    for (int i = 0; i < 20; i++) {
+        sprintf(temp, "{ \"latency\": %d, \"count\": %d },\n", i * test_settings.twt_interval / 1000, monitor.latency_hist[i]);
+        strncat(report.latency_histogram, temp, sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+    }
+    sprintf(temp, "{ \"latency\": \"lost\", \"count\": %d }\n", monitor.sent - monitor.received);
+    strncat(report.latency_histogram, temp, sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+    strncat(report.latency_histogram, "]", sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+
+    test_report_print(&report);
 }
 
 
@@ -308,6 +360,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     print_test_results();
 
+    generate_test_report();
+
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
@@ -323,7 +377,7 @@ void test_large_packet_twt(struct k_sem *sem, void * test_settings) {
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
+                                        TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 

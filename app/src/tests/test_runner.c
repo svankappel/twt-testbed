@@ -23,6 +23,8 @@ void run_tests(){
 
 //PS Tests
 {
+
+
 #ifdef CONFIG_SENSOR_PS_TESTS_ENABLE
 
 #ifdef CONFIG_SENSOR_PS_TEST_1

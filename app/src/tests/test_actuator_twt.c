@@ -1,6 +1,8 @@
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_actuator_twt.h"
+#include "test_global.h"
+#include "test_report.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -16,10 +18,6 @@
 #endif //CONFIG_PROFILER_ENABLE
 
 LOG_MODULE_REGISTER(test_actuator_twt, CONFIG_MY_TEST_LOG_LEVEL);
-
-#define STACK_SIZE 8192
-#define PRIORITY -2         //non preemptive priority
-static K_THREAD_STACK_DEFINE(thread_stack, STACK_SIZE);
 
 static struct test_actuator_twt_settings test_settings;
 
@@ -51,6 +49,8 @@ static void print_test_results() {
             "================================================================================\n"
             "=  Test Number:                           %6d                               =\n"
             "=  Test time:                             %6d s                             =\n"
+            "=  Echo:                                %s                               =\n"
+            "=  Emergency Uplink:                    %s                               =\n"
             "=------------------------------------------------------------------------------=\n"
             "=  Negotiated TWT Interval:               %6d s                             =\n"
             "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
@@ -63,6 +63,8 @@ static void print_test_results() {
             "================================================================================\n",
             test_settings.test_id,
             test_settings.test_time_s,
+            test_settings.echo ? " Enabled " : "Disabled",
+            test_settings.echo ? (test_settings.emergency_uplink ? " Enabled" : "Disabled") : "     N/A",
             wifi_twt_get_interval_ms() / 1000,
             wifi_twt_get_wake_interval_ms(),
             monitor.sent,
@@ -77,6 +79,107 @@ static void print_test_results() {
                 monitor.latency_stats);
     }
 }
+
+static void generate_test_report(){
+    struct test_report report;
+    memset(&report, '\0', sizeof(report));
+    sprintf(report.test_title, "\"test_title\":\"Actuator Use Case - TWT\"");
+
+    if(test_settings.echo){
+        sprintf(report.test_setup,
+            "\"test_setup\":\n"
+            "{\n"
+                "\"Test_Time\": \"%d s\",\n"
+                "\"TWT_Interval\": \"%d s\",\n"
+                "\"TWT_Wake_Interval\": \"%d ms\",\n"
+                "\"Notifications Echo\": \"%s\",\n"
+                "\"Emergency Uplink\": \"%s\"\n"
+            "}",
+            test_settings.test_time_s,
+            wifi_twt_get_interval_ms() / 1000,
+            wifi_twt_get_wake_interval_ms(),
+            test_settings.echo ? "Enabled" : "Disabled",
+            test_settings.emergency_uplink ? "Enabled" : "Disabled");
+    } else {
+        sprintf(report.test_setup,
+            "\"test_setup\":\n"
+            "{\n"
+                "\"Test_Time\": \"%d s\",\n"
+                "\"TWT_Interval\": \"%d s\",\n"
+                "\"TWT_Wake_Interval\": \"%d ms\",\n"
+                "\"Notifications Echo\": \"Disabled\"\n"
+            "}",
+            test_settings.test_time_s,
+            wifi_twt_get_interval_ms() / 1000,
+            wifi_twt_get_wake_interval_ms());
+    }
+
+    
+    if(!test_settings.echo){
+        sprintf(report.results, 
+            "\"results\":\n"
+            "{\n"
+                "\"Notifications_sent_by_Server\": %d,\n"
+                "\"Notifications_received_on_Client\": %d\n"
+            "}",
+            monitor.sent,
+            monitor.received);
+            
+    }else{
+
+        int average_ms = 0;
+        int lost = 0;
+        char *latency_stats = strstr(monitor.latency_stats, "lost;");
+        if (latency_stats) {
+            sscanf(latency_stats, "lost;%d\naverage_ms;%d", &lost, &average_ms);
+        }
+
+        sprintf(report.results, 
+            "\"results\":\n"
+            "{\n"
+            "\"Notifications_sent_by_Server\": %d,\n"
+            "\"Notifications_received_on_Client\": %d,\n"
+            "\"Echo_received_on_Server\": %d,\n"
+            "\"Average_Latency\": \"%d ms\"\n"
+            "}",
+            monitor.sent,
+            monitor.received,
+            monitor.sent - lost,
+            average_ms);
+
+        
+        // Generate latency histogram from string
+        char *token;
+        int latency, count;
+        int latency_hist[100] = {0};
+        char temp[64];
+
+        // Parse the latency stats string
+        token = strtok(monitor.latency_stats, "\n");
+        while (token != NULL) {
+            if (sscanf(token, "%d;%d", &latency, &count) == 2) {
+            if (latency >= 0 && latency < 100) {
+                latency_hist[latency] = count;
+            }
+            }
+            token = strtok(NULL, "\n");
+        }
+
+        // Generate the histogram JSON
+        sprintf(report.latency_histogram, "\"latency_histogram\":\n[\n");
+        for (int i = 0; i < 100; i++) {
+            sprintf(temp, "{ \"latency\": %d, \"count\": %d },\n", i, latency_hist[i]);
+            strncat(report.latency_histogram, temp, sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+        }
+        sprintf(temp, "{ \"latency\": \"lost\", \"count\": %d }\n", monitor.sent - monitor.received);
+        strncat(report.latency_histogram, temp, sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+        strncat(report.latency_histogram, "]", sizeof(report.latency_histogram) - strlen(report.latency_histogram) - 1);
+
+    }
+    
+    test_report_print(&report);
+}
+
 
 
 
@@ -244,6 +347,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     print_test_results();
 
+    generate_test_report();
+
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
@@ -259,7 +364,7 @@ void test_actuator_twt(struct k_sem *sem, void * test_settings) {
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
                                         sem, test_settings, NULL,
-                                        PRIORITY, 0, K_NO_WAIT);
+                                        TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 
