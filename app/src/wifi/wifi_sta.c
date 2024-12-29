@@ -119,48 +119,38 @@ static void net_mgmt_dhcp_event_handler(struct net_mgmt_event_callback *cb, uint
  */
 int wifi_connect(void)
 {
+	// Get the WiFi network interface
+	struct net_if *iface = net_if_get_first_wifi();
+	struct wifi_connect_req_params cnx_params = { 0 };
+	int ret;
 
-	for(int i = 0; i < 3; i++){		// 3 retries if connect fails
+	wifi_args_to_params(&cnx_params);
 
-		// Get the WiFi network interface
-		struct net_if *iface = net_if_get_first_wifi();
-		struct wifi_connect_req_params cnx_params = { 0 };
-		int ret;
+	context.connected = false;
+	context.connect_requested = true;
 
-		wifi_args_to_params(&cnx_params);
+	ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, iface,
+			   &cnx_params, sizeof(struct wifi_connect_req_params));
+			   
+	if (ret) {
+		printk("Connection request failed with error: %d\n", ret);
+		context.connect_requested = false;
+		return -ENOEXEC;
+	}
 
-		context.connected = false;
-		context.connect_requested = true;
+	LOG_INF("Connection requested ...");
 
-		ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, iface,
-				&cnx_params, sizeof(struct wifi_connect_req_params));
-				
-		if (ret) {
-			printk("Connection request failed with error: %d\n", ret);
-			context.connect_requested = false;
-			return -ENOEXEC;
-		}
+	// Wait for the connection and DHCP 
+	k_sem_take(&connect_sem, K_FOREVER);
+	k_sem_take(&dhcp_sem, K_FOREVER);
 
-		LOG_INF("Connection requested ...");
-
-		// Wait for the connection and DHCP 
-		k_sem_take(&connect_sem, K_FOREVER);
-		k_sem_take(&dhcp_sem, K_FOREVER);
-
-		// Print the connection status
-		if (context.connected) {
-			print_wifi_status();
-			break;
-		}
-		else {
-			if(i == 2){	
-				LOG_ERR("Connection failed\n");
-				return -ENOEXEC;
-			}
-
-			LOG_WRN("Connection failed. Retrying...\n");
-			k_sleep(K_SECONDS(10));
-		}
+	// Print the connection status
+	if (context.connected) {
+		print_wifi_status();
+	}
+	else {
+		LOG_ERR("Connection failed\n");
+		return -ENOEXEC;
 	}
 
 	return 0;
