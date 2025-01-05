@@ -46,68 +46,6 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-
-static void print_test_results() {
-    // Check for inconsistencies and print warnings
-    if ((monitor.iter != test_settings.iterations)) {
-        LOG_WRN("Warning: Test could not complete all iterations");
-    }
-
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                       TEST RESULTS - MULTI PACKET TWT                        =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Iterations:                            %6d                               =\n"
-            "=  Number of packet per iteration:        %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Negotiated TWT Interval:               %6d s                             =\n"
-            "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Requests sent:                         %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Average latency:                       %6d s                             =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            monitor.iter,
-            test_settings.packet_number,
-            wifi_twt_get_interval_ms() / 1000,
-            wifi_twt_get_wake_interval_ms(),
-            monitor.sent,
-            monitor.received,
-            monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
-
-        
-
-    // Print the latency histogram
-    char hist_str[1024] = {0};
-    char temp[32];
-    for (int i = 0; i < MAX_INTERVALS_BUFFERED; i++) {
-        if(monitor.latency_hist[i] != 0){
-            snprintf(temp, sizeof(temp), "%d;%d\n", i * test_settings.twt_interval / 1000, monitor.latency_hist[i]);
-            strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
-        } 
-    }
-    snprintf(temp, sizeof(temp), "lost;%d\n", monitor.sent - monitor.received);
-    strncat(hist_str, temp, sizeof(hist_str) - strlen(hist_str) - 1);
-    LOG_INF("\n================================================================================\n"
-                "=  Latency Histogram                                                           =\n"
-                "================================================================================\n"
-                "%s"
-                "================================================================================\n",
-                hist_str);
-
-}
-
-
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -330,8 +268,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         coap_register_put_response_callback(NULL);
     }
-
-    print_test_results();
 
     generate_test_report();
 

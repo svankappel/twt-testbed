@@ -38,48 +38,6 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                         TEST RESULTS - ACTUATOR TWT                          =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Test time:                             %6d s                             =\n"
-            "=  Echo:                                %s                               =\n"
-            "=  Emergency Uplink:                    %s                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Negotiated TWT Interval:               %6d s                             =\n"
-            "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Resonses sent:                         %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            test_settings.test_time_s,
-            test_settings.echo ? " Enabled " : "Disabled",
-            test_settings.echo ? (test_settings.emergency_uplink ? " Enabled" : "Disabled") : "     N/A",
-            wifi_twt_get_interval_ms() / 1000,
-            wifi_twt_get_wake_interval_ms(),
-            monitor.sent,
-            monitor.received);
-
-            if(test_settings.echo && monitor.latency_stats[0] != '\0'){
-            LOG_INF("\n================================================================================\n"
-                "=  Actuator Latency Histogram                                                  =\n"
-                "================================================================================\n"
-                "%s\n"
-                "================================================================================\n",
-                monitor.latency_stats);
-    }
-}
-
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -344,8 +302,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         }
         monitor.sent = -1;
     }
-
-    print_test_results();
 
     generate_test_report();
 

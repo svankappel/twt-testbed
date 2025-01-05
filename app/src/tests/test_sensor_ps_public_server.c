@@ -39,45 +39,6 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-    // Check for inconsistencies and print warnings
-    if ((monitor.iter != test_settings.iterations)) {
-        LOG_WRN("Warning: Test could not complete all iterations");
-    }
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                           TEST RESULTS - SENSOR PS                           =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Iterations:                            %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  PS Mode:                               %s                               =\n"
-            "=  PS Wake-Up mode:              %s                               =\n"
-            "=  Listen Interval:                       %6d                               =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Requests sent:                         %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Average latency:                       %6d ms                            =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            monitor.iter,
-            test_settings.ps_mode ? "   WMM" : "Legacy",
-            test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
-            CONFIG_PS_LISTEN_INTERVAL,
-            monitor.sent,
-            monitor.received,
-            monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
-}
-
-
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -253,8 +214,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         
         coap_register_put_response_callback(NULL);
     }
-
-    print_test_results();
 
     generate_test_report();
 

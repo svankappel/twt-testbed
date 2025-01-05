@@ -37,48 +37,6 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                          TEST RESULTS - ACTUATOR PS                          =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Test time:                             %6d s                             =\n"
-            "=  Echo:                                %s                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  PS Mode:                               %s                               =\n"
-            "=  PS Wake-Up mode:              %s                               =\n"
-            "=  Listen Interval:                       %6d                               =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Responses sent:                        %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            test_settings.test_time_s,
-            test_settings.echo ? " Enabled" : "Disabled",
-            test_settings.ps_mode ? "   WMM" : "Legacy",
-            test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
-            CONFIG_PS_LISTEN_INTERVAL,
-            monitor.sent,
-            monitor.received);
-
-    if(test_settings.echo && monitor.latency_stats[0] != '\0'){
-        LOG_INF("\n================================================================================\n"
-                "=  Actuator Latency Histogram                                                  =\n"
-                "================================================================================\n"
-                "%s\n"
-                "================================================================================\n",
-                monitor.latency_stats);
-    }
-}
-
 
 static void generate_test_report(){
     struct test_report report;
@@ -282,8 +240,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         coap_cancel_observe();
         monitor.sent = -1;
     }
-
-    print_test_results();
 
     generate_test_report();
 

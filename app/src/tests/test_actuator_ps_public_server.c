@@ -33,34 +33,6 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                          TEST RESULTS - ACTUATOR PS                          =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Test time:                             %6d s                             =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  PS Mode:                               %s                               =\n"
-            "=  PS Wake-Up mode:              %s                               =\n"
-            "=  Listen Interval:                       %6d                               =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Responses received:                    %6d                               =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            test_settings.test_time_s,
-            test_settings.ps_mode ? "   WMM" : "Legacy",
-            test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
-            CONFIG_PS_LISTEN_INTERVAL,
-            monitor.received);
-}
-
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -206,8 +178,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         coap_register_obs_response_callback(NULL);
         coap_cancel_observe();
     }
-
-    print_test_results();
 
     generate_test_report();
 

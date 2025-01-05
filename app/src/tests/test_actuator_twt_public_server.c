@@ -34,34 +34,6 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                         TEST RESULTS - ACTUATOR TWT                          =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Test time:                             %6d s                             =\n"
-            "=  Emergency Uplink:                    %s                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Negotiated TWT Interval:               %6d s                             =\n"
-            "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Responses received:                    %6d                               =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            test_settings.test_time_s,
-            test_settings.emergency_uplink ? " Enabled" : "Disabled",
-            wifi_twt_get_interval_ms() / 1000,
-            wifi_twt_get_wake_interval_ms(),
-            monitor.received);
-}
-
 
 static void generate_test_report(){
     struct test_report report;
@@ -219,8 +191,6 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
             coap_emergency_disable();
         }
     }
-
-    print_test_results();
 
     generate_test_report();
 
