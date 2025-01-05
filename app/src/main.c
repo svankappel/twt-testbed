@@ -122,11 +122,34 @@ int main(void)
 
     LOG_INF("TWT testbed initialized. Running tests ...");
 
-
-
     //run tests
+    
+    //the following code run the tests defined in the configuration
+    //comment the following line to run custom tests instead
+    #define TESTRUNNER
 
+    #ifdef TESTRUNNER
     run_tests();
+    #else
+    //example - run 8 sensor tests with different durations of 8 to 64 ms and intervals of 5 to 10 seconds
+    for(int duration = 8; duration <= 64; duration *= 2)
+    {
+        for(int interval = 5000; interval <= 10000; interval *= 2)
+        {
+            static int i = 0;
+            struct test_sensor_twt_settings test_settings = {
+                            .iterations = 1000,
+                            .twt_interval = interval,
+                            .twt_wake_interval = duration,
+                            .test_id = i++,
+                            .recover = false,
+                            .wake_ahead_ms = 100,
+
+            };
+            test_sensor_twt(&test_settings);
+        }
+    }
+    #endif //TESTRUNNER
 
 
     LOG_INF("Tests Finished!");
