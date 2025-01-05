@@ -255,7 +255,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         monitor.sent = coap_get_stat();
         if(test_settings.echo){
             ret = coap_get_actuator_stat(monitor.latency_stats);
@@ -279,7 +279,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         monitor.sent = -1;
     }
 

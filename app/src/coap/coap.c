@@ -148,8 +148,6 @@ int coap_put(char *resource,uint8_t *payload)
 	}
 	strcpy(coap_send_resource, resource);
 
-	k_mutex_lock(&coap_mutex, K_FOREVER);
-
 	k_sem_give(&send_sem);
 	k_sem_take(&sent_sem, K_FOREVER);
 
@@ -161,7 +159,6 @@ int coap_put(char *resource,uint8_t *payload)
 			return err;
 		}
 	}
-	k_mutex_unlock(&coap_mutex);
 
 	return send_return_code;
 }
@@ -266,7 +263,7 @@ int coap_ack(struct coap_packet * req)
 	return send_return_code;
 }
 
-int coap_cancel_observers()
+int coap_cancel_observe()
 {
 	for(int i = 0; i < observers; i++)
 	{
@@ -498,7 +495,10 @@ void send_coap_thread(void *arg1, void *arg2, void *arg3)
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
 		
+		k_mutex_lock(&coap_mutex, K_FOREVER);
 		send_return_code = sendto(sock, coap_request.data, coap_request.offset, 0, (struct sockaddr *)&server, sizeof(server));
+		k_mutex_unlock(&coap_mutex);
+		
 		if (send_return_code < 0) {
 			LOG_ERR("Failed to send CoAP request, %d\n", errno);
 		}
@@ -660,11 +660,14 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
 
     while (1) {
         int ret = poll(&fds, 1, -1); // Use -1 for infinite timeout
-		k_mutex_lock(&coap_mutex, K_FOREVER);
+		
         if (ret > 0) {
             if (fds.revents & POLLIN) {
 				socklen_t server_len = sizeof(server);
+
+				k_mutex_lock(&coap_mutex, K_FOREVER);
                 int len = recvfrom(sock, coap_buf, sizeof(coap_buf), 0, (struct sockaddr *)&server, &server_len);
+				k_mutex_unlock(&coap_mutex);
 				
 				int err = client_handle_response(coap_buf, len);
 				if (err < 0) {
@@ -676,7 +679,6 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
         } else if (ret < 0) {
             LOG_ERR("Poll error");
         }
-		k_mutex_unlock(&coap_mutex);
     }
 }
 

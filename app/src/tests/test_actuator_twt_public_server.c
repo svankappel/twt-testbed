@@ -193,7 +193,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         if(test_settings.emergency_uplink){
             coap_emergency_disable();
         }
@@ -214,7 +214,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         if(test_settings.emergency_uplink){
             coap_emergency_disable();
         }

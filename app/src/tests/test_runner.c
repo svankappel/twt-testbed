@@ -16,7 +16,69 @@ static K_SEM_DEFINE(test_sem, 0, 1);
 
 
 
+
+void custom_test(){
+    int testid = 1;
+
+    struct test_actuator_ps_settings test_settings_1 = {
+
+                    .test_time_s = 3600,
+                    .test_id = testid++,
+                    .ps_mode = PS_MODE_LEGACY,
+                    .ps_wakeup_mode = PS_WAKEUP_MODE_DTIM,
+                    .min_interval = 20,
+                    .max_interval = 40,
+                    .echo = true,
+    };
+    test_actuator_ps(&test_sem, &test_settings_1);
+
+    
+    for(int inter = 5000; inter <= 20000; inter*=2)
+    {
+        for(int dur = 8; dur <= 64; dur*=2){
+
+            struct test_actuator_twt_settings test_settings_4 = {
+                            .test_time_s = 3600,
+                            .twt_interval = inter,
+                            .twt_wake_interval = dur,
+                            .test_id = testid++,
+                            .min_interval = 20,
+                            .max_interval = 40,
+
+                            .echo = true,
+
+                            .emergency_uplink = false,
+            };
+            test_actuator_twt(&test_sem, &test_settings_4);
+        }
+    }
+
+    for(int inter = 5000; inter <= 20000; inter*=2)
+    {
+        for(int dur = 8; dur <= 64; dur*=2){
+
+            struct test_actuator_twt_settings test_settings_4 = {
+                            .test_time_s = 3600,
+                            .twt_interval = inter,
+                            .twt_wake_interval = dur,
+                            .test_id = testid++,
+                            .min_interval = 20,
+                            .max_interval = 40,
+
+                            .echo = true,
+
+                            .emergency_uplink = true,
+            };
+            test_actuator_twt(&test_sem, &test_settings_4);
+        }
+    }
+    
+}
+
 void run_tests(){
+
+custom_test();
+return;
 
 //sensor tests
 #ifdef CONFIG_SENSOR_TESTS_ENABLE

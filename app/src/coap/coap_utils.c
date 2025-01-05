@@ -23,6 +23,8 @@ static struct request_entry pending_requests_pool[COAP_CLIENT_POOL_SIZE];
 
 static uint32_t timeout;
 
+static K_MUTEX_DEFINE(pool_mutex);
+
 #ifndef CONFIG_IP_PROTO_IPV6
 int server_resolve(struct sockaddr_in* server_ptr)
 {
@@ -165,6 +167,7 @@ void remove_timedout_requests()
 
 int add_pending_request(uint8_t * token)
 {
+	k_mutex_lock(&pool_mutex, K_FOREVER);
 	remove_timedout_requests();
 	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
 	{
@@ -173,24 +176,29 @@ int add_pending_request(uint8_t * token)
 			memcpy(pending_requests_pool[i].token, token, TOKEN_LEN);
 			pending_requests_pool[i].timestamp = k_uptime_get_32();
 			pending_requests_pool[i].used = 1;
+			k_mutex_unlock(&pool_mutex);
 			return 0;
 		}
 	}
 	LOG_ERR("No available slots in pending request pool");
+	k_mutex_unlock(&pool_mutex);
 	return -1;
 }
 
 uint32_t remove_pending_request(uint8_t * token)
 {
+	k_mutex_lock(&pool_mutex, K_FOREVER);
 	remove_timedout_requests();
 	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
 	{
 		if (pending_requests_pool[i].used == 1 && memcmp(pending_requests_pool[i].token, token, TOKEN_LEN) == 0)
 		{
 			pending_requests_pool[i].used = 0;
+			k_mutex_unlock(&pool_mutex);
 			return k_uptime_get_32() - pending_requests_pool[i].timestamp;
 		}
 	}
 	LOG_ERR("Token not found in pending request pool");
+	k_mutex_unlock(&pool_mutex);
 	return 0;
 }

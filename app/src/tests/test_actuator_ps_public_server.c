@@ -188,7 +188,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
 
         k_sleep(K_SECONDS(2));
 
@@ -204,7 +204,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
     }
 
     print_test_results();
