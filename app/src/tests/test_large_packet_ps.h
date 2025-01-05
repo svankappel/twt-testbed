@@ -5,7 +5,7 @@
 #include "test_global.h"
 
 
-void test_large_packet_ps(struct k_sem *sem, void * test_settings);
+void test_large_packet_ps(void * test_settings);
 
 
 struct test_large_packet_ps_settings {

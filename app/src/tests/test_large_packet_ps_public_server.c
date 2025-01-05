@@ -176,9 +176,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
-    // Extract the semaphore and test settings
-    struct k_sem *test_sem = (struct k_sem *)arg1;
-    memcpy(&test_settings, arg2, sizeof(test_settings));
+    // Extract the test settings
+    memcpy(&test_settings, arg1, sizeof(test_settings));
 
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
@@ -237,24 +236,24 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
-    k_sem_give(test_sem);
+    k_sem_give(&test_sem);
 }
 
 // Function to initialize the test
-void test_large_packet_ps(struct k_sem *sem, void * test_settings) {
+void test_large_packet_ps(void * test_settings) {
     
     struct k_thread thread_data;
 
     k_tid_t thread_id = k_thread_create(&thread_data, thread_stack,
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
-                                        sem, test_settings, NULL,
+                                        test_settings, NULL, NULL,
                                         TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 
     //wait for the test to finish
-    k_sem_take(sem, K_FOREVER);
+    k_sem_take(&test_sem, K_FOREVER);
 
     //make sure the thread is stopped
     k_thread_abort(thread_id);  

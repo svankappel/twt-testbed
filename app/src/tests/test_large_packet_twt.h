@@ -4,7 +4,7 @@
 #include <zephyr/kernel.h>
 #include "test_global.h"
 
-void test_large_packet_twt(struct k_sem *sem, void * test_settings);
+void test_large_packet_twt(void * test_settings);
 
 
 struct test_large_packet_twt_settings {

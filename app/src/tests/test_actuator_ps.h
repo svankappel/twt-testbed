@@ -5,7 +5,7 @@
 #include "test_global.h"
 
 
-void test_actuator_ps(struct k_sem *sem, void * test_settings);
+void test_actuator_ps(void * test_settings);
 
 struct test_actuator_ps_settings {
     uint8_t test_id;

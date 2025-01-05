@@ -4,7 +4,7 @@
 #include <zephyr/kernel.h>
 #include "test_global.h"
 
-void test_sensor_ps(struct k_sem *sem, void * test_settings);
+void test_sensor_ps(void * test_settings);
 
 struct test_sensor_ps_settings {
     uint32_t send_interval;

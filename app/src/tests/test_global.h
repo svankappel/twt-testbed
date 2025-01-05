@@ -36,7 +36,7 @@ enum large_packet_config {
 #define TEST_THREAD_STACK_SIZE 8192
 #define TEST_THREAD_PRIORITY -2         //non preemptive priority
 extern struct z_thread_stack_element thread_stack[TEST_THREAD_STACK_SIZE];
-
+extern struct k_sem test_sem;
 
 
 #endif //TEST_GLOBAL_H

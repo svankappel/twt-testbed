@@ -4,7 +4,7 @@
 #include <zephyr/kernel.h>
 #include "test_global.h"
 
-void test_actuator_twt(struct k_sem *sem, void * test_settings);
+void test_actuator_twt(void * test_settings);
 
 struct test_actuator_twt_settings {
     uint32_t twt_interval;

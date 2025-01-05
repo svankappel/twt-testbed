@@ -4,7 +4,7 @@
 #include <zephyr/kernel.h>
 #include "test_global.h"
 
-void test_multi_packet_ps(struct k_sem *sem, void * test_settings);
+void test_multi_packet_ps(void * test_settings);
 
 struct test_multi_packet_ps_settings {
     uint16_t packet_number;
