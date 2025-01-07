@@ -98,6 +98,16 @@ static void generate_test_report() {
     test_report_print(&report);
 }
 
+
+//--------------------------------------------------------------------
+// Set PS to DTIM legacy (default PS mode)
+//--------------------------------------------------------------------
+static void configure_ps()
+{
+    wifi_ps_mode_legacy();
+    wifi_ps_wakeup_dtim();
+}
+
 //--------------------------------------------------------------------     
 // Callback function to handle TWT session wake ahead event
 //--------------------------------------------------------------------
@@ -215,6 +225,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     int ret;
 
     // connect to wifi
+    configure_ps();
     ret = wifi_connect();
     if(ret != 0){
         LOG_ERR("Failed to connect to wifi");

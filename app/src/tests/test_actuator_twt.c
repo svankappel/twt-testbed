@@ -140,7 +140,14 @@ static void generate_test_report(){
 
 
 
-
+//--------------------------------------------------------------------
+// Set PS to DTIM legacy (default PS mode)
+//--------------------------------------------------------------------
+static void configure_ps()
+{
+    wifi_ps_mode_legacy();
+    wifi_ps_wakeup_dtim();
+}
 
 //--------------------------------------------------------------------     
 // Callback function to be called if wifi is disconnected unexpectedly
@@ -219,6 +226,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     // wifi
     wifi_register_disconnected_cb(wifi_disconnected_event);
+    configure_ps();
     ret = wifi_connect();
     if(ret != 0){
         LOG_ERR("Failed to connect to wifi");
