@@ -1,20 +1,10 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include "test_runner.h"
-
-#include "test_sensor_ps.h"
-#include "test_sensor_twt.h"
-
-#include "test_large_packet_ps.h"
-#include "test_large_packet_twt.h"
-
-#include "test_actuator_ps.h"
-#include "test_actuator_twt.h"
-
-#include "test_multi_packet_ps.h"
-#include "test_multi_packet_twt.h"
-
-static K_SEM_DEFINE(test_sem, 0, 1);
-
-
 
 void run_tests(){
 
@@ -46,7 +36,7 @@ struct test_sensor_ps_settings test_settings_1 = {
                 .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                 #endif //CONFIG_SENSOR_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
 };
-test_sensor_ps(&test_sem, &test_settings_1);
+test_sensor_ps(&test_settings_1);
 #endif //CONFIG_SENSOR_PS_TEST_1
 
 #ifdef CONFIG_SENSOR_PS_TEST_2
@@ -67,7 +57,7 @@ struct test_sensor_ps_settings test_settings_2 = {
                 .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                 #endif //CONFIG_SENSOR_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
 };
-test_sensor_ps(&test_sem, &test_settings_2);
+test_sensor_ps(&test_settings_2);
 #endif //CONFIG_SENSOR_PS_TEST_2
 
 #ifdef CONFIG_SENSOR_PS_TEST_3
@@ -88,7 +78,7 @@ struct test_sensor_ps_settings test_settings_3 = {
                 .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                 #endif //CONFIG_SENSOR_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
 };
-test_sensor_ps(&test_sem, &test_settings_3);
+test_sensor_ps(&test_settings_3);
 #endif //CONFIG_SENSOR_PS_TEST_3
 
 #ifdef CONFIG_SENSOR_PS_TEST_4
@@ -109,7 +99,7 @@ struct test_sensor_ps_settings test_settings_4 = {
                 .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                 #endif //CONFIG_SENSOR_PS_TEST_4_WAKEUP_MODE_LISTENINTERVAL
 };
-test_sensor_ps(&test_sem, &test_settings_4);
+test_sensor_ps(&test_settings_4);
 #endif //CONFIG_SENSOR_PS_TEST_4
 
 #endif //CONFIG_SENSOR_PS_TESTS_ENABLE
@@ -133,7 +123,7 @@ struct test_sensor_twt_settings test_settings_1 = {
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_1_RECOVER
 };
-test_sensor_twt(&test_sem, &test_settings_1);
+test_sensor_twt(&test_settings_1);
 #endif //CONFIG_SENSOR_TWT_TEST_1
 
 #ifdef CONFIG_SENSOR_TWT_TEST_2
@@ -151,7 +141,7 @@ struct test_sensor_twt_settings test_settings_2 = {
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_2_RECOVER
 };
-test_sensor_twt(&test_sem, &test_settings_2);
+test_sensor_twt(&test_settings_2);
 #endif //CONFIG_SENSOR_TWT_TEST_2
 
 #ifdef CONFIG_SENSOR_TWT_TEST_3
@@ -169,7 +159,7 @@ struct test_sensor_twt_settings test_settings_3 = {
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_3_RECOVER
 };
-test_sensor_twt(&test_sem, &test_settings_3);
+test_sensor_twt(&test_settings_3);
 #endif //CONFIG_SENSOR_TWT_TEST_3
 
 #ifdef CONFIG_SENSOR_TWT_TEST_4
@@ -187,7 +177,7 @@ struct test_sensor_twt_settings test_settings_4 = {
                 .recover = false,
                 #endif //CONFIG_SENSOR_TWT_TEST_4_RECOVER
 };
-test_sensor_twt(&test_sem, &test_settings_4);
+test_sensor_twt(&test_settings_4);
 #endif //CONFIG_SENSOR_TWT_TEST_4
 
 #endif //CONFIG_SENSOR_TWT_TESTS_ENABLE
@@ -235,7 +225,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_large_packet_ps(&test_sem, &test_settings_1);
+    test_large_packet_ps(&test_settings_1);
     #endif //CONFIG_LARGE_PACKET_PS_TEST_1
 
     #ifdef CONFIG_LARGE_PACKET_PS_TEST_2
@@ -269,7 +259,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_large_packet_ps(&test_sem, &test_settings_2);
+    test_large_packet_ps(&test_settings_2);
     #endif //CONFIG_LARGE_PACKET_PS_TEST_2
 
     #ifdef CONFIG_LARGE_PACKET_PS_TEST_3
@@ -303,7 +293,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                     #endif //CONFIG_LARGE_PACKET_PS_TEST_3_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_large_packet_ps(&test_sem, &test_settings_3);
+    test_large_packet_ps(&test_settings_3);
     #endif //CONFIG_LARGE_PACKET_PS_TEST_3
 
     #endif //CONFIG_LARGE_PACKET_PS_TESTS_ENABLE
@@ -333,7 +323,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_1_SERVER_SREQ_LRES
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_large_packet_twt(&test_sem, &test_settings_1);
+    test_large_packet_twt(&test_settings_1);
     #endif //CONFIG_LARGE_PACKET_TWT_TEST_1
     #ifdef CONFIG_LARGE_PACKET_TWT_TEST_2
     struct test_large_packet_twt_settings test_settings_2 = {
@@ -355,7 +345,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_2_SERVER_SREQ_LRES
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_large_packet_twt(&test_sem, &test_settings_2);
+    test_large_packet_twt(&test_settings_2);
     #endif //CONFIG_LARGE_PACKET_TWT_TEST_2
 
     #ifdef CONFIG_LARGE_PACKET_TWT_TEST_3
@@ -378,7 +368,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     #endif //CONFIG_LARGE_PACKET_TWT_TEST_3_SERVER_SREQ_LRES
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_large_packet_twt(&test_sem, &test_settings_3);
+    test_large_packet_twt(&test_settings_3);
     #endif //CONFIG_LARGE_PACKET_TWT_TEST_3
 
 
@@ -422,7 +412,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_actuator_ps(&test_sem, &test_settings_1);
+    test_actuator_ps(&test_settings_1);
     #endif //CONFIG_ACTUATOR_PS_TEST_1
 
     #ifdef CONFIG_ACTUATOR_PS_TEST_2
@@ -455,7 +445,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_actuator_ps(&test_sem, &test_settings_2);
+    test_actuator_ps(&test_settings_2);
     #endif //CONFIG_ACTUATOR_PS_TEST_2
 
     #ifdef CONFIG_ACTUATOR_PS_TEST_3
@@ -488,7 +478,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_actuator_ps(&test_sem, &test_settings_3);
+    test_actuator_ps(&test_settings_3);
     #endif //CONFIG_ACTUATOR_PS_TEST_3
 
     #ifdef CONFIG_ACTUATOR_PS_TEST_4
@@ -521,7 +511,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     
                     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
     };
-    test_actuator_ps(&test_sem, &test_settings_4);
+    test_actuator_ps(&test_settings_4);
     #endif //CONFIG_ACTUATOR_PS_TEST_4
 
     #endif //CONFIG_ACTUATOR_PS_TESTS_ENABLE
@@ -554,7 +544,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .emergency_uplink = false,
                     #endif //CONFIG_ACTUATOR_TWT_TEST_1_EMERGENCY_UPLINK
     };
-    test_actuator_twt(&test_sem, &test_settings_1);
+    test_actuator_twt(&test_settings_1);
     #endif //CONFIG_ACTUATOR_TWT_TEST_1
 
     #ifdef CONFIG_ACTUATOR_TWT_TEST_2
@@ -581,7 +571,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .emergency_uplink = false,
                     #endif //CONFIG_ACTUATOR_TWT_TEST_2_EMERGENCY_UPLINK
     };
-    test_actuator_twt(&test_sem, &test_settings_2);
+    test_actuator_twt(&test_settings_2);
     #endif //CONFIG_ACTUATOR_TWT_TEST_2
 
     #ifdef CONFIG_ACTUATOR_TWT_TEST_3
@@ -608,7 +598,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .emergency_uplink = false,
                     #endif //CONFIG_ACTUATOR_TWT_TEST_3_EMERGENCY_UPLINK
     };
-    test_actuator_twt(&test_sem, &test_settings_3);
+    test_actuator_twt(&test_settings_3);
     #endif //CONFIG_ACTUATOR_TWT_TEST_3
 
     #ifdef CONFIG_ACTUATOR_TWT_TEST_4
@@ -635,7 +625,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .emergency_uplink = false,
                     #endif //CONFIG_ACTUATOR_TWT_TEST_4_EMERGENCY_UPLINK
     };
-    test_actuator_twt(&test_sem, &test_settings_4);
+    test_actuator_twt(&test_settings_4);
     #endif //CONFIG_ACTUATOR_TWT_TEST_4
 
     #endif //CONFIG_ACTUATOR_TWT_TESTS_ENABLE
@@ -670,7 +660,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                     #endif //CONFIG_MULTI_PACKET_PS_TEST_1_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_multi_packet_ps(&test_sem, &test_settings_1);
+    test_multi_packet_ps(&test_settings_1);
     #endif //CONFIG_MULTI_PACKET_PS_TEST_1
 
     #ifdef CONFIG_MULTI_PACKET_PS_TEST_2
@@ -692,7 +682,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .ps_wakeup_mode = PS_WAKEUP_MODE_LISTEN_INTERVAL,
                     #endif //CONFIG_MULTI_PACKET_PS_TEST_2_WAKEUP_MODE_LISTENINTERVAL
     };
-    test_multi_packet_ps(&test_sem, &test_settings_2);
+    test_multi_packet_ps(&test_settings_2);
     #endif //CONFIG_MULTI_PACKET_PS_TEST_2
 
     #endif //CONFIG_MULTI_PACKET_PS_TESTS_ENABLE
@@ -710,7 +700,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 1,
                     .wake_ahead_ms = 500,                 
     };
-    test_multi_packet_twt(&test_sem, &test_settings_1);
+    test_multi_packet_twt(&test_settings_1);
     #endif //CONFIG_MULTI_PACKET_TWT_TEST_1
 
     #ifdef CONFIG_MULTI_PACKET_TWT_TEST_2
@@ -722,7 +712,7 @@ test_sensor_twt(&test_sem, &test_settings_4);
                     .test_id = 2,
                     .wake_ahead_ms = 500,                 
     };
-    test_multi_packet_twt(&test_sem, &test_settings_2);
+    test_multi_packet_twt(&test_settings_2);
     #endif //CONFIG_MULTI_PACKET_TWT_TEST_2
 
     #endif //CONFIG_MULTI_PACKET_TWT_TESTS_ENABLE

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include "coap.h"
 #include "coap_utils.h"
 
@@ -76,14 +82,17 @@ static char observer_resources[MAXOBSERVERS][30];
 static void (*coap_put_response_callback)(uint32_t time, uint8_t * payload, uint16_t payload_len) = NULL;
 static void (*coap_obs_response_callback)(uint8_t * payload, uint16_t payload_len) = NULL;
 
+//register callback
 void coap_register_put_response_callback(void (*callback)(uint32_t time, uint8_t * payload, uint16_t payload_len)) {
 	coap_put_response_callback = callback;
 }
 
+//register callback
 void coap_register_obs_response_callback(void (*callback)(uint8_t * payload, uint16_t payload_len)) {
 	coap_obs_response_callback = callback;
 }
 
+//init pool
 void coap_init_pool(uint32_t requests_timeout)
 {
 	//initialize pending request pool
@@ -93,12 +102,16 @@ void coap_init_pool(uint32_t requests_timeout)
 
 int coap_put(char *resource,uint8_t *payload)
 {
+	//reset buffers
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
+
+	//get token
 	uint8_t token[TOKEN_LEN];
 	random_token(token);
 
+	//create CoAP packet
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
 				sizeof(token), (uint8_t *)&token,
@@ -108,6 +121,7 @@ int coap_put(char *resource,uint8_t *payload)
 		return err;
 	}
 
+	//add URI path option
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
 				(uint8_t *)resource,
 				strlen(resource));
@@ -116,6 +130,7 @@ int coap_put(char *resource,uint8_t *payload)
 		return err;
 	}
 	
+	//add content format option
 	const uint8_t text_plain = COAP_CONTENT_FORMAT_TEXT_PLAIN;
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_CONTENT_FORMAT,
 				&text_plain,
@@ -125,6 +140,7 @@ int coap_put(char *resource,uint8_t *payload)
 		return err;
 	}
 
+	//add payload
 	err = coap_packet_append_payload_marker(&coap_request);
 	if (err < 0) {
 		LOG_ERR("Failed to append payload marker, %d\n", err);
@@ -148,11 +164,13 @@ int coap_put(char *resource,uint8_t *payload)
 	}
 	strcpy(coap_send_resource, resource);
 
-	k_mutex_lock(&coap_mutex, K_FOREVER);
-
+	//send packet (on send thread)
 	k_sem_give(&send_sem);
+
+	//wait for packet to be sent
 	k_sem_take(&sent_sem, K_FOREVER);
 
+	//check code and add to pending requests
 	if (send_return_code >= 0)
 	{
 		err = add_pending_request(token);
@@ -161,11 +179,11 @@ int coap_put(char *resource,uint8_t *payload)
 			return err;
 		}
 	}
-	k_mutex_unlock(&coap_mutex);
 
 	return send_return_code;
 }
 
+// Function to observe a resource
 int coap_observe(char *resource, uint8_t *payload)
 {
 	if (observers >= MAXOBSERVERS)
@@ -174,12 +192,15 @@ int coap_observe(char *resource, uint8_t *payload)
 		return -ENOMEM;
 	}
 	
+	// Reset buffers
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
+	// Get token
 	uint8_t token[TOKEN_LEN];
 	random_token(token);
 
+	// Create CoAP packet
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
 				sizeof(token), (uint8_t *)&token,
@@ -189,6 +210,7 @@ int coap_observe(char *resource, uint8_t *payload)
 		return err;
 	}
 
+	// Add URI path option
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
 				(uint8_t *)resource,
 				strlen(resource));
@@ -197,6 +219,7 @@ int coap_observe(char *resource, uint8_t *payload)
 		return err;
 	}
 	
+	// Add observe option
 	uint8_t observe = 0;
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_OBSERVE,
 				&observe, sizeof(uint8_t));
@@ -205,6 +228,7 @@ int coap_observe(char *resource, uint8_t *payload)
 		return err;
 	}
 
+	// Add payload if provided
 	if(payload != NULL)
 	{
 		err = coap_packet_append_payload_marker(&coap_request);
@@ -220,7 +244,7 @@ int coap_observe(char *resource, uint8_t *payload)
 		}
 	}
 
-	//set variables to be printed in log
+	// Set variables to be printed in log
 	memcpy(coap_send_token, token, TOKEN_LEN);
 	if(payload != NULL)
 	{
@@ -238,41 +262,53 @@ int coap_observe(char *resource, uint8_t *payload)
 	}
 	strcpy(coap_send_resource, resource);
 
+	// Send packet (on send thread)
 	k_sem_give(&send_sem);
+
+	// Wait for packet to be sent
 	k_sem_take(&sent_sem, K_FOREVER);
 
+	// Add to observers
 	memcpy(observer_tokens[observers], token, TOKEN_LEN);
 	strcpy(observer_resources[observers], resource);
 	observers++;
 
-
 	return send_return_code;
 }
-
-int coap_ack(struct coap_packet * req)
+// Function to acknowledge a CoAP request
+int coap_ack(struct coap_packet *req)
 {
+	// Reset buffers
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
+	// Create CoAP ACK
 	int err = coap_ack_init(&coap_request, req, coap_send_buf, sizeof(coap_send_buf), 0);
 	if (err < 0) {
 		LOG_ERR("Failed to create CoAP ACK, %d\n", err);
 		return err;
 	}
 
+	// Send packet (on send thread)
 	k_sem_give(&send_sem);
+
+	// Wait for packet to be sent
 	k_sem_take(&sent_sem, K_FOREVER);
 
 	return send_return_code;
 }
 
-int coap_cancel_observers()
+// Function to cancel an observe request
+int coap_cancel_observe()
 {
+	// Send cancel for each observer (if many)
 	for(int i = 0; i < observers; i++)
-	{
+	{	
+		// Reset buffers
 		memset(coap_send_buf, 0, sizeof(coap_send_buf));
 		memset(&coap_request, 0, sizeof(coap_request));
 
+		// Create CoAP packet
 		int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 					1, COAP_TYPE_NON_CON,
 					TOKEN_LEN, (uint8_t *)&observer_tokens[i],
@@ -282,6 +318,7 @@ int coap_cancel_observers()
 			return err;
 		}
 
+		// Add URI path option
 		err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
 					(uint8_t *)observer_resources[i],
 					strlen(observer_resources[i]));
@@ -290,6 +327,7 @@ int coap_cancel_observers()
 			return err;
 		}
 		
+		// Add observe option
 		uint8_t observe = 1;
 		err = coap_packet_append_option(&coap_request, COAP_OPTION_OBSERVE,
 					&observe, sizeof(uint8_t));
@@ -303,7 +341,10 @@ int coap_cancel_observers()
 		coap_send_payload[0] = '\0';
 		strcpy(coap_send_resource, observer_resources[i]);
 
+		// Send packet (on send thread)
 		k_sem_give(&send_sem);
+
+		// Wait for packet to be sent
 		k_sem_take(&sent_sem, K_FOREVER);
 	}
 	observers = 0;
@@ -311,15 +352,20 @@ int coap_cancel_observers()
 }
 
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
+
+// Function to send a validate request
 int coap_validate()
 {
+	// get token
 	uint8_t token[TOKEN_LEN];
 	random_token(token);
 	memcpy(validate_token, token, TOKEN_LEN);
 
+	// reset buffers
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
+	// create CoAP packet
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
 				sizeof(token), (uint8_t *)&token,
@@ -329,6 +375,7 @@ int coap_validate()
 		return err;
 	}
 
+	// add URI path option
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
 				(uint8_t *)TESTBED_VALIDATE_RESOURCE,
 				strlen(TESTBED_VALIDATE_RESOURCE));
@@ -342,6 +389,7 @@ int coap_validate()
 	coap_send_payload[0] = '\0';
 	strcpy(coap_send_resource, TESTBED_VALIDATE_RESOURCE);
 
+	//send packet (on send thread) - 3 retries
 	for(int i = 0; i < 3; i++)
 	{
 		k_sem_give(&send_sem);
@@ -362,16 +410,20 @@ int coap_validate()
 	return 0;
 }
 
+// Function to get the CoAP statistics
 int coap_get_stat()
 {
+	// get token
 	coap_stat = 0;
 	uint8_t token[TOKEN_LEN];
 	random_token(token);
 	memcpy(stat_token, token, TOKEN_LEN);
 
+	// reset buffers
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
+	// create CoAP packet
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
 				sizeof(token), (uint8_t *)&token,
@@ -381,6 +433,7 @@ int coap_get_stat()
 		return err;
 	}
 
+	// add URI path option
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
 				(uint8_t *)TESTBED_STAT_RESOURCE,
 				strlen(TESTBED_STAT_RESOURCE));
@@ -394,6 +447,7 @@ int coap_get_stat()
 	strcpy(coap_send_resource, TESTBED_STAT_RESOURCE);
 	memcpy(coap_send_token, token, TOKEN_LEN);
 
+	//send packet (on send thread) - 3 retries
 	for(int i = 0; i < 3; i++)
 	{
 		k_sem_give(&send_sem);
@@ -414,16 +468,20 @@ int coap_get_stat()
 	return coap_stat;
 }
 
+// Function to get the actuator test statistics
 int coap_get_actuator_stat(char * buffer)
 {
+	// get token
 	coap_stat = 0;
 	uint8_t token[TOKEN_LEN];
 	random_token(token);
 	memcpy(stat_actuator_token, token, TOKEN_LEN);
 
+	// reset buffers
 	memset(coap_send_buf, 0, sizeof(coap_send_buf));
 	memset(&coap_request, 0, sizeof(coap_request));
 
+	// create CoAP packet
 	int err = coap_packet_init(&coap_request, coap_send_buf, sizeof(coap_send_buf),
 				1, COAP_TYPE_NON_CON,
 				sizeof(token), (uint8_t *)&token,
@@ -433,6 +491,7 @@ int coap_get_actuator_stat(char * buffer)
 		return err;
 	}
 
+	// add URI path option
 	err = coap_packet_append_option(&coap_request, COAP_OPTION_URI_PATH,
 				(uint8_t *)TESTBED_ACTUATOR_STAT_RESOURCE,
 				strlen(TESTBED_ACTUATOR_STAT_RESOURCE));
@@ -449,6 +508,7 @@ int coap_get_actuator_stat(char * buffer)
 	//set pointer to buffer
 	stat_actuator_ptr = (uint8_t *)buffer;
 
+	//send packet (on send thread) - 3 retries
 	for(int i = 0; i < 3; i++)
 	{
 		k_sem_give(&send_sem);
@@ -471,8 +531,10 @@ int coap_get_actuator_stat(char * buffer)
 
 #endif // CONFIG_COAP_TWT_TESTBED_SERVER
 
+// enable emergency transmission
 void coap_emergency_enable()
 {
+	// set priority socket option to emergency value 
 	uint8_t prior = 0xFF; 
 	int ret = setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &prior, sizeof(prior));
 	if (ret < 0) {
@@ -480,8 +542,10 @@ void coap_emergency_enable()
 	}
 }
 
+// disable emergency transmission
 void coap_emergency_disable()
 {
+	// set priority socket option to default value
 	uint8_t prior = 0; 
 	int ret = setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &prior, sizeof(prior));
 	if (ret < 0) {
@@ -489,16 +553,21 @@ void coap_emergency_disable()
 	}
 }
 
-
+// sender thread
 void send_coap_thread(void *arg1, void *arg2, void *arg3)
 {
 	
-
 	while (1) {
 		//wait for semaphore
 		k_sem_take(&send_sem, K_FOREVER);
 		
+		//lock mutex
+		k_mutex_lock(&coap_mutex, K_FOREVER);
+		//send packet
 		send_return_code = sendto(sock, coap_request.data, coap_request.offset, 0, (struct sockaddr *)&server, sizeof(server));
+		k_mutex_unlock(&coap_mutex);
+		
+		//check for errors
 		if (send_return_code < 0) {
 			LOG_ERR("Failed to send CoAP request, %d\n", errno);
 		}
@@ -523,11 +592,13 @@ void send_coap_thread(void *arg1, void *arg2, void *arg3)
 		}
 
 		
-
+		//give semaphore to indicate packet was sent and return code can be retrieved
 		k_sem_give(&sent_sem);
 	}
 }
 
+
+// Function to handle the response
 static int client_handle_response(uint8_t *buf, int received)
 {
 	struct coap_packet reply;
@@ -648,24 +719,32 @@ static int client_handle_response(uint8_t *buf, int received)
 	return 0;
 }
 
-
+//receiver thread
 void recv_coap_thread(void *arg1, void *arg2, void *arg3)
 {
+	// Set up pollfd structure
 	struct pollfd fds;
     fds.fd = sock;
     fds.events = POLLIN;
 	
-
+	// Buffer for received CoAP packets
 	uint8_t coap_buf[COAP_MAX_MSG_LEN];
 
     while (1) {
+		// Wait for incoming CoAP packets
         int ret = poll(&fds, 1, -1); // Use -1 for infinite timeout
-		k_mutex_lock(&coap_mutex, K_FOREVER);
+		
         if (ret > 0) {
             if (fds.revents & POLLIN) {
-				socklen_t server_len = sizeof(server);
+				socklen_t server_len = sizeof(server); 
+
+				//lock mutex
+				k_mutex_lock(&coap_mutex, K_FOREVER);
+				// Receive the CoAP packet
                 int len = recvfrom(sock, coap_buf, sizeof(coap_buf), 0, (struct sockaddr *)&server, &server_len);
+				k_mutex_unlock(&coap_mutex);
 				
+				// Handle the received CoAP packet
 				int err = client_handle_response(coap_buf, len);
 				if (err < 0) {
 					LOG_ERR("Invalid response, exit\n");
@@ -676,7 +755,6 @@ void recv_coap_thread(void *arg1, void *arg2, void *arg3)
         } else if (ret < 0) {
             LOG_ERR("Poll error");
         }
-		k_mutex_unlock(&coap_mutex);
     }
 }
 

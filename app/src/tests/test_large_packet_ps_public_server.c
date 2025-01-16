@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #ifndef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_large_packet_ps.h"
@@ -40,49 +46,16 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-    // Check for inconsistencies and print warnings
-    if ((monitor.iter != test_settings.iterations)) {
-        LOG_WRN("Warning: Test could not complete all iterations");
-    }
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                        TEST RESULTS - LARGE PACKET PS                        =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Iterations:                            %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Request payload size (bytes):          %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  PS Mode:                               %s                               =\n"
-            "=  PS Wake-Up mode:              %s                               =\n"
-            "=  Listen Interval:                       %6d                               =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Requests sent:                         %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Average latency:                       %6d ms                            =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            monitor.iter,
-            test_settings.bytes,
-            test_settings.ps_mode ? "   WMM" : "Legacy",
-            test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
-            CONFIG_PS_LISTEN_INTERVAL,
-            monitor.sent,
-            monitor.received,
-            monitor.received == 0 ? -1 : monitor.latency_sum/monitor.received);
-}
-
-
-static void generate_test_report() {
+/**
+ * @brief Generates a test report
+ *
+ * This function initializes a test_report structure, populates it with
+ * test details including the test title, setup, and results, and then
+ * prints the report using the test_report_print function.
+ *
+ * The report is formatted as a JSON string.
+ */
+static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
 
@@ -218,9 +191,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
-    // Extract the semaphore and test settings
-    struct k_sem *test_sem = (struct k_sem *)arg1;
-    memcpy(&test_settings, arg2, sizeof(test_settings));
+    // Extract the test settings
+    memcpy(&test_settings, arg1, sizeof(test_settings));
 
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
@@ -274,31 +246,29 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         coap_register_put_response_callback(NULL);
     }
 
-    print_test_results();
-
     generate_test_report();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
-    k_sem_give(test_sem);
+    k_sem_give(&test_sem);
 }
 
 // Function to initialize the test
-void test_large_packet_ps(struct k_sem *sem, void * test_settings) {
+void test_large_packet_ps(void * test_settings) {
     
     struct k_thread thread_data;
 
     k_tid_t thread_id = k_thread_create(&thread_data, thread_stack,
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
-                                        sem, test_settings, NULL,
+                                        test_settings, NULL, NULL,
                                         TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 
     //wait for the test to finish
-    k_sem_take(sem, K_FOREVER);
+    k_sem_take(&test_sem, K_FOREVER);
 
     //make sure the thread is stopped
     k_thread_abort(thread_id);  

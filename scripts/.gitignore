@@ -4,3 +4,4 @@
 # Except Python files and gitignore
 !*.py
 !.gitignore
+!README.md

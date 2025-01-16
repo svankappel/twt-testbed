@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_actuator_ps.h"
@@ -37,49 +43,16 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
 
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                          TEST RESULTS - ACTUATOR PS                          =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Test time:                             %6d s                             =\n"
-            "=  Echo:                                %s                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  PS Mode:                               %s                               =\n"
-            "=  PS Wake-Up mode:              %s                               =\n"
-            "=  Listen Interval:                       %6d                               =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Responses sent:                        %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            test_settings.test_time_s,
-            test_settings.echo ? " Enabled" : "Disabled",
-            test_settings.ps_mode ? "   WMM" : "Legacy",
-            test_settings.ps_wakeup_mode ? "Listen Interval" : "           DTIM",
-            CONFIG_PS_LISTEN_INTERVAL,
-            monitor.sent,
-            monitor.received);
-
-    if(test_settings.echo && monitor.latency_stats[0] != '\0'){
-        LOG_INF("\n================================================================================\n"
-                "=  Actuator Latency Histogram                                                  =\n"
-                "================================================================================\n"
-                "%s\n"
-                "================================================================================\n",
-                monitor.latency_stats);
-    }
-}
-
-
+/**
+ * @brief Generates a test report
+ *
+ * This function initializes a test_report structure, populates it with
+ * test details including the test title, setup, and results, and then
+ * prints the report using the test_report_print function.
+ *
+ * The report is formatted as a JSON string.
+ */
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -123,7 +96,7 @@ static void generate_test_report(){
             "{\n"
             "\"Notifications_sent_by_Server\": %d,\n"
             "\"Notifications_received_on_Client\": %d,\n"
-            "\"Echo_received_on_Server\": %d,\n"
+            "\"Echoes_received_on_Server\": %d,\n"
             "\"Average_Latency\": \"%d ms\"\n"
             "}",
             monitor.sent,
@@ -211,9 +184,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
-    // Extract the semaphore and test settings
-    struct k_sem *test_sem = (struct k_sem *)arg1;
-    memcpy(&test_settings, arg2, sizeof(test_settings));
+    // Extract the test settings
+    memcpy(&test_settings, arg1, sizeof(test_settings));
 
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
@@ -255,7 +227,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         LOG_INF("Test %d finished", test_settings.test_id);
 
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         monitor.sent = coap_get_stat();
         if(test_settings.echo){
             ret = coap_get_actuator_stat(monitor.latency_stats);
@@ -279,35 +251,33 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         monitor.sent = -1;
     }
-
-    print_test_results();
 
     generate_test_report();
 
     k_sleep(K_SECONDS(2)); 
 
     // give the semaphore to start the next test
-    k_sem_give(test_sem);
+    k_sem_give(&test_sem);
 }
 
 // Function to initialize the test
-void test_actuator_ps(struct k_sem *sem, void * test_settings) {
+void test_actuator_ps(void * test_settings) {
     
     struct k_thread thread_data;
 
     k_tid_t thread_id = k_thread_create(&thread_data, thread_stack,
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
-                                        sem, test_settings, NULL,
+                                        test_settings, NULL, NULL,
                                         TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 
     //wait for the test to finish
-    k_sem_take(sem, K_FOREVER);
+    k_sem_take(&test_sem, K_FOREVER);
 
     //make sure the thread is stopped
     k_thread_abort(thread_id);  

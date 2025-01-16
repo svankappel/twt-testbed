@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include "coap_utils.h"
 
 #include <zephyr/kernel.h>
@@ -11,6 +17,8 @@
 
 LOG_MODULE_REGISTER(coap_utils, CONFIG_MY_COAP_LOG_LEVEL);
 
+
+// CoAP client pool 
 #define COAP_CLIENT_POOL_SIZE 100
 
 struct request_entry {
@@ -18,11 +26,14 @@ struct request_entry {
 	uint32_t timestamp;
 	uint8_t used;
 };
-
 static struct request_entry pending_requests_pool[COAP_CLIENT_POOL_SIZE];
 
 static uint32_t timeout;
 
+static K_MUTEX_DEFINE(pool_mutex);
+
+
+// Resolve the server address for IPv4
 #ifndef CONFIG_IP_PROTO_IPV6
 int server_resolve(struct sockaddr_in* server_ptr)
 {
@@ -48,6 +59,7 @@ int server_resolve(struct sockaddr_in* server_ptr)
 		int addr_err;
 		char ipv4_addr[NET_IPV4_ADDR_LEN];
 
+		// Resolve the hostname
 		addr_err = getaddrinfo(CONFIG_COAP_TEST_SERVER_HOSTNAME, NULL, &hints, &result);
 		if (addr_err != 0) {
 			LOG_ERR("getaddrinfo failed, error: %d", addr_err);
@@ -59,6 +71,7 @@ int server_resolve(struct sockaddr_in* server_ptr)
 			return -ENOENT;
 		}
 
+		// Copy the resolved address to the server pointer
 		server_ptr->sin_addr.s_addr =((struct sockaddr_in *)result->ai_addr)->sin_addr.s_addr;
 		server_ptr->sin_family = AF_INET;
 		server_ptr->sin_port = htons(CONFIG_COAP_TEST_SERVER_PORT);
@@ -100,7 +113,8 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 		struct addrinfo *result;
 		int addr_err;
 		char ipv6_addr[INET6_ADDRSTRLEN];
-
+		
+		// Resolve the hostname
 		addr_err = getaddrinfo(CONFIG_COAP_TEST_SERVER_HOSTNAME, NULL, &hints, &result);
 		if (addr_err != 0) {
 			LOG_ERR("getaddrinfo failed, error: %d", addr_err);
@@ -112,6 +126,7 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 			return -ENOENT;
 		}
 
+		// Copy the resolved address to the server pointer
 		server_ptr->sin6_addr = ((struct sockaddr_in6 *)result->ai_addr)->sin6_addr;
 		server_ptr->sin6_family = AF_INET6;
 		server_ptr->sin6_port = htons(CONFIG_COAP_TEST_SERVER_PORT);
@@ -132,6 +147,7 @@ int server_resolve(struct sockaddr_in6* server_ptr)
 #endif // CONFIG_IP_PROTO_IPV6
 
 
+// Generate a random token
 void random_token(uint8_t *token)
 {
 	for (int i = 0; i < TOKEN_LEN; i++) {
@@ -139,15 +155,14 @@ void random_token(uint8_t *token)
 	}
 }
 
-
-
+// Initialize the pool of pending requests
 void init_pending_request_pool(uint32_t max_timeout)
 {
 	memset(pending_requests_pool, 0, sizeof(pending_requests_pool));
 	timeout = max_timeout;
 }
 
-
+// Remove timed out requests (called before adding or removing a request)
 void remove_timedout_requests()
 {
 	uint32_t current_time = k_uptime_get_32();
@@ -162,35 +177,55 @@ void remove_timedout_requests()
 }
 
 
-
+// Add a pending request to the pool
 int add_pending_request(uint8_t * token)
 {
+	// Lock the pool mutex
+	k_mutex_lock(&pool_mutex, K_FOREVER);
+
+	// Remove potential timed out requests
 	remove_timedout_requests();
+
+	// Find an available slot in the pool
 	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
 	{
 		if (pending_requests_pool[i].used == 0)
 		{
+			// Add the token, timestamp and mark the slot as used
 			memcpy(pending_requests_pool[i].token, token, TOKEN_LEN);
 			pending_requests_pool[i].timestamp = k_uptime_get_32();
 			pending_requests_pool[i].used = 1;
+			k_mutex_unlock(&pool_mutex);
 			return 0;
 		}
 	}
 	LOG_ERR("No available slots in pending request pool");
+	k_mutex_unlock(&pool_mutex);
 	return -1;
 }
 
+// Remove a pending request from the pool
 uint32_t remove_pending_request(uint8_t * token)
 {
+	// Lock the pool mutex
+	k_mutex_lock(&pool_mutex, K_FOREVER);
+
+	// Remove potential timed out requests
 	remove_timedout_requests();
+
+	// Find the token in the pool and remove it
 	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
 	{
 		if (pending_requests_pool[i].used == 1 && memcmp(pending_requests_pool[i].token, token, TOKEN_LEN) == 0)
 		{
 			pending_requests_pool[i].used = 0;
+			k_mutex_unlock(&pool_mutex);
+
+			// Return the time elapsed since the request was added
 			return k_uptime_get_32() - pending_requests_pool[i].timestamp;
 		}
 	}
 	LOG_ERR("Token not found in pending request pool");
+	k_mutex_unlock(&pool_mutex);
 	return 0;
 }

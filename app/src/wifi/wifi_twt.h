@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 /**
  * @file wifi_twt.h
  * @brief Header file for TWT (Target Wake Time) Wi-Fi operations.

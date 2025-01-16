@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include "wifi_sta.h"
 #include "wifi_utils.h"
 #include "wifi_twt.h"
@@ -24,8 +30,6 @@ LOG_MODULE_REGISTER(wifi_sta, CONFIG_MY_WIFI_LOG_LEVEL);
 
 #define WIFI_MGMT_EVENTS (NET_EVENT_WIFI_CONNECT_RESULT | \
 								NET_EVENT_WIFI_DISCONNECT_RESULT)
-
-// Function to convert the WiFi arguments to connection parameters
 
 
 // Semaphore for connection and disconnection events

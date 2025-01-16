@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_actuator_twt.h"
@@ -38,48 +44,15 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void print_test_results() {
-
-    // Print the results
-    LOG_INF("\n\n"
-            "================================================================================\n"
-            "=                         TEST RESULTS - ACTUATOR TWT                          =\n"
-            "================================================================================\n"
-            "=  Test setup                                                                  =\n"
-            "================================================================================\n"
-            "=  Test Number:                           %6d                               =\n"
-            "=  Test time:                             %6d s                             =\n"
-            "=  Echo:                                %s                               =\n"
-            "=  Emergency Uplink:                    %s                               =\n"
-            "=------------------------------------------------------------------------------=\n"
-            "=  Negotiated TWT Interval:               %6d s                             =\n"
-            "=  Negotiated TWT Wake Interval:          %6d ms                            =\n"
-            "================================================================================\n"
-            "=  Stats                                                                       =\n"
-            "================================================================================\n"
-            "=  Resonses sent:                         %6d                               =\n"
-            "-------------------------------------------------------------------------------=\n"
-            "=  Responses received:                    %6d                               =\n"
-            "================================================================================\n",
-            test_settings.test_id,
-            test_settings.test_time_s,
-            test_settings.echo ? " Enabled " : "Disabled",
-            test_settings.echo ? (test_settings.emergency_uplink ? " Enabled" : "Disabled") : "     N/A",
-            wifi_twt_get_interval_ms() / 1000,
-            wifi_twt_get_wake_interval_ms(),
-            monitor.sent,
-            monitor.received);
-
-            if(test_settings.echo && monitor.latency_stats[0] != '\0'){
-            LOG_INF("\n================================================================================\n"
-                "=  Actuator Latency Histogram                                                  =\n"
-                "================================================================================\n"
-                "%s\n"
-                "================================================================================\n",
-                monitor.latency_stats);
-    }
-}
-
+/**
+ * @brief Generates a test report
+ *
+ * This function initializes a test_report structure, populates it with
+ * test details including the test title, setup, and results, and then
+ * prints the report using the test_report_print function.
+ *
+ * The report is formatted as a JSON string.
+ */
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -182,7 +155,14 @@ static void generate_test_report(){
 
 
 
-
+//--------------------------------------------------------------------
+// Set PS to DTIM legacy (default PS mode)
+//--------------------------------------------------------------------
+static void configure_ps()
+{
+    wifi_ps_mode_legacy();
+    wifi_ps_wakeup_dtim();
+}
 
 //--------------------------------------------------------------------     
 // Callback function to be called if wifi is disconnected unexpectedly
@@ -214,6 +194,8 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
             // Change the payload {"actuator-value":x} to {"actuator-echo":x}
             char echo[payload_len];
             snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
+
+            k_sleep(K_MSEC(test_settings.twt_wake_interval*2)); //make sure the echo is sent in the next session
 
             coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
 
@@ -252,9 +234,8 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
     memset(&monitor, 0, sizeof(monitor));
     memset(&control, 0, sizeof(control));
 
-    // Extract the semaphore and test settings
-    struct k_sem *test_sem = (struct k_sem *)arg1;
-    memcpy(&test_settings, arg2, sizeof(test_settings));
+    // Extract the test settings
+    memcpy(&test_settings, arg1, sizeof(test_settings));
 
     LOG_INF("Starting test %d setup", test_settings.test_id);
 
@@ -262,6 +243,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
     // wifi
     wifi_register_disconnected_cb(wifi_disconnected_event);
+    configure_ps();
     ret = wifi_connect();
     if(ret != 0){
         LOG_ERR("Failed to connect to wifi");
@@ -312,7 +294,7 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
         }
 
         k_sleep(K_SECONDS(1));
-        coap_cancel_observers();
+        coap_cancel_observe();
         k_sleep(K_SECONDS(1));
         monitor.sent = coap_get_stat();
         if(test_settings.echo){
@@ -338,38 +320,36 @@ static void thread_function(void *arg1, void *arg2, void *arg3)
 
         //coap
         coap_register_obs_response_callback(NULL);
-        coap_cancel_observers();
+        coap_cancel_observe();
         if(test_settings.emergency_uplink){
             coap_emergency_disable();
         }
         monitor.sent = -1;
     }
 
-    print_test_results();
-
     generate_test_report();
 
     k_sleep(K_SECONDS(2)); //give time for the logs to print
 
     // give the semaphore to start the next test
-    k_sem_give(test_sem);
+    k_sem_give(&test_sem);
 }
 
 // Function to initialize the test
-void test_actuator_twt(struct k_sem *sem, void * test_settings) {
+void test_actuator_twt(void * test_settings) {
     
     struct k_thread thread_data;
 
     k_tid_t thread_id = k_thread_create(&thread_data, thread_stack,
                                         K_THREAD_STACK_SIZEOF(thread_stack),
                                         thread_function,
-                                        sem, test_settings, NULL,
+                                        test_settings, NULL, NULL,
                                         TEST_THREAD_PRIORITY, 0, K_NO_WAIT);
     k_thread_name_set(thread_id, "test_thread");
     k_thread_start(thread_id);
 
     //wait for the test to finish
-    k_sem_take(sem, K_FOREVER);
+    k_sem_take(&test_sem, K_FOREVER);
 
     //make sure the thread is stopped
     k_thread_abort(thread_id);  
