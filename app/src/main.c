@@ -134,7 +134,7 @@ int main(void)
 
     //this code run the tests defined in the configuration
     //comment the following line to run custom tests instead
-    //#define TESTRUNNER
+    #define TESTRUNNER
 
     #ifdef TESTRUNNER
     run_tests();
