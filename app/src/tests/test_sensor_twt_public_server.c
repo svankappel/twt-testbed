@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
+
 #ifndef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_sensor_twt.h"
@@ -50,6 +57,15 @@ struct test_monitor{
 };
 static struct test_monitor monitor = { 0 };
 
+/**
+ * @brief Generates a test report
+ *
+ * This function initializes a test_report structure, populates it with
+ * test details including the test title, setup, and results, and then
+ * prints the report using the test_report_print function.
+ *
+ * The report is formatted as a JSON string.
+ */
 static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
@@ -220,63 +236,6 @@ static void run_test()
                     }
                 }
             }
-            //--------------------------------------------
-            //test to send a second packet at the same time
-            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
-            if(ret >= 0){
-                monitor.sent++;
-
-                if(test_settings.recover){
-                    control.recover.pending++;
-                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
-                        wifi_twt_teardown();
-                        control.recover.teardown = true;
-                        control.recover.cnt++;
-                        k_sem_take(&recover_sem, K_SECONDS(2));
-                        control.recover.teardown = false;
-                        control.recover.pending=0;
-                        configure_twt(&test_settings);
-                    }
-                }
-            } //-------------------------------------------
-            //--------------------------------------------
-            //test to send a second packet at the same time
-            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
-            if(ret >= 0){
-                monitor.sent++;
-
-                if(test_settings.recover){
-                    control.recover.pending++;
-                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
-                        wifi_twt_teardown();
-                        control.recover.teardown = true;
-                        control.recover.cnt++;
-                        k_sem_take(&recover_sem, K_SECONDS(2));
-                        control.recover.teardown = false;
-                        control.recover.pending=0;
-                        configure_twt(&test_settings);
-                    }
-                }
-            } //-------------------------------------------
-            //--------------------------------------------
-            //test to send a second packet at the same time
-            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
-            if(ret >= 0){
-                monitor.sent++;
-
-                if(test_settings.recover){
-                    control.recover.pending++;
-                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
-                        wifi_twt_teardown();
-                        control.recover.teardown = true;
-                        control.recover.cnt++;
-                        k_sem_take(&recover_sem, K_SECONDS(2));
-                        control.recover.teardown = false;
-                        control.recover.pending=0;
-                        configure_twt(&test_settings);
-                    }
-                }
-            } //-------------------------------------------
         }else{
             break;
         }
