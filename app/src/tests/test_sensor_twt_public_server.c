@@ -219,7 +219,64 @@ static void run_test()
                         configure_twt(&test_settings);
                     }
                 }
-            } 
+            }
+            //--------------------------------------------
+            //test to send a second packet at the same time
+            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
+            if(ret >= 0){
+                monitor.sent++;
+
+                if(test_settings.recover){
+                    control.recover.pending++;
+                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
+                        wifi_twt_teardown();
+                        control.recover.teardown = true;
+                        control.recover.cnt++;
+                        k_sem_take(&recover_sem, K_SECONDS(2));
+                        control.recover.teardown = false;
+                        control.recover.pending=0;
+                        configure_twt(&test_settings);
+                    }
+                }
+            } //-------------------------------------------
+            //--------------------------------------------
+            //test to send a second packet at the same time
+            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
+            if(ret >= 0){
+                monitor.sent++;
+
+                if(test_settings.recover){
+                    control.recover.pending++;
+                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
+                        wifi_twt_teardown();
+                        control.recover.teardown = true;
+                        control.recover.cnt++;
+                        k_sem_take(&recover_sem, K_SECONDS(2));
+                        control.recover.teardown = false;
+                        control.recover.pending=0;
+                        configure_twt(&test_settings);
+                    }
+                }
+            } //-------------------------------------------
+            //--------------------------------------------
+            //test to send a second packet at the same time
+            ret = coap_put(CONFIG_COAP_SENSOR_TEST_RESOURCE, buf);
+            if(ret >= 0){
+                monitor.sent++;
+
+                if(test_settings.recover){
+                    control.recover.pending++;
+                    if(control.recover.pending >= (test_settings.recover_max_pending+1)){
+                        wifi_twt_teardown();
+                        control.recover.teardown = true;
+                        control.recover.cnt++;
+                        k_sem_take(&recover_sem, K_SECONDS(2));
+                        control.recover.teardown = false;
+                        control.recover.pending=0;
+                        configure_twt(&test_settings);
+                    }
+                }
+            } //-------------------------------------------
         }else{
             break;
         }
