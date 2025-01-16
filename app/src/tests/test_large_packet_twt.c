@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
 
 #include "test_large_packet_twt.h"
@@ -46,7 +52,16 @@ struct test_monitor{
 
 static struct test_monitor monitor = { 0 };
 
-static void generate_test_report() {
+/**
+ * @brief Generates a test report
+ *
+ * This function initializes a test_report structure, populates it with
+ * test details including the test title, setup, and results, and then
+ * prints the report using the test_report_print function.
+ *
+ * The report is formatted as a JSON string.
+ */
+static void generate_test_report(){
     struct test_report report;
     memset(&report, '\0', sizeof(report));
 

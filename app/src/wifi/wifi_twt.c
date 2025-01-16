@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
+/**
+ * @file wifi_twt.c
+ * @brief Source file for TWT (Target Wake Time) Wi-Fi operations.
+ *
+ * This file contains the functions used to initialize,
+ * set up, and tear down TWT operations in a Wi-Fi application.
+ */
+
 #include "wifi_twt.h"
 
 #include <errno.h>

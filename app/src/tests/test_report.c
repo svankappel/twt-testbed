@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
+
 #include "test_report.h"
 
 #include <zephyr/kernel.h>
@@ -8,6 +15,7 @@ LOG_MODULE_REGISTER(test_report, CONFIG_MY_TEST_LOG_LEVEL);
 
 static char testbed_setup[512] = {0};
 
+//generate testbed setup information
 static void generate_testbed_setup()
 {
     #ifdef CONFIG_IP_PROTO_IPV6
@@ -106,6 +114,7 @@ static void generate_testbed_setup()
 }
 
 
+//print test report
 void test_report_print(struct test_report *report)
 {
     generate_testbed_setup();

@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 /**
- * @file wifi_ps.h
+ * @file wifi_ps.c
  * @brief Wi-Fi Power Save Mode 
  *
- * This header file provides functions for configuring Wi-Fi power save modes.
+ * This file provides functions for configuring Wi-Fi power save modes.
  */
 
 #include "wifi_ps.h"

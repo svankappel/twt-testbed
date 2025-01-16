@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 /**
  * @file wifi_ps.h
  * @brief Wi-Fi Power Save Mode 

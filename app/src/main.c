@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
 
 
 #include <stdio.h>
@@ -80,10 +85,12 @@ int main(void)
     }
     #endif //CONFIG_COAP_SECURE
 
-    wifi_init();
 
+    // initialize wifi
+    wifi_init();
     wifi_ps_set_listen_interval(CONFIG_PS_LISTEN_INTERVAL);
 
+    //connect to wifi
     ret = wifi_connect();
     if(ret != 0)
     {
@@ -91,7 +98,7 @@ int main(void)
         k_sleep(K_FOREVER);
     }
 
-    
+    // initialize CoAP client
     coap_init();
     if(ret != 0)
     {
@@ -103,6 +110,7 @@ int main(void)
 
  
     #ifdef CONFIG_COAP_TWT_TESTBED_SERVER
+    //validate configuration
     ret = coap_validate();
     if(ret != 0)
     {
@@ -111,13 +119,13 @@ int main(void)
     }
     #endif //CONFIG_COAP_TWT_TESTBED_SERVER
 
+    //disconnect from wifi
     ret = wifi_disconnect();
     if(ret != 0)
     {
         LOG_ERR("Failed to disconnect from wifi");
         k_sleep(K_FOREVER);
-     }
-
+    }
     k_sleep(K_SECONDS(1));
 
     LOG_INF("TWT testbed initialized. Running tests ...");
@@ -132,7 +140,7 @@ int main(void)
     run_tests();
     #else
     //example - run 12 sensor tests with different durations of 8 to 64 ms and intervals of 5 to 20 seconds
-    for(int interval = 5000; interval <= 10000; interval *= 2)
+    for(int interval = 5000; interval <= 20000; interval *= 2)
     {
         for(int duration = 8; duration <= 64; duration *= 2)
         {

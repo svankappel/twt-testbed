@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include "coap_security.h"
 
 #include <stdio.h>
@@ -41,12 +47,12 @@ int configure_psk(void)
     return 0;
 }
 
-/**@brief Initialize the CoAP client */
+//set socket options for DTLS
 int set_socket_dtls_options(int sock)
 {
 	int err;
 
-
+	// set peer verification
 	#ifdef CONFIG_COAP_DTLS_PEER_VERIFY
 	int verify = TLS_PEER_VERIFY_REQUIRED;
 	#else
@@ -59,6 +65,7 @@ int set_socket_dtls_options(int sock)
 		return -errno;
 	}
 
+	// set cipher suite
 	int ciphersuite_list[] = {
 		#ifndef CONFIG_COAP_DTLS_CIPHERSUITE_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
 	    MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
@@ -67,7 +74,6 @@ int set_socket_dtls_options(int sock)
 		#endif //CONFIG_COAP_DTLS_CIPHERSUITE_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
 	};
 
-
 	err = setsockopt(sock, SOL_TLS, TLS_CIPHERSUITE_LIST, ciphersuite_list, sizeof(ciphersuite_list));
 	if (err) {
 		LOG_ERR("Failed to set cipher suite, err %d", errno);
@@ -75,13 +81,13 @@ int set_socket_dtls_options(int sock)
 	}
 
 
+	// set credentials
 	sec_tag_t sec_tag_list[] = { SEC_TAG };
 	err = setsockopt(sock, SOL_TLS, TLS_SEC_TAG_LIST, sec_tag_list,sizeof(sec_tag_t) * ARRAY_SIZE(sec_tag_list));
 	if (err) {
 		LOG_ERR("Failed to setup socket security tag, errno %d\n", errno);
 		return -errno;
 	}
-
 
 	err = setsockopt(sock, SOL_TLS, TLS_HOSTNAME, CONFIG_COAP_TEST_SERVER_HOSTNAME,strlen(CONFIG_COAP_TEST_SERVER_HOSTNAME));
 	if (err) {
@@ -90,6 +96,7 @@ int set_socket_dtls_options(int sock)
 		return -errno;
 	}
 
+	// set CID
 	#ifdef CONFIG_COAP_DTLS_CID
 	int cid = TLS_DTLS_CID_ENABLED;
 	#else
@@ -101,7 +108,6 @@ int set_socket_dtls_options(int sock)
 		LOG_ERR("Failed to setup CID, errno %d\n", errno);
 		return -errno;
 	}
-
 
 	return 0;
 }
