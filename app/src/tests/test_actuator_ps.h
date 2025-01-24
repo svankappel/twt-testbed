@@ -25,9 +25,9 @@ void test_actuator_ps(void * test_settings);
  * This structure contains the settings used to configure the actuator power save test.
  *
  * @param test_id identifier for the test.
- * @param test_time_s Duration of the test in seconds.
- * @param min_interval Minimum interval between notifications (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
- * @param max_interval Maximum interval between notifications (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
+ * @param test_time_s Duration of the test (seconds)
+ * @param min_interval Minimum interval between notifications (seconds) (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
+ * @param max_interval Maximum interval between notifications (seconds) (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
  * @param echo Enable or disable echo functionality (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
  * @param ps_mode Power save mode to be tested.
  * @param ps_wakeup_mode Power save wakeup mode to be tested.

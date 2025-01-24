@@ -24,13 +24,13 @@ void test_actuator_twt(void * test_settings);
  *
  * This structure contains the settings used to configure the actuator TWT test.
  *
- * @param twt_interval Interval for TWT
- * @param twt_wake_interval Wake interval for TWT
+ * @param twt_interval Interval for TWT (ms)
+ * @param twt_wake_interval Wake interval for TWT (ms)
  * @param test_id Identifier for the test.
- * @param min_interval Minimum interval between notifications (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
- * @param max_interval Maximum interval between notifications (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
+ * @param min_interval Minimum interval between notifications (seconds) (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
+ * @param max_interval Maximum interval between notifications (seconds) (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
  * @param echo Enable or disable echo functionality (only applicable if CONFIG_COAP_TWT_TESTBED_SERVER is defined).
- * @param test_time_s Duration of the test in seconds.
+ * @param test_time_s Duration of the test (seconds).
  * @param emergency_uplink Enable or disable emergency for uplink transmissions.
  */
 struct test_actuator_twt_settings {
