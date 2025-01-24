@@ -192,13 +192,20 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
         if(test_settings.echo){
 
             // Change the payload {"actuator-value":x} to {"actuator-echo":x}
-            char echo[payload_len];
-            snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
+            char echo1[payload_len];
+            char echo2[payload_len];
+            snprintf(echo1, sizeof(echo1), "{\"actuator-ech1\":%.*s", payload_len - 18, payload + 18);
+            snprintf(echo2, sizeof(echo2), "{\"actuator-ech2\":%.*s", payload_len - 18, payload + 18);
+
+            //double echo
+            coap_emergency_enable();
+            coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo1);
+            coap_emergency_disable();
 
             //make sure the echo is sent in the next session (adding 100ms because of the clock drift that can create up to 100ms error)
             k_sleep(K_MSEC(test_settings.twt_wake_interval*2+100)); 
 
-            coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
+            coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo2);
 
             coap_init_pool(5000); //reset the pool because this specific request is not responded
                         //  -> the init avoid the pool to generate warnings
