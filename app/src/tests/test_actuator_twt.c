@@ -195,7 +195,8 @@ static void handle_coap_response(uint8_t * payload, uint16_t payload_len)
             char echo[payload_len];
             snprintf(echo, sizeof(echo), "{\"actuator-echo\":%.*s", payload_len - 18, payload + 18);
 
-            k_sleep(K_MSEC(test_settings.twt_wake_interval*2)); //make sure the echo is sent in the next session
+            //make sure the echo is sent in the next session (adding 100ms because of the clock drift that can create up to 100ms error)
+            k_sleep(K_MSEC(test_settings.twt_wake_interval*2+100)); 
 
             coap_put(TESTBED_ACTUATOR_ECHO_RESOURCE, echo);
 
