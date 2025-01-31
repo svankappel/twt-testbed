@@ -252,8 +252,24 @@ static void run_test()
         }else{
             break;
         }
+
+        //recovery ptk test
+        static int ptk_recoveries_cnt = 0;
+        //wait for the end of the session
+        k_sleep(K_MSEC(test_settings.twt_wake_interval+test_settings.wake_ahead_ms+10));
+        uint32_t oldest = get_oldest_request_time();
+        LOG_INF("Oldest request time: %d", oldest);
+
+        //check if a packet is bufferd at AP
+        if(oldest > test_settings.twt_interval){
+            ptk_recoveries_cnt++;
+            wifi_twt_teardown();
+            k_sleep(K_MSEC(150));
+            configure_twt(&test_settings);
+        }
     }
     k_sleep(K_MSEC(test_settings.twt_interval*2));
+    LOG_INF("Total recoveries: %d", control.recover.cnt);
 }
 //--------------------------------------------------------------------
 

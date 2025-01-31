@@ -176,6 +176,34 @@ void remove_timedout_requests()
 	}
 }
 
+// Get the time of the oldest request in the pool - recovery ptk test
+uint32_t get_oldest_request_time()
+{
+	uint32_t oldest_time = 0;
+	uint32_t current_time = k_uptime_get_32();
+
+	// Lock the pool mutex
+	k_mutex_lock(&pool_mutex, K_FOREVER);
+
+	// Iterate through the pool to find the oldest request
+	for (int i = 0; i < COAP_CLIENT_POOL_SIZE; i++)
+	{
+		if (pending_requests_pool[i].used == 1)
+		{
+			uint32_t request_age = current_time - pending_requests_pool[i].timestamp;
+			if (request_age > oldest_time)
+			{
+				oldest_time = request_age;
+			}
+		}
+	}
+
+	k_mutex_unlock(&pool_mutex);
+
+	// If no requests are found, return 0
+	return oldest_time;
+}
+
 
 // Add a pending request to the pool
 int add_pending_request(uint8_t * token)

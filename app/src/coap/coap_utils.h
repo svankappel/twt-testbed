@@ -68,5 +68,8 @@ int add_pending_request(uint8_t * token);
  */
 uint32_t remove_pending_request(uint8_t * token);
 
+//recovery ptk test
+uint32_t get_oldest_request_time();
+
 #endif // COAP_UTILS_H
 

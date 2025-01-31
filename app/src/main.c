@@ -134,30 +134,34 @@ int main(void)
 
     //this code run the tests defined in the configuration
     //comment the following line to run custom tests instead
-    #define TESTRUNNER
+    //#define TESTRUNNER
 
     #ifdef TESTRUNNER
-    run_tests();
+    //run_tests();
     #else
     //example - run 12 sensor tests with different durations of 8 to 64 ms and intervals of 5 to 20 seconds
+
+    static int i = 0;
+    struct test_sensor_twt_settings test_settings1 = {
+                    .iterations = 1000,
+                    .twt_interval = 5000,
+                    .twt_wake_interval = 32,
+                    .test_id = i++, 
+                    .recover = false,
+                    .wake_ahead_ms = 100,
+    };
+    test_sensor_twt(&test_settings1);
+
+    struct test_sensor_twt_settings test_settings2 = {
+                    .iterations = 1000,
+                    .twt_interval = 10000,
+                    .twt_wake_interval = 32,
+                    .test_id = i++, 
+                    .recover = false,
+                    .wake_ahead_ms = 100,
+    };
+    test_sensor_twt(&test_settings2);
    
-    for(int interval = 5000; interval <= 20000; interval *= 2)
-    {
-        for(int duration = 8; duration <= 64; duration *= 2)
-        {
-            static int i = 0;
-            struct test_sensor_twt_settings test_settings = {
-                            .iterations = 1000,
-                            .twt_interval = interval,
-                            .twt_wake_interval = duration,
-                            .test_id = i++, 
-                            .recover = false,
-                            .wake_ahead_ms = 100,
-            };
-            test_sensor_twt(&test_settings);
-        }
-    }
-    
     #endif //TESTRUNNER
 
 
