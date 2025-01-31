@@ -137,12 +137,10 @@ int main(void)
     struct net_if *iface = net_if_get_first_wifi();
     struct net_if_ipv6 *iface_ipv6;
     net_if_config_ipv6_get(iface, &iface_ipv6);
-
-    net_if_ipv6_set_base_reachable_time(iface, 120000);
-
-    
+    net_if_ipv6_set_base_reachable_time(iface, 1200000);
     net_if_ipv6_set_reachable_time(iface_ipv6);
 
+/*
     struct test_sensor_ps_settings test_settings = {
                     .iterations = 1000,
                     .ps_mode= PS_MODE_LEGACY,
@@ -151,10 +149,10 @@ int main(void)
                     .send_interval=5000,
     };
     test_sensor_ps(&test_settings);
-
+*/
     //this code run the tests defined in the configuration
     //comment the following line to run custom tests instead
-    #define TESTRUNNER
+    //#define TESTRUNNER
 
     #ifdef TESTRUNNER
     run_tests();
